@@ -12,8 +12,8 @@ async function server() {
       transform: true,
       whitelist: true,
       forbidNonWhitelisted: true,
-      exceptionFactory: (errors) => {
-        const messages = errors.map((error) => {
+      exceptionFactory: errors => {
+        const messages = errors.map(error => {
           return {
             property: error.property,
             message: Object.values(error.constraints).join(', '),
@@ -29,7 +29,7 @@ async function server() {
     }),
   );
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 8000);
 }
 
 server();
