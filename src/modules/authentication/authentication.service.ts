@@ -12,6 +12,8 @@ import { RegisterDto } from './dto/register.dto';
 import { User, UserDocument } from 'src/schemas/user.schema';
 import { generateUsername } from 'src/common/utils/generators';
 import { JwtService } from '../jwt/jwt.service';
+import { UserRole } from 'src/enums/user-role.enum';
+import { RolePermissions } from 'src/common/constants/roles-permissions.constant';
 
 @Injectable()
 export class AuthService {
@@ -70,6 +72,9 @@ export class AuthService {
     }
 
     try {
+      const defaultRole = UserRole.USER;
+      const permissions = RolePermissions[defaultRole];
+
       const username =
         (await generateUsername(firstName, lastName, this.userModel)) ||
         `${firstName}.${lastName}_${Date.now()}`;
@@ -85,14 +90,23 @@ export class AuthService {
         countryCode,
         phoneNumber,
         createdBy: 'System',
+        role: defaultRole,
+        permissions,
       };
 
       const user = await this.userModel.create({ ...newUserData });
 
       const token = this.jwtService.generateToken(
         user?._id?.toString(),
+        user.firstName,
+        user.lastName,
         user.phoneNumber,
+        user.email,
+        user.username,
         user.role,
+        user.permissions,
+        user.countryCode,
+        user.createdBy,
       );
 
       return {

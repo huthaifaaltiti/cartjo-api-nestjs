@@ -74,7 +74,7 @@ export class User extends Document {
   @Prop()
   lastLogin?: Date;
 
-  @Prop({ type: [String] })
+  @Prop({ type: [String], default: [] })
   permissions: string[];
 
   @Prop()
