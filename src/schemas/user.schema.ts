@@ -22,7 +22,7 @@ export class User extends Document {
   @Prop({ required: false })
   lastName?: string;
 
-  @Prop({ required: false, set: (value: string) => hashSync(value, 12) })
+  @Prop({ required: false })
   username?: string;
 
   @Prop({ required: false, default: null })

@@ -12,9 +12,16 @@ import {
 export class LoginDto {
   @IsString()
   @IsNotEmpty({ message: 'Identifier is required' })
-  @Matches(/^(\d{9,15}|\S+@\S+\.\S+)$/, {
-    message: 'Identifier must be a valid phone number or email address',
-  })
+  // @Matches(/^(\d{9,15}|\S+@\S+\.\S+)$/, {
+  //   message: 'Identifier must be a valid phone number or email address',
+  // })
+  @Matches(
+    /^((\d{9,15})|([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})|([a-zA-Z0-9_.-]{3,30}))$/,
+    {
+      message:
+        'Identifier must be a valid phone number, email address, or username',
+    },
+  )
   identifier: string;
 
   @IsString()

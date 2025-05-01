@@ -19,7 +19,11 @@ export class AuthorizationService {
     password: string,
   ): Promise<User | null> {
     const user = await this.userModel.findOne({
-      $or: [{ email: identifier }, { phoneNumber: identifier }],
+      $or: [
+        { email: identifier },
+        { phoneNumber: identifier },
+        { username: identifier },
+      ],
     });
 
     if (user && (await bcrypt.compare(password, user.password))) {
@@ -42,7 +46,7 @@ export class AuthorizationService {
         getMessage('authorization_InvalidCredentials', lang),
         {
           cause: new Error(),
-          description: 'Validation error',
+          description: 'Credentials error',
         },
       );
     }
