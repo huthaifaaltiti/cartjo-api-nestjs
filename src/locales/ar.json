@@ -1,0 +1,6 @@
+{
+  "authentication_termsAndConditionsRequired": "يجب قبول الشروط والأحكام",
+  "authentication_emailAlreadyInUse": "البريد الإلكتروني مستخدم بالفعل",
+  "users_userAlreadyExists": "المستخدم موجود بالفعل",
+  "users_errWhileCreatingUser": "حدث خطأ أثناء إنشاء المستخدم"
+}

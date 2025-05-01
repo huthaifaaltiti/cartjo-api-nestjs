@@ -1,12 +1,50 @@
-import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsEmail,
+  IsIn,
+  IsNotEmpty,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class RegisterDto {
-  @IsNotEmpty()
-  username: string;
+  @IsString()
+  @IsNotEmpty({ message: 'First name is required' })
+  @MinLength(1, { message: 'First name cannot be empty' })
+  firstName: string;
 
-  @IsEmail()
+  @IsString()
+  @IsNotEmpty({ message: 'Last name is required' })
+  @MinLength(1, { message: 'Last name cannot be empty' })
+  lastName: string;
+  @IsNotEmpty()
+  @IsString()
+  countryCode: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Phone number is required' })
+  @MinLength(1, { message: 'Phone number cannot be empty' })
+  phoneNumber: string;
+
+  @IsString()
+  @IsEmail({}, { message: 'Invalid email format' })
+  @IsNotEmpty({ message: 'Email is required' })
   email: string;
 
-  @MinLength(6)
+  @IsString()
+  @IsNotEmpty({ message: 'Password is required' })
+  @MinLength(6, { message: 'Password must be at least 6 characters long' })
+  @MaxLength(20, { message: 'Password cannot exceed 20 characters' })
   password: string;
+
+  @IsIn(['en', 'ar'], { message: 'Language must be either "en" or "ar"' })
+  lang: 'en' | 'ar';
+
+  @IsBoolean({ message: 'Terms acceptance must be a boolean value' })
+  @IsNotEmpty({ message: 'You must accept the terms' })
+  termsAccepted: boolean;
+
+  @IsBoolean({ message: 'Marketing emails preference must be a boolean value' })
+  marketingEmails?: boolean;
 }
