@@ -6,6 +6,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/authentication/authentication.module';
 import { JwtModule } from './modules/jwt/jwt.module';
+import { AuthorizationModule } from './modules/authorization/authorization.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { JwtModule } from './modules/jwt/jwt.module';
     MongooseModule.forRoot(process.env.DB_URI),
     AuthModule,
     JwtModule,
+    AuthorizationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

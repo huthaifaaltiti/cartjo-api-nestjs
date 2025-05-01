@@ -3,5 +3,8 @@
   "authentication_emailAlreadyInUse": "البريد الإلكتروني مستخدم بالفعل",
   "authentication_phoneNumberAlreadyInUse": "رقم الهاتف مستخدم بالفعل",
   "users_userAlreadyExists": "المستخدم موجود بالفعل",
-  "users_errWhileCreatingUser": "حدث خطأ أثناء إنشاء المستخدم"
+  "users_errWhileCreatingUser": "حدث خطأ أثناء إنشاء المستخدم",
+  "users_userCreatedSuccessfully": "تمّ إنشاء المستخدم بنجاح",
+  "authorization_loginSuccessful": "تم تسجيل الدخول بنجاح",
+  "authorization_InvalidCredentials": "بيانات الاعتماد غير صحيحة"
 }

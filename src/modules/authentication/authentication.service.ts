@@ -22,7 +22,7 @@ export class AuthService {
 
   async register(
     dto: RegisterDto,
-  ): Promise<{ isSuccess: boolean; user: User; token: string }> {
+  ): Promise<{ isSuccess: boolean; msg: string; user: User; token: string }> {
     const {
       termsAccepted,
       lang,
@@ -95,7 +95,12 @@ export class AuthService {
         user.role,
       );
 
-      return { isSuccess: true, user, token };
+      return {
+        isSuccess: true,
+        msg: getMessage('users_userCreatedSuccessfully', lang),
+        user,
+        token,
+      };
     } catch (err) {
       if (err instanceof MongoError && err.code === 11000) {
         throw new BadRequestException(

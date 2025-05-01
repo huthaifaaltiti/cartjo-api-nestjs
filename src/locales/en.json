@@ -3,5 +3,8 @@
   "authentication_emailAlreadyInUse": "Email is already in use",
   "authentication_phoneNumberAlreadyInUse": "Phone number is already in use",
   "users_userAlreadyExists": "The user already exists",
-  "users_errWhileCreatingUser": "An unexpected error occurred while creating the user"
+  "users_errWhileCreatingUser": "An unexpected error occurred while creating the user",
+  "users_userCreatedSuccessfully": "User created successfully",
+  "authorization_loginSuccessful": "Login Successful",
+  "authorization_InvalidCredentials": "Invalid Credentials"
 }
