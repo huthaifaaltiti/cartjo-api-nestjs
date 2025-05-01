@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
-  NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -12,10 +11,14 @@ import { getMessage } from 'src/common/utils/translator';
 import { RegisterDto } from './dto/register.dto';
 import { User, UserDocument } from 'src/schemas/user.schema';
 import { generateUsername } from 'src/common/utils/generators';
+import { JwtService } from '../jwt/jwt.service';
 
 @Injectable()
 export class AuthService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private jwtService: JwtService,
+  ) {}
 
   async register(
     dto: RegisterDto,
@@ -43,9 +46,22 @@ export class AuthService {
     }
 
     const existingUserWithEmail = await this.userModel.findOne({ email });
+    const existingUserWithPhoneNumber = await this.userModel.findOne({
+      phoneNumber,
+    });
     if (existingUserWithEmail) {
       throw new BadRequestException(
         getMessage('authentication_emailAlreadyInUse', lang),
+        {
+          cause: new Error(),
+          description: 'Validation error',
+        },
+      );
+    }
+
+    if (existingUserWithPhoneNumber) {
+      throw new BadRequestException(
+        getMessage('authentication_phoneNumberAlreadyInUse', lang),
         {
           cause: new Error(),
           description: 'Validation error',
@@ -73,12 +89,14 @@ export class AuthService {
 
       const user = await this.userModel.create({ ...newUserData });
 
-      const token = '';
+      const token = this.jwtService.generateToken(
+        user?._id?.toString(),
+        user.phoneNumber,
+        user.role,
+      );
 
       return { isSuccess: true, user, token };
     } catch (err) {
-      console.log(err);
-
       if (err instanceof MongoError && err.code === 11000) {
         throw new BadRequestException(
           getMessage('users_userAlreadyExists', lang),

@@ -1,6 +1,7 @@
 {
   "authentication_termsAndConditionsRequired": "You must accept the terms and conditions",
   "authentication_emailAlreadyInUse": "Email is already in use",
+  "authentication_phoneNumberAlreadyInUse": "Phone number is already in use",
   "users_userAlreadyExists": "The user already exists",
   "users_errWhileCreatingUser": "An unexpected error occurred while creating the user"
 }
