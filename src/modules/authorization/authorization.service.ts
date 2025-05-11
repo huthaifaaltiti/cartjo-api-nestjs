@@ -38,16 +38,25 @@ export class AuthorizationService {
     password: string,
     rememberMe: boolean,
     lang: 'ar' | 'en' = 'en',
-  ): Promise<{ token: string }> {
+  ): Promise<{ success?: boolean; message?: string; token?: string }> {
     const user = await this.validateUser(identifier, password);
 
     if (!user) {
+      // throw new UnauthorizedException(
+      //   getMessage('authorization_InvalidCredentials', lang),
+      //   {
+      //     cause: new Error(),
+      //     description: 'Credentials error',
+      //   },
+      // );
+      // throw new NotFoundException({
+      //   statusCode: 401,
+      //   message: getMessage('authorization_InvalidCredentials', lang),
+      //   description: 'Credentials error',
+      // });
+
       throw new UnauthorizedException(
         getMessage('authorization_InvalidCredentials', lang),
-        {
-          cause: new Error(),
-          description: 'Credentials error',
-        },
       );
     }
 
