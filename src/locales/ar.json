@@ -6,5 +6,9 @@
   "users_errWhileCreatingUser": "حدث خطأ أثناء إنشاء المستخدم",
   "users_userCreatedSuccessfully": "تمّ إنشاء المستخدم بنجاح",
   "authorization_loginSuccessful": "تم تسجيل الدخول بنجاح",
-  "authorization_InvalidCredentials": "بيانات الاعتماد غير صحيحة"
+  "authorization_InvalidCredentials": "بيانات الاعتماد غير صحيحة",
+  "authorization_noAccess": "لا توجد صلاحيات",
+  "media_mediaUploadedSuccessfully": "تم تحميل الوسائط بنجاح",
+  "media_mediaUploadFailed": "فشل تحميل الوسائط",
+  "media_noMediaFound": "الوسائط غير موجودة"
 }
