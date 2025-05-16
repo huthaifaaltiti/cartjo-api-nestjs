@@ -10,5 +10,10 @@
   "authorization_noAccess": "Access denied",
   "media_mediaUploadedSuccessfully": "Media uploaded successfully",
   "media_mediaUploadFailed": "Media failed to upload",
-  "media_noMediaFound": "No media found"
+  "media_noMediaFound": "No media found",
+  "media_notSupportedDataType": "Not supported data type",
+  "media_sheetUploadedSuccessfully": "Sheet uploaded successfully",
+  "media_sheetUploadedFailed": "Sheet uploading failed",
+  "location_locationNotFound": "Location not found",
+  "location_locationDeletedSuccessfully": "Location deleted successfully"
 }

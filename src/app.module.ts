@@ -10,6 +10,7 @@ import { AuthModule } from './modules/authentication/authentication.module';
 import { JwtModule } from './modules/jwt/jwt.module';
 import { AuthorizationModule } from './modules/authorization/authorization.module';
 import { MediaModule } from './modules/media/media.module';
+import { LocationModule } from './modules/location/location.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { MediaModule } from './modules/media/media.module';
     JwtModule,
     AuthorizationModule,
     MediaModule,
+    LocationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

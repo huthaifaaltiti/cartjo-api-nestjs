@@ -22,8 +22,9 @@ export class MediaService {
 
     const user = await this.userModel.findById(userId);
 
-    if (!user)
+    if (!user) {
       throw new ForbiddenException(getMessage('authorization_noAccess', lang));
+    }
 
     if (!file) {
       return {
@@ -42,8 +43,10 @@ export class MediaService {
     } else if (file?.mimetype?.startsWith('video/')) {
       uploadPath = 'uploads/video';
     } else if (
-      file?.mimetype?.startsWith('application/') &&
-      file?.mimetype?.includes('excel')
+      (file?.mimetype?.startsWith('application/') &&
+        file?.mimetype?.includes('excel')) ||
+      (file?.mimetype?.startsWith('application/') &&
+        file?.mimetype?.includes('sheet'))
     ) {
       uploadPath = 'uploads/doc/sheet';
     } else if (file?.mimetype?.startsWith('application/')) {

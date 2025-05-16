@@ -10,5 +10,10 @@
   "authorization_noAccess": "لا توجد صلاحيات",
   "media_mediaUploadedSuccessfully": "تم تحميل الوسائط بنجاح",
   "media_mediaUploadFailed": "فشل تحميل الوسائط",
-  "media_noMediaFound": "الوسائط غير موجودة"
+  "media_noMediaFound": "الوسائط غير موجودة",
+  "media_notSupportedDataType": "نوع البيانات الدخلة غير مدعوم",
+  "media_sheetUploadedSuccessfully": "تم تحميل ورقة العمل بنجاح",
+  "media_sheetUploadedFailed": "فشل تحميل ورقة العمل",
+  "location_locationNotFound": "لم يتم إيجاد الموقع",
+  "location_locationDeletedSuccessfully": "تم حذف الموقع بنجاح"
 }

@@ -29,6 +29,11 @@ import { User, UserSchema } from 'src/schemas/user.schema';
             uploadPath = './uploads/audio';
           } else if (file.mimetype.startsWith('video/')) {
             uploadPath = './uploads/video';
+          } else if (
+            file?.mimetype?.startsWith('application/') &&
+            file?.mimetype?.includes('excel')
+          ) {
+            uploadPath = 'uploads/doc/sheet';
           } else if (file.mimetype.startsWith('application/')) {
             uploadPath = './uploads/doc';
           } else {
@@ -57,5 +62,6 @@ import { User, UserSchema } from 'src/schemas/user.schema';
   ],
   providers: [MediaService],
   controllers: [MediaController],
+  exports: [MediaService],
 })
 export class MediaModule {}

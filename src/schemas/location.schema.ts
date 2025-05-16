@@ -1,13 +1,24 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 
-@Schema({ timestamps: true })
-export class Location extends Document {
+export type LocationDocument = Location & Document;
+
+@Schema({ _id: false }) // For embedded sub-documents, this prevents auto-generating _id for each subLocation
+class LocationName {
   @Prop({ required: true })
-  name: string;
+  en: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'Location', default: null })
-  parent: Types.ObjectId | null; // null means it's a main town
+  @Prop({ required: true })
+  ar: string;
+}
+
+@Schema()
+export class Location {
+  @Prop({ type: LocationName, required: true })
+  name: LocationName;
+
+  @Prop({ type: [MongooseSchema.Types.Mixed], default: [] })
+  subLocations: Location[];
 }
 
 export const LocationSchema = SchemaFactory.createForClass(Location);
