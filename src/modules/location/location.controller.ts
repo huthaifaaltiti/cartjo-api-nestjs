@@ -1,10 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
-  Put,
   Request,
   UploadedFile,
   UseGuards,
@@ -54,7 +54,7 @@ export class LocationController {
   // }
 
   @UseGuards(AuthGuard('jwt'))
-  @Put('delete/:id')
+  @Delete('delete/:id')
   deleteLocation(
     @Param('id') id: string,
     @Body() body: DeleteLocationBodyDto,
