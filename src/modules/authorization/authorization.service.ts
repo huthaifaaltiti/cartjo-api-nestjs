@@ -38,26 +38,16 @@ export class AuthorizationService {
     password: string,
     rememberMe: boolean,
     lang: 'ar' | 'en' = 'en',
-  ): Promise<{ success?: boolean; message?: string; token?: string }> {
+  ): Promise<{ isSuccess?: boolean; message?: string; token?: string | null }> {
     const user = await this.validateUser(identifier, password);
 
     if (!user) {
-      // throw new UnauthorizedException(
-      //   getMessage('authorization_InvalidCredentials', lang),
-      //   {
-      //     cause: new Error(),
-      //     description: 'Credentials error',
-      //   },
-      // );
-      // throw new NotFoundException({
-      //   statusCode: 401,
-      //   message: getMessage('authorization_InvalidCredentials', lang),
-      //   description: 'Credentials error',
-      // });
-
-      throw new UnauthorizedException(
-        getMessage('authorization_InvalidCredentials', lang),
-      );
+      throw new UnauthorizedException({
+        statusCode: 401,
+        isSuccess: false,
+        message: getMessage('authorization_InvalidCredentials', lang),
+        token: null,
+      });
     }
 
     if (rememberMe) {
@@ -70,6 +60,9 @@ export class AuthorizationService {
       phoneNumber: user.phoneNumber,
       email: user.email,
       role: user.role,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      canManage: user.canManage,
     };
 
     const expiresIn = rememberMe
