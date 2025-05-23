@@ -64,6 +64,9 @@ export class User extends Document {
   })
   role: UserRole;
 
+  @Prop({ default: false })
+  canManage: boolean;
+
   @Prop({ default: true })
   isActive: boolean;
 
@@ -93,3 +96,10 @@ export class User extends Document {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+
+UserSchema.pre<UserDocument>('save', function (next) {
+  if (this.role === UserRole.ADMINISTRATOR || this.role === UserRole.OWNER) {
+    this.canManage = true;
+  }
+  next();
+});
