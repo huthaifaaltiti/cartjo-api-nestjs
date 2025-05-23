@@ -3,6 +3,7 @@ type LocationNode = {
     en: string;
     ar: string;
   };
+  price: string;
   subLocations: LocationNode[];
 };
 
@@ -15,12 +16,14 @@ export const buildTownHierarchy = (rows: any[][]): LocationNode[] => {
     const name_en = row[1]?.toString().trim();
     const name_ar = row[2]?.toString().trim();
     const parent_en = row[3]?.toString().trim();
+    const price = row[5]?.toString().trim();
 
     if (!name_en || !name_ar) continue;
 
     if (!townsMap.has(name_en)) {
       townsMap.set(name_en, {
         name: { en: name_en, ar: name_ar },
+        price,
         subLocations: [],
       });
     }
