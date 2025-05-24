@@ -8,7 +8,6 @@ import { excelSheetParser } from 'src/common/utils/excelSheetParser';
 import { buildTownHierarchy } from 'src/common/utils/buildTownHierarchy';
 import { Location, LocationDocument } from 'src/schemas/location.schema';
 import { validateUserAccess } from 'src/common/utils/validateUserAccess';
-import { UpdateLocationBodyDto } from './dto/update-location-body.dto';
 import { DeleteLocationBodyDto } from './dto/delete-location-body.dto';
 
 @Injectable()
@@ -67,8 +66,18 @@ export class LocationService {
     }
   }
 
-  async getLocations(): Promise<Location[]> {
-    return this.locationModel.find().lean().exec();
+  async getLocations(lang: 'en' | 'ar' = 'en'): Promise<{
+    isSuccess: boolean;
+    message: string;
+    locations: Location[];
+  }> {
+    const locations = await this.locationModel.find().lean().exec();
+
+    return {
+      isSuccess: true,
+      message: getMessage('location_locationRetrievedSuccessfully', lang),
+      locations,
+    };
   }
 
   // async updateLocation(

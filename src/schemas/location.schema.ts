@@ -17,6 +17,9 @@ export class Location {
   @Prop({ type: LocationName, required: true })
   name: LocationName;
 
+  @Prop({ required: true })
+  price: string;
+
   @Prop({ type: [MongooseSchema.Types.Mixed], default: [] })
   subLocations: Location[];
 }
