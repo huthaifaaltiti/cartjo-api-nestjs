@@ -11,6 +11,7 @@ import { JwtModule } from './modules/jwt/jwt.module';
 import { AuthorizationModule } from './modules/authorization/authorization.module';
 import { MediaModule } from './modules/media/media.module';
 import { LocationModule } from './modules/location/location.module';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { LocationModule } from './modules/location/location.module';
     AuthorizationModule,
     MediaModule,
     LocationModule,
+    UserModule
   ],
   controllers: [AppController],
   providers: [AppService],
