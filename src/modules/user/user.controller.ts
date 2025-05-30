@@ -1,7 +1,8 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
 import { UserService } from './user.service';
+import { GetAllUsersBodyDto } from './dto/get-all-users-body.dto';
 
 @Controller('/api/v1/user')
 export class UserController {
@@ -9,7 +10,9 @@ export class UserController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get('all')
-  getUsers() {
-    return this.userService.getUsers();
+  getUsers(@Body() body: GetAllUsersBodyDto) {
+    const { lang, limit, lastId } = body;
+
+    return this.userService.getUsers({ lang, limit, lastId });
   }
 }

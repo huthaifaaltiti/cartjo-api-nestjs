@@ -16,5 +16,6 @@
   "media_sheetUploadedFailed": "فشل تحميل ورقة العمل",
   "location_locationNotFound": "لم يتم إيجاد الموقع",
   "location_locationDeletedSuccessfully": "تم حذف الموقع بنجاح",
-  "location_locationRetrievedSuccessfully": "تم استرداد المواقع بنجاح"
+  "location_locationRetrievedSuccessfully": "تم استرداد المواقع بنجاح",
+  "user_locationRetrievedSuccessfully": "تم استرداد المستخدمين بنجاح"
 }

@@ -16,5 +16,6 @@
   "media_sheetUploadedFailed": "Sheet uploading failed",
   "location_locationNotFound": "Location not found",
   "location_locationDeletedSuccessfully": "Location deleted successfully",
-  "location_locationRetrievedSuccessfully": "Locations retrieved successfully"
+  "location_locationRetrievedSuccessfully": "Locations retrieved successfully",
+  "user_locationRetrievedSuccessfully": "Users retrieved successfully"
 }
