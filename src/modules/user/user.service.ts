@@ -16,17 +16,29 @@ export class UserService {
     lang?: 'en' | 'ar';
     limit?: number;
     lastId?: string; // the _id of the last fetched user
+    search?: string;
   }): Promise<{
     isSuccess: boolean;
     message: string;
     users: User[];
   }> {
-    const { lang = 'en', limit = 10, lastId } = params;
+    const { lang = 'en', limit = 10, lastId, search } = params;
 
     const query: any = {};
 
     if (lastId) {
       query._id = { $lt: new Types.ObjectId(lastId) };
+    }
+
+    if (search) {
+      const searchRegex = new RegExp(search, 'i'); // case-insensitive regex
+
+      query.$or = [
+        { firstName: searchRegex },
+        { lastName: searchRegex },
+        { username: searchRegex },
+        { email: searchRegex },
+      ];
     }
 
     const users = await this.userModel

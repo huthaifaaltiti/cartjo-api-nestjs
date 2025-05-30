@@ -1,21 +1,24 @@
 import {
   IsIn,
   IsMongoId,
-  IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
 } from 'class-validator';
 
 export class GetAllUsersBodyDto {
+  @IsOptional()
   @IsNumber()
-  @IsNotEmpty()
-  limit: number;
+  limit?: number;
+
+  @IsOptional()
+  @IsString()
+  @IsMongoId()
+  lastId?: string;
 
   @IsString()
-  @IsNotEmpty()
-  @IsMongoId()
-  lastId: string | null;
+  @IsOptional()
+  search: string;
 
   @IsString()
   @IsIn(['en', 'ar'], { message: 'Language must be either "en" or "ar"' })

@@ -11,8 +11,8 @@ export class UserController {
   @UseGuards(AuthGuard('jwt'))
   @Get('all')
   getUsers(@Body() body: GetAllUsersBodyDto) {
-    const { lang, limit, lastId } = body;
+    const { lang, limit, lastId, search } = body;
 
-    return this.userService.getUsers({ lang, limit, lastId });
+    return this.userService.getUsers({ lang, limit, lastId, search });
   }
 }
