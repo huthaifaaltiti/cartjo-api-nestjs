@@ -20,6 +20,10 @@ import {
   UpdateUserStatusBodyDto,
   UpdateUserStatusParamsDto,
 } from './dto/update-user-status.dto';
+import {
+  UnDeleteUserBodyDto,
+  UnDeleteUserParamDto,
+} from './dto/un-delete-user.dto';
 
 @Controller('/api/v1/user')
 export class UserController {
@@ -45,6 +49,20 @@ export class UserController {
   @Delete('delete/:id')
   async deleteUser(
     @Request() req: any,
+    @Param() param: UnDeleteUserParamDto,
+    @Body() body: UnDeleteUserBodyDto,
+  ) {
+    const { user } = req;
+    const { lang } = body;
+    const { id } = param;
+
+    return this.userService.softDeleteUser(id, lang, user);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('un-delete/:id')
+  async unDeleteUser(
+    @Request() req: any,
     @Param() param: DeleteUserParamDto,
     @Body() body: DeleteUserBodyDto,
   ) {
@@ -52,7 +70,7 @@ export class UserController {
     const { lang } = body;
     const { id } = param;
 
-    return this.userService.softDeleteUser(id, lang, user);
+    return this.userService.softUnDeleteUser(id, lang, user);
   }
 
   @UseGuards(AuthGuard('jwt'))

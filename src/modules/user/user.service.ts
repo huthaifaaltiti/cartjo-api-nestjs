@@ -148,6 +148,33 @@ export class UserService {
     };
   }
 
+  async softUnDeleteUser(
+    id: string,
+    lang: 'en' | 'ar' = 'en',
+    requestingUser: any,
+  ): Promise<{
+    isSuccess: boolean;
+    message: string;
+  }> {
+    validateUserRoleAccess(requestingUser, lang);
+
+    const user = await this.userModel.findById(id);
+
+    if (!user) {
+      throw new NotFoundException(getMessage('user_userNotFound', lang));
+    }
+
+    user.isDeleted = false;
+    user.deletedAt = null;
+
+    await user.save();
+
+    return {
+      isSuccess: true,
+      message: getMessage('user_userUnDeletedSuccessfully', lang),
+    };
+  }
+
   async updateUserStatus(
     id: string,
     isActive: boolean,
@@ -161,8 +188,13 @@ export class UserService {
 
     const user = await this.userModel.findById(id);
 
-    if (!user || user.isDeleted) {
+    if (!user) {
       throw new NotFoundException(getMessage('user_userNotFound', lang));
+    }
+
+    if (isActive) {
+      user.isDeleted = false;
+      user.deletedAt = null;
     }
 
     user.isActive = isActive;

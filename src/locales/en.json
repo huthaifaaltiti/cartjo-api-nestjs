@@ -23,6 +23,7 @@
   "user_usersStatsRetrievedSuccessfully": "Users statics retrieved successfully",
   "user_userNotFound": "User not found",
   "user_userDeletedSuccessfully": "User deleted successfully",
+  "user_userUnDeletedSuccessfully": "User un-deleted successfully",
   "user_cannotDeleteOwner": "Can not delete owners",
   "user_userActivatedSuccessfully": "User has been activated successfully",
   "user_userDeactivatedSuccessfully": "User has been deactivated successfully"
