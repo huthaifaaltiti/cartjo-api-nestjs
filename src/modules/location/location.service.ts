@@ -6,8 +6,8 @@ import { MediaService } from '../media/media.service';
 import { getMessage } from 'src/common/utils/translator';
 import { excelSheetParser } from 'src/common/utils/excelSheetParser';
 import { buildTownHierarchy } from 'src/common/utils/buildTownHierarchy';
+import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { Location, LocationDocument } from 'src/schemas/location.schema';
-import { validateUserAccess } from 'src/common/utils/validateUserAccess';
 import { DeleteLocationBodyDto } from './dto/delete-location-body.dto';
 
 @Injectable()
@@ -27,7 +27,7 @@ export class LocationService {
     message: string;
     locations: Location[] | null;
   }> {
-    validateUserAccess(requestingUser);
+    validateUserRoleAccess(requestingUser, lang);
 
     if (
       (file?.mimetype?.startsWith('application/') &&
@@ -85,7 +85,7 @@ export class LocationService {
   //   updateData: UpdateLocationBodyDto,
   //   requestingUser: any,
   // ): Promise<Location> {
-  //   validateUserAccess(requestingUser);
+  //    validateUserRoleAccess(requestingUser, lang);
 
   //   const { ar, en } = updateData;
 
@@ -110,9 +110,9 @@ export class LocationService {
     isSuccess: Boolean;
     message: string;
   }> {
-    validateUserAccess(requestingUser);
-
     const { lang } = body;
+
+    validateUserRoleAccess(requestingUser, lang);
 
     const deleted = await this.locationModel.findOneAndDelete({ _id: id });
 
