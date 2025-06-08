@@ -128,6 +128,13 @@ export class UserService {
       throw new NotFoundException(getMessage('user_userNotFound', lang));
     }
 
+    if (user.role === UserRole.OWNER) {
+      return {
+        isSuccess: false,
+        message: getMessage('user_cannotDeleteOwner', lang),
+      };
+    }
+
     user.isDeleted = true;
     user.isActive = false;
     user.deletedAt = new Date();

@@ -22,5 +22,6 @@
   "user_usersRetrievedSuccessfully": "Users retrieved successfully",
   "user_usersStatsRetrievedSuccessfully": "Users statics retrieved successfully",
   "user_userNotFound": "User not found",
-  "user_userDeletedSuccessfully": "User deleted successfully"
+  "user_userDeletedSuccessfully": "User deleted successfully",
+  "user_cannotDeleteOwner": "Can not delete owners"
 }
