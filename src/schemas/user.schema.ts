@@ -54,7 +54,6 @@ export class User extends Document {
   @Prop({
     required: false,
     set: (value: string) => hashSync(value, 12),
-    select: false,
   })
   password?: string;
 
