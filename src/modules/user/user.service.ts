@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 
 import { getMessage } from 'src/common/utils/translator';
+import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
+import { UserRole } from 'src/enums/user-role.enum';
 import { User, UserDocument } from 'src/schemas/user.schema';
 
 @Injectable()
@@ -14,7 +16,7 @@ export class UserService {
 
   async getUsers(params: {
     lang?: 'en' | 'ar';
-    limit?: number;
+    limit?: string;
     lastId?: string; // the _id of the last fetched user
     search?: string;
   }): Promise<{
@@ -44,13 +46,97 @@ export class UserService {
     const users = await this.userModel
       .find(query)
       .sort({ _id: -1 }) // newest first
-      .limit(limit)
+      .limit(Number(limit))
+      .select('-password')
       .lean(); // optional: return plain JS objects
 
     return {
       isSuccess: true,
-      message: getMessage('user_locationRetrievedSuccessfully', lang),
+      message: getMessage('user_usersRetrievedSuccessfully', lang),
       users,
+    };
+  }
+
+  async getUsersStats(lang?: 'en' | 'ar'): Promise<{
+    isSuccess: boolean;
+    message: string;
+    stats: {
+      totalUsers: number;
+      activeUsers: number;
+      inactiveUsers: number;
+      deletedUsers: number;
+      verifiedUsers: number;
+      unverifiedUsers: number;
+      admins: number;
+      normalUsers: number;
+      owners: number;
+    };
+  }> {
+    const [
+      totalUsers,
+      activeUsers,
+      deletedUsers,
+      verifiedUsers,
+      admins,
+      owners,
+    ] = await Promise.all([
+      this.userModel.countDocuments(),
+      this.userModel.countDocuments({ isActive: true, isDeleted: false }),
+      this.userModel.countDocuments({ isDeleted: true }),
+      this.userModel.countDocuments({ isPhoneVerified: true }),
+      this.userModel.countDocuments({ role: UserRole.ADMINISTRATOR }),
+      this.userModel.countDocuments({ role: UserRole.OWNER }),
+    ]);
+
+    const inactiveUsers = await this.userModel.countDocuments({
+      isActive: false,
+      isDeleted: false,
+    });
+    const unverifiedUsers = totalUsers - verifiedUsers;
+    const normalUsers = totalUsers - admins;
+
+    return {
+      isSuccess: true,
+      message: getMessage('user_usersStatsRetrievedSuccessfully', lang),
+      stats: {
+        totalUsers,
+        activeUsers,
+        inactiveUsers,
+        deletedUsers,
+        verifiedUsers,
+        unverifiedUsers,
+        admins,
+        normalUsers,
+        owners,
+      },
+    };
+  }
+
+  async softDeleteUser(
+    id: string,
+    lang: 'en' | 'ar' = 'en',
+    requestingUser: any,
+  ): Promise<{
+    isSuccess: boolean;
+    message: string;
+  }> {
+    validateUserRoleAccess(requestingUser, lang);
+
+    const user = await this.userModel.findById(id);
+
+    if (!user || user.isDeleted) {
+      throw new NotFoundException(getMessage('user_userNotFound', lang));
+    }
+
+    user.isDeleted = true;
+    user.isActive = false;
+    user.deletedAt = new Date();
+
+    await user.save();
+
+    return {
+      isSuccess: true,
+      message: getMessage('user_userDeletedSuccessfully', lang),
     };
   }
 }
