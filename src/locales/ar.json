@@ -17,5 +17,7 @@
   "location_locationNotFound": "لم يتم إيجاد الموقع",
   "location_locationDeletedSuccessfully": "تم حذف الموقع بنجاح",
   "location_locationRetrievedSuccessfully": "تم استرداد المواقع بنجاح",
-  "user_locationRetrievedSuccessfully": "تم استرداد المستخدمين بنجاح"
+  "user_locationRetrievedSuccessfully": "تم استرداد المستخدمين بنجاح",
+  "user_userNotFound": "المستخدم غير موجود",
+  "user_userDeletedSuccessfully": "تم حذف المستخدم بنجاح"
 }

@@ -4,6 +4,8 @@
   "authentication_phoneNumberAlreadyInUse": "Phone number is already in use",
   "users_userAlreadyExists": "The user already exists",
   "users_errWhileCreatingUser": "An unexpected error occurred while creating the user",
+  "authorization_accountDeleted": "Your account has been deleted. Please contact support.",
+  "authorization_accountInactive": "Your account is inactive. Please contact support.",
   "users_userCreatedSuccessfully": "User created successfully",
   "authorization_loginSuccessful": "Login Successful",
   "authorization_InvalidCredentials": "Invalid Credentials",
@@ -17,5 +19,8 @@
   "location_locationNotFound": "Location not found",
   "location_locationDeletedSuccessfully": "Location deleted successfully",
   "location_locationRetrievedSuccessfully": "Locations retrieved successfully",
-  "user_locationRetrievedSuccessfully": "Users retrieved successfully"
+  "user_usersRetrievedSuccessfully": "Users retrieved successfully",
+  "user_usersStatsRetrievedSuccessfully": "Users statics retrieved successfully",
+  "user_userNotFound": "User not found",
+  "user_userDeletedSuccessfully": "User deleted successfully"
 }
