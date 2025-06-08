@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Put,
   Query,
   Request,
   UseGuards,
@@ -15,6 +16,10 @@ import { GetUsersStatsBodyDto } from './dto/get-users-stats-body.dto';
 import { GetAllUsersQueryDto } from './dto/get-all-users-query.dto';
 import { DeleteUserBodyDto } from './dto/delete-user-body.dto';
 import { DeleteUserParamDto } from './dto/delete-user-param.dto';
+import {
+  UpdateUserStatusBodyDto,
+  UpdateUserStatusParamsDto,
+} from './dto/update-user-status.dto';
 
 @Controller('/api/v1/user')
 export class UserController {
@@ -48,5 +53,19 @@ export class UserController {
     const { id } = param;
 
     return this.userService.softDeleteUser(id, lang, user);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Put('status/:id')
+  async updateUserStatus(
+    @Param() param: UpdateUserStatusParamsDto,
+    @Body() body: UpdateUserStatusBodyDto,
+    @Request() req: any,
+  ) {
+    const { lang, isActive } = body;
+    const { user } = req;
+    const { id } = param;
+
+    return this.userService.updateUserStatus(id, isActive, lang, user);
   }
 }

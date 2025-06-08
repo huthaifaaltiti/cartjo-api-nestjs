@@ -6,6 +6,7 @@ import { getMessage } from 'src/common/utils/translator';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { UserRole } from 'src/enums/user-role.enum';
 import { User, UserDocument } from 'src/schemas/user.schema';
+import { Locale } from 'src/types/Locale';
 
 @Injectable()
 export class UserService {
@@ -144,6 +145,38 @@ export class UserService {
     return {
       isSuccess: true,
       message: getMessage('user_userDeletedSuccessfully', lang),
+    };
+  }
+
+  async updateUserStatus(
+    id: string,
+    isActive: boolean,
+    lang: Locale = 'en',
+    requestingUser: any,
+  ): Promise<{
+    isSuccess: boolean;
+    message: string;
+  }> {
+    validateUserRoleAccess(requestingUser, lang);
+
+    const user = await this.userModel.findById(id);
+
+    if (!user || user.isDeleted) {
+      throw new NotFoundException(getMessage('user_userNotFound', lang));
+    }
+
+    user.isActive = isActive;
+
+    await user.save();
+
+    return {
+      isSuccess: true,
+      message: getMessage(
+        isActive
+          ? 'user_userActivatedSuccessfully'
+          : 'user_userDeactivatedSuccessfully',
+        lang,
+      ),
     };
   }
 }
