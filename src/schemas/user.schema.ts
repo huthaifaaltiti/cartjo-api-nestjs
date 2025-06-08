@@ -51,7 +51,11 @@ export class User extends Document {
   @Prop({ required: false })
   birthDate?: Date;
 
-  @Prop({ required: false, set: (value: string) => hashSync(value, 12) })
+  @Prop({
+    required: false,
+    set: (value: string) => hashSync(value, 12),
+    select: false,
+  })
   password?: string;
 
   @Prop({ default: false })
