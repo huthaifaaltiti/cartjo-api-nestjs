@@ -20,6 +20,7 @@
   "location_locationDeletedSuccessfully": "Location deleted successfully",
   "location_locationRetrievedSuccessfully": "Locations retrieved successfully",
   "user_usersRetrievedSuccessfully": "Users retrieved successfully",
+  "user_userRetrievedSuccessfully": "User retrieved successfully",
   "user_usersStatsRetrievedSuccessfully": "Users statics retrieved successfully",
   "user_userNotFound": "User not found",
   "user_userDeletedSuccessfully": "User deleted successfully",

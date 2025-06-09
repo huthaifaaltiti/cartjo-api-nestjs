@@ -24,6 +24,8 @@ import {
   UnDeleteUserBodyDto,
   UnDeleteUserParamDto,
 } from './dto/un-delete-user.dto';
+import { GetUserParamDto, GetUserQueryDto } from './dto/get-user.dto';
+import { ALLOWED_AUTHENTICATED_ROLES } from 'src/common/constants/roles.constants';
 
 @Controller('/api/v1/user')
 export class UserController {
@@ -35,6 +37,22 @@ export class UserController {
     const { lang, limit, lastId, search } = query;
 
     return this.userService.getUsers({ lang, limit, lastId, search });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('/:id')
+  async getUser(
+    @Request() req: any,
+    @Param() param: GetUserParamDto,
+    @Query() query: GetUserQueryDto,
+  ) {
+    const { user } = req;
+    const { id } = param;
+    const { lang } = query;
+
+    return ALLOWED_AUTHENTICATED_ROLES.includes(user.role)
+      ? this.userService.getUserByAdmin(id, user, lang)
+      : this.userService.getUserData(id, user, lang);
   }
 
   @UseGuards(AuthGuard('jwt'))

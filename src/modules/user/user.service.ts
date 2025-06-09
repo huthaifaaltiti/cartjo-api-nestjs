@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 
 import { getMessage } from 'src/common/utils/translator';
+import { validateSameUserAccess } from 'src/common/utils/validateSameUserAccess';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { UserRole } from 'src/enums/user-role.enum';
 import { User, UserDocument } from 'src/schemas/user.schema';
@@ -57,6 +58,60 @@ export class UserService {
       isSuccess: true,
       message: getMessage('user_usersRetrievedSuccessfully', lang),
       users,
+    };
+  }
+
+  async getUserData(
+    id: string,
+    requestingUser: any,
+    lang?: Locale,
+  ): Promise<{
+    isSuccess: boolean;
+    message: string;
+    user: User | null;
+  }> {
+    validateSameUserAccess(
+      requestingUser?.userId?.toString(),
+      id?.toString(),
+      lang,
+    );
+
+    const user = await this.userModel
+      .findById(id)
+      .select('-password')
+      .populate('deletedBy', 'firstName lastName email _id')
+      .populate('unDeletedBy', 'firstName lastName email _id')
+      .lean();
+
+    return {
+      isSuccess: true,
+      message: getMessage('user_userRetrievedSuccessfully', lang),
+      user,
+    };
+  }
+
+  async getUserByAdmin(
+    id: string,
+    requestingUser: any,
+    lang?: Locale,
+  ): Promise<{
+    isSuccess: boolean;
+    message: string;
+    user: User | null;
+  }> {
+    validateUserRoleAccess(requestingUser, lang);
+
+    const user = await this.userModel
+      .findById(id)
+      .select('-password')
+      .populate('deletedBy', 'firstName lastName email _id')
+      .populate('unDeletedBy', 'firstName lastName email _id')
+      .lean();
+
+    return {
+      isSuccess: true,
+      message: getMessage('user_userRetrievedSuccessfully', lang),
+      user,
     };
   }
 
