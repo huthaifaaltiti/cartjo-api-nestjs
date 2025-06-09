@@ -49,6 +49,8 @@ export class UserService {
       .sort({ _id: -1 }) // newest first
       .limit(Number(limit))
       .select('-password')
+      .populate('deletedBy', 'firstName lastName email _id')
+      .populate('unDeletedBy', 'firstName lastName email _id')
       .lean(); // optional: return plain JS objects
 
     return {
@@ -139,6 +141,8 @@ export class UserService {
     user.isDeleted = true;
     user.isActive = false;
     user.deletedAt = new Date();
+    user.deletedBy = requestingUser.userId;
+    user.unDeletedBy = null;
 
     await user.save();
 
@@ -166,6 +170,8 @@ export class UserService {
 
     user.isDeleted = false;
     user.deletedAt = null;
+    user.unDeletedBy = requestingUser.userId;
+    user.deletedBy = null;
 
     await user.save();
 

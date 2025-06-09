@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
 import { hashSync } from 'bcrypt';
 import { UserRole } from 'src/enums/user-role.enum';
 
@@ -84,6 +84,12 @@ export class User extends Document {
 
   @Prop()
   deletedAt?: Date | null;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', default: null })
+  deletedBy: mongoose.Types.ObjectId;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', default: null })
+  unDeletedBy: mongoose.Types.ObjectId;
 
   @Prop({ default: Date.now })
   dateJoined: Date;
