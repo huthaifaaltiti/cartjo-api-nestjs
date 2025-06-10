@@ -27,5 +27,7 @@
   "user_userUnDeletedSuccessfully": "User un-deleted successfully",
   "user_cannotDeleteOwner": "Can not delete owners",
   "user_userActivatedSuccessfully": "User has been activated successfully",
-  "user_userDeactivatedSuccessfully": "User has been deactivated successfully"
+  "user_userDeactivatedSuccessfully": "User has been deactivated successfully",
+  "users_OnlyOwnersCanCreateAdmins": "Only users with owner role can create administrators",
+  "users_adminUserCreatedSuccessfully": "Admin user created successfully"
 }

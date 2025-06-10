@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Post,
   Put,
   Query,
   Request,
@@ -26,6 +27,7 @@ import {
 } from './dto/un-delete-user.dto';
 import { GetUserParamDto, GetUserQueryDto } from './dto/get-user.dto';
 import { ALLOWED_AUTHENTICATED_ROLES } from 'src/common/constants/roles.constants';
+import { CreateAdminBodyDto } from './dto/create-admin.dto';
 
 @Controller('/api/v1/user')
 export class UserController {
@@ -103,5 +105,13 @@ export class UserController {
     const { id } = param;
 
     return this.userService.updateUserStatus(id, isActive, lang, user);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('create-admin')
+  async createAdminUser(@Request() req: any, @Body() body: CreateAdminBodyDto) {
+    const { user } = req;
+
+    return this.userService.createAdminUser(body, user);
   }
 }

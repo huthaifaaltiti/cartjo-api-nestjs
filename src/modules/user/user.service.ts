@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 
@@ -8,12 +13,18 @@ import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess'
 import { UserRole } from 'src/enums/user-role.enum';
 import { User, UserDocument } from 'src/schemas/user.schema';
 import { Locale } from 'src/types/Locale';
+import { CreateAdminBodyDto } from './dto/create-admin.dto';
+import { RolePermissions } from 'src/common/constants/roles-permissions.constant';
+import { generateUsername } from 'src/common/functions/generators/uniqueUsername';
+import { JwtService } from '../jwt/jwt.service';
+import { MongoError } from 'mongodb';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(User.name)
     private userModel: Model<UserDocument>,
+    private jwtService: JwtService,
   ) {}
 
   async getUsers(params: {
@@ -52,6 +63,7 @@ export class UserService {
       .select('-password')
       .populate('deletedBy', 'firstName lastName email _id')
       .populate('unDeletedBy', 'firstName lastName email _id')
+      .populate('createdBy', 'firstName lastName email _id')
       .lean(); // optional: return plain JS objects
 
     return {
@@ -271,5 +283,125 @@ export class UserService {
         lang,
       ),
     };
+  }
+
+  async createAdminUser(
+    body: CreateAdminBodyDto,
+    requestingUser: any,
+  ): Promise<{
+    isSuccess: boolean;
+    message: string;
+    user?: User;
+    token?: string;
+  }> {
+    const {
+      termsAccepted,
+      lang,
+      email,
+      firstName,
+      lastName,
+      marketingEmails,
+      password,
+      phoneNumber,
+      countryCode,
+    } = body;
+
+    if (requestingUser?.role !== UserRole.OWNER) {
+      return {
+        isSuccess: false,
+        message: getMessage('users_OnlyOwnersCanCreateAdmins', lang),
+      };
+    }
+
+    if (!termsAccepted) {
+      throw new BadRequestException(
+        getMessage('authentication_termsAndConditionsRequired', lang),
+        {
+          cause: new Error(),
+          description: 'Validation error',
+        },
+      );
+    }
+
+    const existingUserWithEmail = await this.userModel.findOne({ email });
+    const existingUserWithPhoneNumber = await this.userModel.findOne({
+      phoneNumber,
+    });
+
+    if (existingUserWithEmail) {
+      throw new BadRequestException(
+        getMessage('authentication_emailAlreadyInUse', lang),
+        {
+          cause: new Error(),
+          description: 'Validation error',
+        },
+      );
+    }
+
+    if (existingUserWithPhoneNumber) {
+      throw new BadRequestException(
+        getMessage('authentication_phoneNumberAlreadyInUse', lang),
+        {
+          cause: new Error(),
+          description: 'Validation error',
+        },
+      );
+    }
+
+    try {
+      const defaultRole = UserRole.ADMINISTRATOR;
+      const permissions = RolePermissions[defaultRole];
+
+      const username =
+        (await generateUsername(firstName, lastName, this.userModel)) ||
+        `${firstName}.${lastName}_${Date.now()}`;
+
+      const newUserData = {
+        firstName,
+        lastName,
+        email,
+        termsAccepted,
+        marketingEmails,
+        username,
+        password,
+        countryCode,
+        phoneNumber,
+        createdBy: requestingUser?.userId || process.env.DB_SYSTEM_OBJ_ID,
+        role: defaultRole,
+        permissions,
+      };
+
+      const user = await this.userModel.create({ ...newUserData });
+
+      const token = this.jwtService.generateToken(
+        user?._id?.toString(),
+        user.firstName,
+        user.lastName,
+        user.phoneNumber,
+        user.email,
+        user.username,
+        user.role,
+        user.permissions,
+        user.countryCode,
+        user.createdBy?.toString?.() || 'System',
+      );
+
+      return {
+        isSuccess: true,
+        message: getMessage('users_adminUserCreatedSuccessfully', lang),
+        user,
+        token,
+      };
+    } catch (err) {
+      if (err instanceof MongoError && err.code === 11000) {
+        throw new BadRequestException(
+          getMessage('users_userAlreadyExists', lang),
+        );
+      }
+
+      throw new InternalServerErrorException(
+        getMessage('users_errWhileCreatingUser', lang),
+      );
+    }
   }
 }

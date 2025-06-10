@@ -89,7 +89,7 @@ export class AuthService {
         password,
         countryCode,
         phoneNumber,
-        createdBy: 'System',
+        createdBy: process.env.DB_SYSTEM_OBJ_ID,
         role: defaultRole,
         permissions,
       };
@@ -106,7 +106,7 @@ export class AuthService {
         user.role,
         user.permissions,
         user.countryCode,
-        user.createdBy,
+        user.createdBy.toString(),
       );
 
       return {

@@ -94,8 +94,12 @@ export class User extends Document {
   @Prop({ default: Date.now })
   dateJoined: Date;
 
-  @Prop({ type: String, default: 'System' })
-  createdBy: string;
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'User',
+    default: process.env.DB_SYSTEM_OBJ_ID,
+  })
+  createdBy: mongoose.Types.ObjectId;
 
   @Prop()
   termsAccepted: boolean;
