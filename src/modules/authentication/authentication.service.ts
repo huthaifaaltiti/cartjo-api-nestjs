@@ -8,22 +8,25 @@ import { Model } from 'mongoose';
 import { MongoError } from 'mongodb';
 
 import { getMessage } from 'src/common/utils/translator';
-import { RegisterDto } from './dto/register.dto';
+import { UserRole } from 'src/enums/user-role.enum';
 import { User, UserDocument } from 'src/schemas/user.schema';
 import { generateUsername } from 'src/common/utils/generators';
-import { JwtService } from '../jwt/jwt.service';
-import { UserRole } from 'src/enums/user-role.enum';
 import { RolePermissions } from 'src/common/constants/roles-permissions.constant';
+import { RegisterDto } from './dto/register.dto';
+import { JwtService } from '../jwt/jwt.service';
+import { MediaService } from '../media/media.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private jwtService: JwtService,
+    private mediaService: MediaService,
   ) {}
 
   async register(
     dto: RegisterDto,
+    profilePic: Express.Multer.File,
   ): Promise<{ isSuccess: boolean; msg: string; user: User; token: string }> {
     const {
       termsAccepted,
@@ -36,6 +39,20 @@ export class AuthService {
       phoneNumber,
       countryCode,
     } = dto;
+
+    let profilePicUrl: string | undefined = undefined;
+
+    if (profilePic && Object.keys(profilePic).length > 0) {
+      const result = await this.mediaService.handleFileUpload(
+        profilePic,
+        { userId: process.env.DB_SYSTEM_OBJ_ID }, // fake user since user is not registered yet
+        lang,
+      );
+
+      if (result?.isSuccess) {
+        profilePicUrl = result.fileUrl;
+      }
+    }
 
     if (!termsAccepted) {
       throw new BadRequestException(
@@ -83,8 +100,8 @@ export class AuthService {
         firstName,
         lastName,
         email,
-        termsAccepted,
-        marketingEmails,
+        termsAccepted: Boolean(termsAccepted),
+        marketingEmails: Boolean(marketingEmails),
         username,
         password,
         countryCode,
@@ -92,6 +109,7 @@ export class AuthService {
         createdBy: process.env.DB_SYSTEM_OBJ_ID,
         role: defaultRole,
         permissions,
+        profilePic: profilePicUrl,
       };
 
       const user = await this.userModel.create({ ...newUserData });

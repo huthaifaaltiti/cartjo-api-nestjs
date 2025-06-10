@@ -55,7 +55,7 @@ export class MediaService {
       uploadPath = 'uploads/others';
     }
 
-    const fileUrl = `${this.hostName}/${uploadPath}/${file.filename}`;
+    const fileUrl = `${this.hostName}/${uploadPath}/${file?.filename || file?.originalname}`;
 
     return {
       isSuccess: true,

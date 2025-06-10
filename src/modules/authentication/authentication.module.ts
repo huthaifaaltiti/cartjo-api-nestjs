@@ -1,11 +1,14 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
+import { MulterModule } from '@nestjs/platform-express';
 
+import { User, UserSchema } from 'src/schemas/user.schema';
+import { createMulterOptions } from 'src/common/utils/multerConfig';
 import { AuthController } from './authentication.controller';
 import { AuthService } from './authentication.service';
-import { User, UserSchema } from 'src/schemas/user.schema';
 import { JwtService } from '../jwt/jwt.service';
+import { MediaModule } from '../media/media.module';
 
 @Module({
   imports: [
@@ -14,6 +17,8 @@ import { JwtService } from '../jwt/jwt.service';
       secret: process.env.JWT_SECRET_KEY,
       signOptions: { expiresIn: process.env.JWT_MAX_EXPIRATION_TIME },
     }),
+    MulterModule.register(createMulterOptions()),
+    MediaModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtService],

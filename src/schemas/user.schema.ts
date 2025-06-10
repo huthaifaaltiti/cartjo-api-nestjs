@@ -33,7 +33,7 @@ export class User extends Document {
   @Prop({ type: Object })
   mapLocation?: MapLocation;
 
-  @Prop()
+  @Prop({ required: false, default: null })
   profilePic?: string;
 
   @Prop({ required: false, unique: true })

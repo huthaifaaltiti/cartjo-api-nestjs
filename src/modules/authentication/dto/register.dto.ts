@@ -39,12 +39,12 @@ export class RegisterDto {
   @MaxLength(20, { message: 'Password cannot exceed 20 characters' })
   password: string;
 
-  @IsBoolean({ message: 'Terms acceptance must be a boolean value' })
+  @IsString({ message: 'Terms acceptance must be a string value' })
   @IsNotEmpty({ message: 'You must accept the terms' })
-  termsAccepted: boolean;
+  termsAccepted: string;
 
-  @IsBoolean({ message: 'Marketing emails preference must be a boolean value' })
-  marketingEmails?: boolean;
+  @IsString({ message: 'Marketing emails preference must be a string value' })
+  marketingEmails?: string;
 
   @IsString()
   lang: Locale;
