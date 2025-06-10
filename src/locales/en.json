@@ -1,4 +1,5 @@
 {
+  "general_cantPerformThisTask": "Can not perform this task",
   "authentication_termsAndConditionsRequired": "You must accept the terms and conditions",
   "authentication_emailAlreadyInUse": "Email is already in use",
   "authentication_phoneNumberAlreadyInUse": "Phone number is already in use",
@@ -29,6 +30,7 @@
   "user_userActivatedSuccessfully": "User has been activated successfully",
   "user_userDeactivatedSuccessfully": "User has been deactivated successfully",
   "users_OnlyOwnersCanCreateAdmins": "Only users with owner role can create administrators",
+  "users_onlyOwnersCanDeleteAdmins": "Only users with owner role can delete administrators",
   "users_adminUserCreatedSuccessfully": "Admin user created successfully",
   "users_adminUserUpdatedSuccessfully": "Admin user details updated successfully",
   "users_cantEditUserDetails": "Cant not edit ordinary user details"

@@ -20,6 +20,7 @@ import { CreateAdminBodyDto } from './dto/create-admin.dto';
 import { JwtService } from '../jwt/jwt.service';
 import { MediaService } from '../media/media.service';
 import { checkUserRole } from 'src/common/utils/checkUserRole';
+import { validateSameUsersRoleLevel } from 'src/common/utils/validateSameUsersRoleLevel';
 
 @Injectable()
 export class UserService {
@@ -197,6 +198,8 @@ export class UserService {
 
     const user = await this.userModel.findById(id);
 
+    validateSameUsersRoleLevel(user?.role, requestingUser?.role, lang);
+
     if (!user || user.isDeleted) {
       throw new NotFoundException(getMessage('user_userNotFound', lang));
     }
@@ -234,6 +237,8 @@ export class UserService {
 
     const user = await this.userModel.findById(id);
 
+    validateSameUsersRoleLevel(user?.role, requestingUser?.role, lang);
+
     if (!user) {
       throw new NotFoundException(getMessage('user_userNotFound', lang));
     }
@@ -263,6 +268,8 @@ export class UserService {
     validateUserRoleAccess(requestingUser, lang);
 
     const user = await this.userModel.findById(id);
+
+    validateSameUsersRoleLevel(user?.role, requestingUser?.role, lang);
 
     if (!user) {
       throw new NotFoundException(getMessage('user_userNotFound', lang));
@@ -460,6 +467,9 @@ export class UserService {
     }
 
     const user = await this.userModel.findById(userId);
+
+    validateSameUsersRoleLevel(user?.role, requestingUser?.role, lang);
+
     if (!user) {
       throw new BadRequestException(getMessage('users_userNotFound', lang));
     }
