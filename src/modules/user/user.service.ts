@@ -310,7 +310,12 @@ export class UserService {
       countryCode,
     } = body;
 
-    if (requestingUser?.role !== UserRole.OWNER) {
+    if (
+      !checkUserRole({
+        userRole: requestingUser?.role,
+        requiredRole: UserRole.OWNER,
+      })
+    ) {
       return {
         isSuccess: false,
         message: getMessage('users_OnlyOwnersCanCreateAdmins', lang),
