@@ -15,7 +15,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 
 import { UserService } from './user.service';
-import { GetUsersStatsBodyDto } from './dto/get-users-stats-body.dto';
+import { GetUsersStatsQueryDto } from './dto/get-users-stats.dto';
 import { GetAllUsersQueryDto } from './dto/get-all-users-query.dto';
 import { DeleteUserBodyDto } from './dto/delete-user-body.dto';
 import { DeleteUserParamDto } from './dto/delete-user-param.dto';
@@ -46,6 +46,16 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Get('stats')
+  async getStats(@Query() query: GetUsersStatsQueryDto) {
+    const { lang } = query;
+
+    console.log({ query });
+
+    return this.userService.getUsersStats(lang);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Get('/:id')
   async getUser(
     @Request() req: any,
@@ -59,14 +69,6 @@ export class UserController {
     return ALLOWED_AUTHENTICATED_ROLES.includes(user.role)
       ? this.userService.getUserByAdmin(id, user, lang)
       : this.userService.getUserData(id, user, lang);
-  }
-
-  @UseGuards(AuthGuard('jwt'))
-  @Get('stats')
-  async getStats(@Body() body: GetUsersStatsBodyDto) {
-    const { lang } = body;
-
-    return this.userService.getUsersStats(lang);
   }
 
   @UseGuards(AuthGuard('jwt'))
