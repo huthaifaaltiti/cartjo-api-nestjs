@@ -6,18 +6,19 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { MongoError } from 'mongodb';
 
 import { getMessage } from 'src/common/utils/translator';
 import { validateSameUserAccess } from 'src/common/utils/validateSameUserAccess';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
+import { RolePermissions } from 'src/common/constants/roles-permissions.constant';
+import { generateUsername } from 'src/common/functions/generators/uniqueUsername';
 import { UserRole } from 'src/enums/user-role.enum';
 import { User, UserDocument } from 'src/schemas/user.schema';
 import { Locale } from 'src/types/Locale';
 import { CreateAdminBodyDto } from './dto/create-admin.dto';
-import { RolePermissions } from 'src/common/constants/roles-permissions.constant';
-import { generateUsername } from 'src/common/functions/generators/uniqueUsername';
 import { JwtService } from '../jwt/jwt.service';
-import { MongoError } from 'mongodb';
+import { MediaService } from '../media/media.service';
 
 @Injectable()
 export class UserService {
@@ -25,6 +26,7 @@ export class UserService {
     @InjectModel(User.name)
     private userModel: Model<UserDocument>,
     private jwtService: JwtService,
+    private mediaService: MediaService,
   ) {}
 
   async getUsers(params: {
@@ -288,6 +290,7 @@ export class UserService {
   async createAdminUser(
     body: CreateAdminBodyDto,
     requestingUser: any,
+    profilePic: Express.Multer.File,
   ): Promise<{
     isSuccess: boolean;
     message: string;
@@ -305,6 +308,20 @@ export class UserService {
       phoneNumber,
       countryCode,
     } = body;
+
+    let profilePicUrl: string | undefined = undefined;
+
+    if (profilePic && Object.keys(profilePic).length > 0) {
+      const result = await this.mediaService.handleFileUpload(
+        profilePic,
+        { userId: process.env.DB_SYSTEM_OBJ_ID }, // fake user since user is not registered yet
+        lang,
+      );
+
+      if (result?.isSuccess) {
+        profilePicUrl = result.fileUrl;
+      }
+    }
 
     if (requestingUser?.role !== UserRole.OWNER) {
       return {
@@ -360,8 +377,8 @@ export class UserService {
         firstName,
         lastName,
         email,
-        termsAccepted,
-        marketingEmails,
+        termsAccepted: Boolean(termsAccepted),
+        marketingEmails: Boolean(marketingEmails),
         username,
         password,
         countryCode,
@@ -369,6 +386,7 @@ export class UserService {
         createdBy: requestingUser?.userId || process.env.DB_SYSTEM_OBJ_ID,
         role: defaultRole,
         permissions,
+        profilePic: profilePicUrl,
       };
 
       const user = await this.userModel.create({ ...newUserData });

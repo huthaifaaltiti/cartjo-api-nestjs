@@ -8,7 +8,9 @@ import {
   Put,
   Query,
   Request,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -28,6 +30,7 @@ import {
 import { GetUserParamDto, GetUserQueryDto } from './dto/get-user.dto';
 import { ALLOWED_AUTHENTICATED_ROLES } from 'src/common/constants/roles.constants';
 import { CreateAdminBodyDto } from './dto/create-admin.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('/api/v1/user')
 export class UserController {
@@ -109,9 +112,14 @@ export class UserController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('create-admin')
-  async createAdminUser(@Request() req: any, @Body() body: CreateAdminBodyDto) {
+  @UseInterceptors(FileInterceptor('profilePic'))
+  async createAdminUser(
+    @UploadedFile() profilePic: Express.Multer.File,
+    @Request() req: any,
+    @Body() body: CreateAdminBodyDto,
+  ) {
     const { user } = req;
 
-    return this.userService.createAdminUser(body, user);
+    return this.userService.createAdminUser(body, user, profilePic);
   }
 }
