@@ -19,6 +19,7 @@ import { Locale } from 'src/types/Locale';
 import { CreateAdminBodyDto } from './dto/create-admin.dto';
 import { JwtService } from '../jwt/jwt.service';
 import { MediaService } from '../media/media.service';
+import { checkUserRole } from 'src/common/utils/checkUserRole';
 
 @Injectable()
 export class UserService {
@@ -309,6 +310,13 @@ export class UserService {
       countryCode,
     } = body;
 
+    if (requestingUser?.role !== UserRole.OWNER) {
+      return {
+        isSuccess: false,
+        message: getMessage('users_OnlyOwnersCanCreateAdmins', lang),
+      };
+    }
+
     let profilePicUrl: string | undefined = undefined;
 
     if (profilePic && Object.keys(profilePic).length > 0) {
@@ -321,13 +329,6 @@ export class UserService {
       if (result?.isSuccess) {
         profilePicUrl = result.fileUrl;
       }
-    }
-
-    if (requestingUser?.role !== UserRole.OWNER) {
-      return {
-        isSuccess: false,
-        message: getMessage('users_OnlyOwnersCanCreateAdmins', lang),
-      };
     }
 
     if (!termsAccepted) {
@@ -421,5 +422,96 @@ export class UserService {
         getMessage('users_errWhileCreatingUser', lang),
       );
     }
+  }
+
+  async updateAdminUser(
+    userId: string,
+    body: Partial<CreateAdminBodyDto>,
+    requestingUser: any,
+    profilePic?: Express.Multer.File,
+  ): Promise<{ isSuccess: boolean; message: string; user?: User }> {
+    const {
+      termsAccepted,
+      lang,
+      email,
+      firstName,
+      lastName,
+      marketingEmails,
+      password,
+      phoneNumber,
+      countryCode,
+    } = body;
+
+    if (
+      !checkUserRole({
+        userRole: requestingUser?.role,
+        requiredRole: UserRole.OWNER,
+      })
+    ) {
+      return {
+        isSuccess: false,
+        message: getMessage('users_OnlyOwnersCanUpdateAdmins', lang),
+      };
+    }
+
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new BadRequestException(getMessage('users_userNotFound', lang));
+    }
+
+    if (user.role !== UserRole.ADMINISTRATOR) {
+      return {
+        isSuccess: false,
+        message: getMessage('users_cantEditUserDetails', lang),
+      };
+    }
+
+    if (email && email !== user.email) {
+      const existingUser = await this.userModel.findOne({ email });
+      if (existingUser) {
+        throw new BadRequestException(
+          getMessage('authentication_emailAlreadyInUse', lang),
+        );
+      }
+      user.email = email;
+    }
+
+    if (phoneNumber && phoneNumber !== user.phoneNumber) {
+      const existingPhoneUser = await this.userModel.findOne({ phoneNumber });
+      if (existingPhoneUser) {
+        throw new BadRequestException(
+          getMessage('authentication_phoneNumberAlreadyInUse', lang),
+        );
+      }
+      user.phoneNumber = phoneNumber;
+    }
+
+    if (profilePic && Object.keys(profilePic).length > 0) {
+      const result = await this.mediaService.handleFileUpload(
+        profilePic,
+        { userId: requestingUser?.userId },
+        lang,
+      );
+      if (result?.isSuccess) {
+        user.profilePic = result.fileUrl;
+      }
+    }
+
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
+    if (countryCode) user.countryCode = countryCode;
+    if (phoneNumber) user.phoneNumber = phoneNumber;
+    if (email) user.email = email;
+    if (password) user.password = password;
+    if (marketingEmails !== undefined)
+      user.marketingEmails = Boolean(marketingEmails);
+
+    await user.save();
+
+    return {
+      isSuccess: true,
+      message: getMessage('users_adminUserUpdatedSuccessfully', lang),
+      user,
+    };
   }
 }

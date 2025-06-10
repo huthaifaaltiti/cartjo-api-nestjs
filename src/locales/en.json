@@ -29,5 +29,7 @@
   "user_userActivatedSuccessfully": "User has been activated successfully",
   "user_userDeactivatedSuccessfully": "User has been deactivated successfully",
   "users_OnlyOwnersCanCreateAdmins": "Only users with owner role can create administrators",
-  "users_adminUserCreatedSuccessfully": "Admin user created successfully"
+  "users_adminUserCreatedSuccessfully": "Admin user created successfully",
+  "users_adminUserUpdatedSuccessfully": "Admin user details updated successfully",
+  "users_cantEditUserDetails": "Cant not edit ordinary user details"
 }

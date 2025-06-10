@@ -31,6 +31,7 @@ import { GetUserParamDto, GetUserQueryDto } from './dto/get-user.dto';
 import { ALLOWED_AUTHENTICATED_ROLES } from 'src/common/constants/roles.constants';
 import { CreateAdminBodyDto } from './dto/create-admin.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { UpdateAdminUserParamsDto } from './dto/update-admin.dto';
 
 @Controller('/api/v1/user')
 export class UserController {
@@ -121,5 +122,20 @@ export class UserController {
     const { user } = req;
 
     return this.userService.createAdminUser(body, user, profilePic);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Put('update-admin/:id')
+  @UseInterceptors(FileInterceptor('profilePic'))
+  async updateAdminUser(
+    @Param() param: UpdateAdminUserParamsDto,
+    @UploadedFile() profilePic: Express.Multer.File,
+    @Request() req: any,
+    @Body() body: Partial<CreateAdminBodyDto>,
+  ) {
+    const { user } = req;
+    const { id } = param;
+
+    return this.userService.updateAdminUser(id, body, user, profilePic);
   }
 }
