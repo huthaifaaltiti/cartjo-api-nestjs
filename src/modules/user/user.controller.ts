@@ -50,8 +50,6 @@ export class UserController {
   async getStats(@Query() query: GetUsersStatsQueryDto) {
     const { lang } = query;
 
-    console.log({ query });
-
     return this.userService.getUsersStats(lang);
   }
 
