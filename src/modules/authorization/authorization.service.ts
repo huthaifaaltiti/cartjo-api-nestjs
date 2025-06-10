@@ -7,6 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import { User, UserDocument } from '../../schemas/user.schema';
 import { getMessage } from 'src/common/utils/translator';
 import { validateUserActiveStatus } from 'src/common/utils/validateUserActiveStatus';
+import { Locale } from 'src/types/Locale';
 
 @Injectable()
 export class AuthorizationService {
@@ -38,7 +39,7 @@ export class AuthorizationService {
     identifier: string,
     password: string,
     rememberMe: boolean,
-    lang: 'ar' | 'en' = 'en',
+    lang: Locale = 'en',
   ): Promise<{ isSuccess?: boolean; message?: string; token?: string | null }> {
     const user = await this.validateUser(identifier, password);
 

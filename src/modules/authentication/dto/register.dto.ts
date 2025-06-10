@@ -1,12 +1,13 @@
 import {
   IsBoolean,
   IsEmail,
-  IsIn,
   IsNotEmpty,
+  IsOptional,
   IsString,
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { Locale } from 'src/types/Locale';
 
 export class RegisterDto {
   @IsString()
@@ -38,13 +39,13 @@ export class RegisterDto {
   @MaxLength(20, { message: 'Password cannot exceed 20 characters' })
   password: string;
 
-  @IsIn(['en', 'ar'], { message: 'Language must be either "en" or "ar"' })
-  lang: 'en' | 'ar';
-
   @IsBoolean({ message: 'Terms acceptance must be a boolean value' })
   @IsNotEmpty({ message: 'You must accept the terms' })
   termsAccepted: boolean;
 
   @IsBoolean({ message: 'Marketing emails preference must be a boolean value' })
   marketingEmails?: boolean;
+
+  @IsString()
+  lang: Locale;
 }
