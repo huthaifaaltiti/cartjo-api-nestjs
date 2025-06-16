@@ -40,9 +40,18 @@ export class UserController {
   @UseGuards(AuthGuard('jwt'))
   @Get('all')
   async getUsers(@Query() query: GetAllUsersQueryDto) {
-    const { lang, limit, lastId, search } = query;
+    const { lang, limit, lastId, search, isActive, isDeleted, canManage } =
+      query;
 
-    return this.userService.getUsers({ lang, limit, lastId, search });
+    return this.userService.getUsers({
+      lang,
+      limit,
+      lastId,
+      search,
+      isActive,
+      isDeleted,
+      canManage,
+    });
   }
 
   @UseGuards(AuthGuard('jwt'))
