@@ -1,8 +1,9 @@
-import { Expose } from 'class-transformer';
+import { Transform } from 'class-transformer';
 import {
   IsBoolean,
   IsEmail,
   IsNotEmpty,
+  IsOptional,
   IsString,
   MaxLength,
   MinLength,
@@ -39,11 +40,12 @@ export class CreateAdminBodyDto {
   @MaxLength(20, { message: 'Password cannot exceed 20 characters' })
   password: string;
 
-  @IsString({ message: 'Terms acceptance must be a string value' })
-  @IsNotEmpty({ message: 'You must accept the terms' })
+  @IsString()
+  @IsNotEmpty()
   termsAccepted: string;
 
-  @IsString({ message: 'Marketing emails preference must be a string value' })
+  @IsString()
+  @IsOptional()
   marketingEmails?: string;
 
   @IsString()

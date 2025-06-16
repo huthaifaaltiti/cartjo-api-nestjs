@@ -1,4 +1,8 @@
-import { IsIn, IsMongoId, IsOptional, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsBoolean, IsMongoId, IsOptional, IsString } from 'class-validator';
+
+import { UserRole } from 'src/enums/user-role.enum';
+import { Locale } from 'src/types/Locale';
 
 export class GetAllUsersQueryDto {
   @IsOptional()
@@ -15,7 +19,21 @@ export class GetAllUsersQueryDto {
   search: string;
 
   @IsString()
-  @IsIn(['en', 'ar'], { message: 'Language must be either "en" or "ar"' })
   @IsOptional()
-  lang: 'en' | 'ar' = 'en';
+  lang: Locale = 'en';
+
+  @IsBoolean()
+  @IsOptional()
+  @Transform(({ value }) => value === 'true')
+  isActive: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @Transform(({ value }) => value === 'true')
+  isDeleted: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @Transform(({ value }) => value === 'true')
+  canManage: boolean;
 }

@@ -36,12 +36,24 @@ export class UserService {
     limit?: string;
     lastId?: string; // the _id of the last fetched user
     search?: string;
+    isActive?: boolean;
+    isDeleted?: boolean;
+    canManage?: boolean;
   }): Promise<{
     isSuccess: boolean;
     message: string;
+    usersNum: number;
     users: User[];
   }> {
-    const { lang = 'en', limit = 10, lastId, search } = params;
+    const {
+      lang = 'en',
+      limit = 10,
+      lastId,
+      search,
+      isActive,
+      isDeleted,
+      canManage,
+    } = params;
 
     const query: any = {};
 
@@ -60,6 +72,21 @@ export class UserService {
       ];
     }
 
+    if (typeof isActive === 'boolean') query.isActive = isActive;
+    if (typeof isDeleted === 'boolean') query.isDeleted = isDeleted;
+    if (typeof canManage === 'boolean') query.role = UserRole.ADMINISTRATOR;
+
+    console.log(canManage);
+    console.log(typeof canManage);
+
+    // if (typeof isDeleted === 'boolean') {
+    //   query.isDeleted = isDeleted;
+    // }
+
+    // if (role) {
+    //   query.role = role;
+    // }
+
     const users = await this.userModel
       .find(query)
       .sort({ _id: -1 }) // newest first
@@ -73,6 +100,7 @@ export class UserService {
     return {
       isSuccess: true,
       message: getMessage('user_usersRetrievedSuccessfully', lang),
+      usersNum: users?.length,
       users,
     };
   }
@@ -343,7 +371,7 @@ export class UserService {
       }
     }
 
-    if (!termsAccepted) {
+    if (typeof termsAccepted === 'string' && termsAccepted === 'false') {
       throw new BadRequestException(
         getMessage('authentication_termsAndConditionsRequired', lang),
         {
@@ -390,8 +418,8 @@ export class UserService {
         firstName,
         lastName,
         email,
-        termsAccepted: Boolean(termsAccepted),
-        marketingEmails: Boolean(marketingEmails),
+        termsAccepted: termsAccepted === 'true',
+        marketingEmails: marketingEmails === 'true',
         username,
         password,
         countryCode,
