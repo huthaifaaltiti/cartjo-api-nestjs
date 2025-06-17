@@ -19,6 +19,12 @@ export class Category extends Document {
   @Prop({ required: true, default: null })
   image?: string;
 
+  @Prop({ default: true })
+  isActive: boolean;
+
+  @Prop({ default: false })
+  isDeleted: boolean;
+
   @Prop()
   deletedAt?: Date | null;
 

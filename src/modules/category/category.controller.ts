@@ -10,6 +10,7 @@ import {
   Param,
   Get,
   Query,
+  Delete,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
@@ -25,6 +26,7 @@ import {
   GetCategoryParamDto,
   GetCategoryQueryDto,
 } from './dto/get-category.dto';
+import { DeleteCategoryDto, DeleteCategoryParamsDto } from './dto/delete-category.dto';
 
 @Controller('/api/v1/category')
 export class CategoryController {
@@ -56,6 +58,19 @@ export class CategoryController {
     const { id } = param;
 
     return this.categoryService.update(user, body, image, id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('delete/:id')
+  async delete(
+    @Request() req: any,
+    @Body() body: DeleteCategoryDto,
+    @Param() param: DeleteCategoryParamsDto,
+  ) {
+    const { user } = req;
+    const { id } = param;
+
+    return this.categoryService.delete(user, body, id);
   }
 
   @Get('all')

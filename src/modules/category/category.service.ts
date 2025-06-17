@@ -14,6 +14,7 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { MediaService } from '../media/media.service';
 import { getMessage } from 'src/common/utils/translator';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { DeleteCategoryDto } from './dto/delete-category.dto';
 
 @Injectable()
 export class CategoryService {
@@ -64,6 +65,8 @@ export class CategoryService {
       image: catImage,
       name: { ar: name_ar, en: name_en },
       createdBy: requestingUser?.userId,
+      isActive: true,
+      isDeleted: false,
     });
 
     await category.save();
@@ -160,6 +163,40 @@ export class CategoryService {
       isSuccess: true,
       message: getMessage('categories_categoryUpdatedSuccessfully', lang),
       category: updatedCategory,
+    };
+  }
+
+  async delete(
+    requestingUser: any,
+    body: DeleteCategoryDto,
+    id: string,
+  ): Promise<{
+    isSuccess: boolean;
+    message: string;
+  }> {
+    const { lang } = body;
+
+    validateUserRoleAccess(requestingUser, lang);
+
+    const category = await this.categoryModel.findById(id);
+
+    if (!category) {
+      throw new BadRequestException(
+        getMessage('categories_categoryNotFound', lang),
+      );
+    }
+
+    category.isDeleted = true;
+    category.isActive = false;
+    category.deletedAt = new Date();
+    category.deletedBy = requestingUser.userId;
+    category.unDeletedBy = null;
+
+    await category.save();
+
+    return {
+      isSuccess: true,
+      message: getMessage('categories_categoryDeletedSuccessfully', lang),
     };
   }
 

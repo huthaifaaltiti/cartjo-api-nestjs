@@ -40,5 +40,6 @@
   "categories_categoryUpdatedSuccessfully": "Category updated successfully",
   "categories_categoriesRetrievedSuccessfully": "Categories retrieved successfully",
   "categories_categoryRetrievedSuccessfully": "Category retrieved successfully",
-  "categories_invalidCategoryId": "Invalid category ID"
+  "categories_invalidCategoryId": "Invalid category ID",
+  "categories_categoryDeletedSuccessfully": "Category deleted successfully"
 }
