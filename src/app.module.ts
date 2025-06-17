@@ -12,6 +12,7 @@ import { AuthorizationModule } from './modules/authorization/authorization.modul
 import { MediaModule } from './modules/media/media.module';
 import { LocationModule } from './modules/location/location.module';
 import { UserModule } from './modules/user/user.module';
+import { CategoryModule } from './modules/category/category.module';
 
 @Module({
   imports: [
@@ -29,7 +30,8 @@ import { UserModule } from './modules/user/user.module';
     AuthorizationModule,
     MediaModule,
     LocationModule,
-    UserModule
+    UserModule,
+    CategoryModule
   ],
   controllers: [AppController],
   providers: [AppService],
