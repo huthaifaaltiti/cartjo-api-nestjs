@@ -37,5 +37,6 @@
   "categories_categoryCreatedSuccessfully": "Category created successfully",
   "categories_categoryAlreadyExists": "Category already exists",
   "categories_categoryNotFound": "Category not found",
-  "categories_categoryUpdatedSuccessfully": "Category updated successfully"
+  "categories_categoryUpdatedSuccessfully": "Category updated successfully",
+  "categories_categoriesRetrievedSuccessfully": "Categories retrieved successfully"
 }

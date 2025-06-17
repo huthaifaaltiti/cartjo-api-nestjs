@@ -1,9 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 import { Category, CategoryDocument } from 'src/schemas/category.schema';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
+import { Locale } from 'src/types/Locale';
 
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { MediaService } from '../media/media.service';
@@ -155,6 +156,47 @@ export class CategoryService {
       isSuccess: true,
       message: getMessage('categories_categoryUpdatedSuccessfully', lang),
       category: updatedCategory,
+    };
+  }
+
+  async getCategories(params: {
+    lang?: Locale;
+    limit?: string;
+    lastId?: string;
+    search?: string;
+  }): Promise<{
+    isSuccess: boolean;
+    message: string;
+    categoriesNum: number;
+    categories: Category[];
+  }> {
+    const { lang = 'en', limit = 10, lastId, search } = params;
+
+    const query: any = {};
+
+    if (lastId) {
+      query._id = { $lt: new Types.ObjectId(lastId) };
+    }
+
+    if (search) {
+      const searchRegex = new RegExp(search, 'i');
+      query.$or = [{ 'name.ar': searchRegex }, { 'name.en': searchRegex }];
+    }
+
+    const categories = await this.categoryModel
+      .find(query)
+      .sort({ _id: -1 })
+      .limit(Number(limit))
+      .populate('deletedBy', 'firstName lastName email _id')
+      .populate('unDeletedBy', 'firstName lastName email _id')
+      .populate('createdBy', 'firstName lastName email _id')
+      .lean();
+
+    return {
+      isSuccess: true,
+      message: getMessage('categories_categoriesRetrievedSuccessfully', lang),
+      categoriesNum: categories.length,
+      categories,
     };
   }
 }

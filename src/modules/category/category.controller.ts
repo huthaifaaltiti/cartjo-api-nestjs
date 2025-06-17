@@ -8,6 +8,8 @@ import {
   Request,
   Put,
   Param,
+  Get,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
@@ -18,6 +20,7 @@ import {
   UpdateCategoryDto,
   UpdateCategoryParamsDto,
 } from './dto/update-category.dto';
+import { GetAllCategoriesQueryDto } from './dto/get-all-categories-query.dto';
 
 @Controller('/api/v1/category')
 export class CategoryController {
@@ -49,5 +52,17 @@ export class CategoryController {
     const { id } = param;
 
     return this.categoryService.update(user, body, image, id);
+  }
+
+  @Get('all')
+  async getCategories(@Query() query: GetAllCategoriesQueryDto) {
+    const { lang, limit, lastId, search } = query;
+
+    return this.categoryService.getCategories({
+      lang,
+      limit,
+      lastId,
+      search,
+    });
   }
 }
