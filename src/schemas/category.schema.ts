@@ -28,6 +28,9 @@ export class Category extends Document {
   @Prop()
   deletedAt?: Date | null;
 
+  @Prop()
+  unDeletedAt?: Date | null;
+
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', default: null })
   deletedBy: mongoose.Types.ObjectId;
 

@@ -26,7 +26,18 @@ import {
   GetCategoryParamDto,
   GetCategoryQueryDto,
 } from './dto/get-category.dto';
-import { DeleteCategoryDto, DeleteCategoryParamsDto } from './dto/delete-category.dto';
+import {
+  DeleteCategoryDto,
+  DeleteCategoryParamsDto,
+} from './dto/delete-category.dto';
+import {
+  UnDeleteCategoryBodyDto,
+  UnDeleteCategoryParamsDto,
+} from './dto/unDelete-category.dto';
+import {
+  UpdateCategoryStatusBodyDto,
+  UpdateCategoryStatusParamsDto,
+} from './dto/update-category-status.dto';
 
 @Controller('/api/v1/category')
 export class CategoryController {
@@ -71,6 +82,34 @@ export class CategoryController {
     const { id } = param;
 
     return this.categoryService.delete(user, body, id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('un-delete/:id')
+  async unDeleteCategory(
+    @Request() req: any,
+    @Param() param: UnDeleteCategoryParamsDto,
+    @Body() body: UnDeleteCategoryBodyDto,
+  ) {
+    const { user } = req;
+    const { lang } = body;
+    const { id } = param;
+
+    return this.categoryService.unDelete(user, body, id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Put('status/:id')
+  async updateCategoryStatus(
+    @Param() param: UpdateCategoryStatusParamsDto,
+    @Body() body: UpdateCategoryStatusBodyDto,
+    @Request() req: any,
+  ) {
+    const { lang, isActive } = body;
+    const { user } = req;
+    const { id } = param;
+
+    return this.categoryService.updateStatus(id, isActive, lang, user);
   }
 
   @Get('all')

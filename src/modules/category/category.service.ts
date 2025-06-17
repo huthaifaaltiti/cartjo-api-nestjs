@@ -15,6 +15,7 @@ import { MediaService } from '../media/media.service';
 import { getMessage } from 'src/common/utils/translator';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { DeleteCategoryDto } from './dto/delete-category.dto';
+import { UnDeleteCategoryBodyDto } from './dto/unDelete-category.dto';
 
 @Injectable()
 export class CategoryService {
@@ -197,6 +198,79 @@ export class CategoryService {
     return {
       isSuccess: true,
       message: getMessage('categories_categoryDeletedSuccessfully', lang),
+    };
+  }
+
+  async unDelete(
+    requestingUser: any,
+    body: UnDeleteCategoryBodyDto,
+    id: string,
+  ): Promise<{
+    isSuccess: boolean;
+    message: string;
+  }> {
+    const { lang } = body;
+
+    validateUserRoleAccess(requestingUser, lang);
+
+    const category = await this.categoryModel.findById(id);
+
+    if (!category) {
+      throw new BadRequestException(
+        getMessage('categories_categoryNotFound', lang),
+      );
+    }
+
+    category.isDeleted = false;
+    category.deletedAt = null;
+    category.deletedBy = null;
+    category.unDeletedBy = requestingUser.userId;
+    category.unDeletedAt = new Date();
+
+    await category.save();
+
+    return {
+      isSuccess: true,
+      message: getMessage('categories_categoryUnDeletedSuccessfully', lang),
+    };
+  }
+
+  async updateStatus(
+    id: string,
+    isActive: boolean,
+    lang: Locale = 'en',
+    requestingUser: any,
+  ): Promise<{
+    isSuccess: boolean;
+    message: string;
+  }> {
+    validateUserRoleAccess(requestingUser, lang);
+
+    const category = await this.categoryModel.findById(id);
+
+    if (!category) {
+      throw new NotFoundException(
+        getMessage('categories_categoryNotFound', lang),
+      );
+    }
+
+    if (isActive) {
+      category.isDeleted = false;
+      category.deletedAt = null;
+    }
+
+    category.isActive = isActive;
+
+    await category.save();
+
+    return {
+      isSuccess: true,
+      message: getMessage(
+        isActive
+          ? 'categories_categoryActivatedSuccessfully'
+          : 'categories_categoryDeactivatedSuccessfully',
+        lang,
+      ),
     };
   }
 
