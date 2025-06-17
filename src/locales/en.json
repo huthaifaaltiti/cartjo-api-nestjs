@@ -35,5 +35,7 @@
   "users_adminUserUpdatedSuccessfully": "Admin user details updated successfully",
   "users_cantEditUserDetails": "Cant not edit ordinary user details",
   "categories_categoryCreatedSuccessfully": "Category created successfully",
-  "categories_categoryAlreadyExists": "Category already exists"
+  "categories_categoryAlreadyExists": "Category already exists",
+  "categories_categoryNotFound": "Category not found",
+  "categories_categoryUpdatedSuccessfully": "Category updated successfully"
 }

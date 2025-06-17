@@ -6,12 +6,18 @@ import {
   UseInterceptors,
   UseGuards,
   Request,
+  Put,
+  Param,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import {
+  UpdateCategoryDto,
+  UpdateCategoryParamsDto,
+} from './dto/update-category.dto';
 
 @Controller('/api/v1/category')
 export class CategoryController {
@@ -28,5 +34,20 @@ export class CategoryController {
     const { user } = req;
 
     return this.categoryService.create(user, body, image);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Put('update/:id')
+  @UseInterceptors(FileInterceptor('image'))
+  async update(
+    @UploadedFile() image: Express.Multer.File,
+    @Request() req: any,
+    @Body() body: UpdateCategoryDto,
+    @Param() param: UpdateCategoryParamsDto,
+  ) {
+    const { user } = req;
+    const { id } = param;
+
+    return this.categoryService.update(user, body, image, id);
   }
 }
