@@ -2,7 +2,7 @@ import { IsMongoId, IsOptional, IsString } from 'class-validator';
 
 import { Locale } from 'src/types/Locale';
 
-export class GetAllCategoriesQueryDto {
+export class GetCategoriesQueryDto {
   @IsOptional()
   @IsString()
   limit?: string;

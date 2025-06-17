@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 
@@ -197,6 +201,40 @@ export class CategoryService {
       message: getMessage('categories_categoriesRetrievedSuccessfully', lang),
       categoriesNum: categories.length,
       categories,
+    };
+  }
+
+  async getCategory(
+    id: string,
+    lang?: Locale,
+  ): Promise<{
+    isSuccess: boolean;
+    message: string;
+    category: Category | null;
+  }> {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new NotFoundException(
+        getMessage('categories_invalidCategoryId', lang),
+      );
+    }
+
+    const category = await this.categoryModel
+      .findById(id)
+      .populate('deletedBy', 'firstName lastName email _id')
+      .populate('unDeletedBy', 'firstName lastName email _id')
+      .populate('createdBy', 'firstName lastName email _id')
+      .lean();
+
+    if (!category) {
+      throw new NotFoundException(
+        getMessage('categories_categoryNotFound', lang),
+      );
+    }
+
+    return {
+      isSuccess: true,
+      message: getMessage('categories_categoryRetrievedSuccessfully', lang),
+      category,
     };
   }
 }

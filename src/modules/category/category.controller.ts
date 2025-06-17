@@ -20,7 +20,11 @@ import {
   UpdateCategoryDto,
   UpdateCategoryParamsDto,
 } from './dto/update-category.dto';
-import { GetAllCategoriesQueryDto } from './dto/get-all-categories-query.dto';
+import { GetCategoriesQueryDto } from './dto/get-categories-query.dto';
+import {
+  GetCategoryParamDto,
+  GetCategoryQueryDto,
+} from './dto/get-category.dto';
 
 @Controller('/api/v1/category')
 export class CategoryController {
@@ -55,7 +59,7 @@ export class CategoryController {
   }
 
   @Get('all')
-  async getCategories(@Query() query: GetAllCategoriesQueryDto) {
+  async getCategories(@Query() query: GetCategoriesQueryDto) {
     const { lang, limit, lastId, search } = query;
 
     return this.categoryService.getCategories({
@@ -64,5 +68,16 @@ export class CategoryController {
       lastId,
       search,
     });
+  }
+
+  @Get('/:id')
+  async getCategory(
+    @Param() param: GetCategoryParamDto,
+    @Query() query: GetCategoryQueryDto,
+  ) {
+    const { id } = param;
+    const { lang } = query;
+
+    return this.categoryService.getCategory(id, lang);
   }
 }
