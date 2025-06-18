@@ -1,8 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 
+import { Currency } from 'src/enums/currency.enum';
 import { TypeHint } from 'src/enums/typeHint.enums';
-import { Currency } from 'src/types/Currency.type';
 
 export type ProductDocument = Product & Document;
 
@@ -22,17 +22,17 @@ export class Product {
   @Prop({ required: true, type: TranslatedText })
   description: TranslatedText;
 
-  @Prop({ type: [String], default: [] })
+  @Prop({ isRequired: true, type: [String], default: [] })
   images: string[];
 
-  @Prop({ required: false })
+  @Prop({ required: true, type: String, default: null })
   mainImage?: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, default: 1 })
   price: number;
 
-  @Prop({ required: true })
-  currency: Currency;
+  @Prop({ required: true, enum: Currency, default: Currency.JOD })
+  currency: string;
 
   @Prop({ default: 0 })
   discountRate: number;
@@ -50,9 +50,9 @@ export class Product {
   favoriteCount: number;
 
   @Prop({
-    // enum: ['organic', 'cold_sale', 'imported', 'bundle'],
     enum: TypeHint,
     required: true,
+    default: TypeHint.IMPORTED,
   })
   typeHint: string;
 
