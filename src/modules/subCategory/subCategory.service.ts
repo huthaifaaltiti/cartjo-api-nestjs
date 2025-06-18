@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
@@ -14,6 +18,7 @@ import { CreateSubCategoryDto } from './dto/create-subCategory.dto';
 import { UpdateSubCategoryDto } from './dto/update-subCategory.dto';
 import { DeleteSubCategoryDto } from './dto/delete-subCategory.dto';
 import { UnDeleteSubCategoryBodyDto } from './dto/unDelete-subCategory.dto';
+import { Locale } from 'src/types/Locale';
 
 @Injectable()
 export class SubCategoryService {
@@ -208,7 +213,7 @@ export class SubCategoryService {
 
     if (!subCategory) {
       throw new BadRequestException(
-        getMessage('categories_categoryNotFound', lang),
+        getMessage('subcategories_subCategoryNotFound', lang),
       );
     }
 
@@ -222,7 +227,49 @@ export class SubCategoryService {
 
     return {
       isSuccess: true,
-      message: getMessage('subCategories_subCategoryUnDeletedSuccessfully', lang),
+      message: getMessage(
+        'subCategories_subCategoryUnDeletedSuccessfully',
+        lang,
+      ),
+    };
+  }
+
+  async updateStatus(
+    id: string,
+    isActive: boolean,
+    lang: Locale = 'en',
+    requestingUser: any,
+  ): Promise<{
+    isSuccess: boolean;
+    message: string;
+  }> {
+    validateUserRoleAccess(requestingUser, lang);
+
+    const subCategory = await this.subCategoryModel.findById(id);
+
+    if (!subCategory) {
+      throw new NotFoundException(
+        getMessage('subcategories_subCategoryNotFound', lang),
+      );
+    }
+
+    if (isActive) {
+      subCategory.isDeleted = false;
+      subCategory.deletedAt = null;
+    }
+
+    subCategory.isActive = isActive;
+
+    await subCategory.save();
+
+    return {
+      isSuccess: true,
+      message: getMessage(
+        isActive
+          ? 'subCategories_subCategoryActivatedSuccessfully'
+          : 'subCategories_subCategoryDeactivatedSuccessfully',
+        lang,
+      ),
     };
   }
 }

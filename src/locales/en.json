@@ -50,5 +50,7 @@
   "subcategories_subCategoryCreatedSuccessfully": "SubCategory created successfully",
   "subcategories_subCategoryUpdatedSuccessfully": "SubCategory updated successfully",
   "subcategories_subCategoryDeletedSuccessfully": "SubCategory deleted successfully",
-  "subCategories_subCategoryUnDeletedSuccessfully": "SubCategory un-deleted successfully"
+  "subCategories_subCategoryUnDeletedSuccessfully": "SubCategory un-deleted successfully",
+  "subCategories_subCategoryActivatedSuccessfully": "SubCategory activated successfully",
+  "subCategories_subCategoryDeactivatedSuccessfully": "SubCategory deactivated successfully"
 }

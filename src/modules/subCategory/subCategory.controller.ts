@@ -23,7 +23,11 @@ import {
   DeleteSubCategoryDto,
   DeleteSubCategoryParamsDto,
 } from './dto/delete-subCategory.dto';
-import { UnDeleteSubCategoryBodyDto, UnDeleteSubCategoryParamsDto } from './dto/unDelete-subCategory.dto';
+import {
+  UnDeleteSubCategoryBodyDto,
+  UnDeleteSubCategoryParamsDto,
+} from './dto/unDelete-subCategory.dto';
+import { UpdateSubCategoryStatusBodyDto, UpdateSubCategoryStatusParamsDto } from './dto/update-subCategory-status.dto';
 
 @Controller('/api/v1/sub-category')
 export class SubCategoryController {
@@ -80,5 +84,19 @@ export class SubCategoryController {
     const { id } = param;
 
     return this.subCategoryService.unDelete(user, body, id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Put('status/:id')
+  async updateStatus(
+    @Param() param: UpdateSubCategoryStatusParamsDto,
+    @Body() body: UpdateSubCategoryStatusBodyDto,
+    @Request() req: any,
+  ) {
+    const { lang, isActive } = body;
+    const { user } = req;
+    const { id } = param;
+
+    return this.subCategoryService.updateStatus(id, isActive, lang, user);
   }
 }
