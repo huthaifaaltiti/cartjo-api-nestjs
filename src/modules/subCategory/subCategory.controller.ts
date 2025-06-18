@@ -23,6 +23,7 @@ import {
   DeleteSubCategoryDto,
   DeleteSubCategoryParamsDto,
 } from './dto/delete-subCategory.dto';
+import { UnDeleteSubCategoryBodyDto, UnDeleteSubCategoryParamsDto } from './dto/unDelete-subCategory.dto';
 
 @Controller('/api/v1/sub-category')
 export class SubCategoryController {
@@ -66,5 +67,18 @@ export class SubCategoryController {
     const { id } = param;
 
     return this.subCategoryService.delete(user, body, id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('un-delete/:id')
+  async unDelete(
+    @Request() req: any,
+    @Param() param: UnDeleteSubCategoryParamsDto,
+    @Body() body: UnDeleteSubCategoryBodyDto,
+  ) {
+    const { user } = req;
+    const { id } = param;
+
+    return this.subCategoryService.unDelete(user, body, id);
   }
 }

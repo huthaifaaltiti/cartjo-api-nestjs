@@ -13,6 +13,7 @@ import { MediaService } from '../media/media.service';
 import { CreateSubCategoryDto } from './dto/create-subCategory.dto';
 import { UpdateSubCategoryDto } from './dto/update-subCategory.dto';
 import { DeleteSubCategoryDto } from './dto/delete-subCategory.dto';
+import { UnDeleteSubCategoryBodyDto } from './dto/unDelete-subCategory.dto';
 
 @Injectable()
 export class SubCategoryService {
@@ -188,6 +189,40 @@ export class SubCategoryService {
     return {
       isSuccess: true,
       message: getMessage('subcategories_subCategoryDeletedSuccessfully', lang),
+    };
+  }
+
+  async unDelete(
+    requestingUser: any,
+    body: UnDeleteSubCategoryBodyDto,
+    id: string,
+  ): Promise<{
+    isSuccess: boolean;
+    message: string;
+  }> {
+    const { lang } = body;
+
+    validateUserRoleAccess(requestingUser, lang);
+
+    const subCategory = await this.subCategoryModel.findById(id);
+
+    if (!subCategory) {
+      throw new BadRequestException(
+        getMessage('categories_categoryNotFound', lang),
+      );
+    }
+
+    subCategory.isDeleted = false;
+    subCategory.deletedAt = null;
+    subCategory.deletedBy = null;
+    subCategory.unDeletedBy = requestingUser.userId;
+    subCategory.unDeletedAt = new Date();
+
+    await subCategory.save();
+
+    return {
+      isSuccess: true,
+      message: getMessage('subCategories_subCategoryUnDeletedSuccessfully', lang),
     };
   }
 }
