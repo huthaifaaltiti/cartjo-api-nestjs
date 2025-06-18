@@ -308,7 +308,7 @@ export class SubCategoryService {
 
     return {
       isSuccess: true,
-      message: getMessage('categories_categoriesRetrievedSuccessfully', lang),
+      message: getMessage('subCategories_subCategoriesRetrievedSuccessfully', lang),
       subCategoriesNum: subCategories.length,
       subCategories,
     };
