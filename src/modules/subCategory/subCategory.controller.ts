@@ -34,6 +34,10 @@ import {
   UpdateSubCategoryStatusParamsDto,
 } from './dto/update-subCategory-status.dto';
 import { GetSubCategoriesQueryDto } from './dto/get-subCategories-query.dto';
+import {
+  GetSubCategoryParamDto,
+  GetSubCategoryQueryDto,
+} from './dto/get-subCategory.dto';
 
 @Controller('/api/v1/sub-category')
 export class SubCategoryController {
@@ -116,5 +120,16 @@ export class SubCategoryController {
       lastId,
       search,
     });
+  }
+
+  @Get('/:id')
+  async getOne(
+    @Param() param: GetSubCategoryParamDto,
+    @Query() query: GetSubCategoryQueryDto,
+  ) {
+    const { id } = param;
+    const { lang } = query;
+
+    return this.subCategoryService.getOne(id, lang);
   }
 }

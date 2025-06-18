@@ -313,4 +313,38 @@ export class SubCategoryService {
       subCategories,
     };
   }
+
+  async getOne(
+    id: string,
+    lang?: Locale,
+  ): Promise<{
+    isSuccess: boolean;
+    message: string;
+    subCategory: SubCategory | null;
+  }> {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new NotFoundException(
+        getMessage('subCategories_invalidSubCategoryId', lang),
+      );
+    }
+
+    const subCategory = await this.subCategoryModel
+      .findById(id)
+      .populate('deletedBy', 'firstName lastName email _id')
+      .populate('unDeletedBy', 'firstName lastName email _id')
+      .populate('createdBy', 'firstName lastName email _id')
+      .lean();
+
+    if (!subCategory) {
+      throw new NotFoundException(
+        getMessage('subcategories_subCategoryNotFound', lang),
+      );
+    }
+
+    return {
+      isSuccess: true,
+      message: getMessage('subCategories_subCategoryRetrievedSuccessfully', lang),
+      subCategory,
+    };
+  }
 }
