@@ -2,9 +2,11 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Param,
   Post,
   Put,
+  Query,
   Request,
   UploadedFile,
   UseGuards,
@@ -27,7 +29,11 @@ import {
   UnDeleteSubCategoryBodyDto,
   UnDeleteSubCategoryParamsDto,
 } from './dto/unDelete-subCategory.dto';
-import { UpdateSubCategoryStatusBodyDto, UpdateSubCategoryStatusParamsDto } from './dto/update-subCategory-status.dto';
+import {
+  UpdateSubCategoryStatusBodyDto,
+  UpdateSubCategoryStatusParamsDto,
+} from './dto/update-subCategory-status.dto';
+import { GetSubCategoriesQueryDto } from './dto/get-subCategories-query.dto';
 
 @Controller('/api/v1/sub-category')
 export class SubCategoryController {
@@ -98,5 +104,17 @@ export class SubCategoryController {
     const { id } = param;
 
     return this.subCategoryService.updateStatus(id, isActive, lang, user);
+  }
+
+  @Get('all')
+  async getAll(@Query() query: GetSubCategoriesQueryDto) {
+    const { lang, limit, lastId, search } = query;
+
+    return this.subCategoryService.getAll({
+      lang,
+      limit,
+      lastId,
+      search,
+    });
   }
 }

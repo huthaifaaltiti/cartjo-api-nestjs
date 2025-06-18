@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 import {
   SubCategory,
@@ -270,6 +270,47 @@ export class SubCategoryService {
           : 'subCategories_subCategoryDeactivatedSuccessfully',
         lang,
       ),
+    };
+  }
+
+  async getAll(params: {
+    lang?: Locale;
+    limit?: string;
+    lastId?: string;
+    search?: string;
+  }): Promise<{
+    isSuccess: boolean;
+    message: string;
+    subCategoriesNum: number;
+    subCategories: SubCategory[];
+  }> {
+    const { lang = 'en', limit = 10, lastId, search } = params;
+
+    const query: any = {};
+
+    if (lastId) {
+      query._id = { $lt: new Types.ObjectId(lastId) };
+    }
+
+    if (search) {
+      const searchRegex = new RegExp(search, 'i');
+      query.$or = [{ 'name.ar': searchRegex }, { 'name.en': searchRegex }];
+    }
+
+    const subCategories = await this.subCategoryModel
+      .find(query)
+      .sort({ _id: -1 })
+      .limit(Number(limit))
+      .populate('deletedBy', 'firstName lastName email _id')
+      .populate('unDeletedBy', 'firstName lastName email _id')
+      .populate('createdBy', 'firstName lastName email _id')
+      .lean();
+
+    return {
+      isSuccess: true,
+      message: getMessage('categories_categoriesRetrievedSuccessfully', lang),
+      subCategoriesNum: subCategories.length,
+      subCategories,
     };
   }
 }
