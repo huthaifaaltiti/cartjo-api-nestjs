@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Param,
   Post,
   Put,
@@ -14,7 +15,14 @@ import { FileInterceptor } from '@nestjs/platform-express';
 
 import { CreateSubCategoryDto } from './dto/create-subCategory.dto';
 import { SubCategoryService } from './subCategory.service';
-import { UpdateSubCategoryDto, UpdateSubCategoryParamsDto } from './dto/update-subCategory.dto';
+import {
+  UpdateSubCategoryDto,
+  UpdateSubCategoryParamsDto,
+} from './dto/update-subCategory.dto';
+import {
+  DeleteSubCategoryDto,
+  DeleteSubCategoryParamsDto,
+} from './dto/delete-subCategory.dto';
 
 @Controller('/api/v1/sub-category')
 export class SubCategoryController {
@@ -45,5 +53,18 @@ export class SubCategoryController {
     const { id } = param;
 
     return this.subCategoryService.update(user, body, image, id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('delete/:id')
+  async delete(
+    @Request() req: any,
+    @Body() body: DeleteSubCategoryDto,
+    @Param() param: DeleteSubCategoryParamsDto,
+  ) {
+    const { user } = req;
+    const { id } = param;
+
+    return this.subCategoryService.delete(user, body, id);
   }
 }

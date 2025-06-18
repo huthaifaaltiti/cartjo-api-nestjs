@@ -29,6 +29,9 @@ export class SubCategory extends Document {
   })
   categoryId: mongoose.Types.ObjectId;
 
+  @Prop()
+  deletedAt?: Date | null;
+
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null })
   createdBy: mongoose.Types.ObjectId;
 

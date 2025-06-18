@@ -12,6 +12,7 @@ import { getMessage } from 'src/common/utils/translator';
 import { MediaService } from '../media/media.service';
 import { CreateSubCategoryDto } from './dto/create-subCategory.dto';
 import { UpdateSubCategoryDto } from './dto/update-subCategory.dto';
+import { DeleteSubCategoryDto } from './dto/delete-subCategory.dto';
 
 @Injectable()
 export class SubCategoryService {
@@ -153,6 +154,40 @@ export class SubCategoryService {
       isSuccess: true,
       message: getMessage('subcategories_subCategoryUpdatedSuccessfully', lang),
       subCategory: updatedSubCategory,
+    };
+  }
+
+  async delete(
+    requestingUser: any,
+    body: DeleteSubCategoryDto,
+    id: string,
+  ): Promise<{
+    isSuccess: boolean;
+    message: string;
+  }> {
+    const { lang } = body;
+
+    validateUserRoleAccess(requestingUser, lang);
+
+    const subCategory = await this.subCategoryModel.findById(id);
+
+    if (!subCategory) {
+      throw new BadRequestException(
+        getMessage('subcategories_subCategoryNotFound', lang),
+      );
+    }
+
+    subCategory.isDeleted = true;
+    subCategory.isActive = false;
+    subCategory.deletedAt = new Date();
+    subCategory.deletedBy = requestingUser.userId;
+    subCategory.unDeletedBy = null;
+
+    await subCategory.save();
+
+    return {
+      isSuccess: true,
+      message: getMessage('subcategories_subCategoryDeletedSuccessfully', lang),
     };
   }
 }
