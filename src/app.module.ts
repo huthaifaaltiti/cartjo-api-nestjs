@@ -13,6 +13,7 @@ import { MediaModule } from './modules/media/media.module';
 import { LocationModule } from './modules/location/location.module';
 import { UserModule } from './modules/user/user.module';
 import { CategoryModule } from './modules/category/category.module';
+import { SubCategoryModule } from './modules/subCategory/subCategory.module';
 
 @Module({
   imports: [
@@ -31,7 +32,8 @@ import { CategoryModule } from './modules/category/category.module';
     MediaModule,
     LocationModule,
     UserModule,
-    CategoryModule
+    CategoryModule,
+    SubCategoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
