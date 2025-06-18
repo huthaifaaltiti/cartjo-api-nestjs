@@ -46,5 +46,8 @@
   "categories_categoryDeactivatedSuccessfully": "Category deactivated successfully",
   "categories_categoryActivatedSuccessfully": "Category activated successfully",
   "subcategories_subCategoryAlreadyExists": "SubCategory already exists",
-  "subcategories_subCategoryCreatedSuccessfully": "SubCategory created successfully"
+  "subcategories_subCategoryNotFound": "SubCategory not found",
+  "subcategories_subCategoryCreatedSuccessfully": "SubCategory created successfully",
+  "subcategories_subCategoryUpdatedSuccessfully": "SubCategory updated successfully",
+  "subcategories_subCategoryDeletedSuccessfully": "SubCategory deleted successfully"
 }
