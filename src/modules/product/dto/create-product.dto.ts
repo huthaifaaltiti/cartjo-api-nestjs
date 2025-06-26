@@ -45,9 +45,9 @@ export class CreateProductDto {
   description_en: string;
 
   @IsNotEmpty()
-  @IsNumber()
-  @Min(1, { message: 'Price cant be less than 1' })
-  price: number;
+  @IsString()
+  @MinLength(1, { message: 'Price cant be less than 1' })
+  price: string;
 
   @IsNotEmpty()
   @IsEnum(Currency)
@@ -60,12 +60,14 @@ export class CreateProductDto {
   discountRate?: number;
 
   @IsNotEmpty()
-  @IsNumber()
-  @Min(1, { message: 'Total amount count cant be less than 1' })
-  totalAmountCount?: number;
+  @IsString()
+  @MinLength(1, { message: 'Total amount count cant be less than 1' })
+  totalAmountCount?: string;
 
   @IsNotEmpty()
-  @IsEnum(TypeHint)
+  @IsEnum(TypeHint, {
+    message: `typeHint must be one of: ${Object.values(TypeHint).join(', ')}`,
+  })
   typeHint: TypeHint;
 
   @IsNotEmpty()
