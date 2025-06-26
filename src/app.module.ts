@@ -14,6 +14,7 @@ import { LocationModule } from './modules/location/location.module';
 import { UserModule } from './modules/user/user.module';
 import { CategoryModule } from './modules/category/category.module';
 import { SubCategoryModule } from './modules/subCategory/subCategory.module';
+import { ProductModule } from './modules/product/product.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { SubCategoryModule } from './modules/subCategory/subCategory.module';
     UserModule,
     CategoryModule,
     SubCategoryModule,
+    ProductModule,
   ],
   controllers: [AppController],
   providers: [AppService],
