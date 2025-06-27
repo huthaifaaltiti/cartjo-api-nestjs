@@ -8,13 +8,19 @@ import { MediaModule } from '../media/media.module';
 import { JwtModule } from '../jwt/jwt.module';
 import { ProductService } from './product.service';
 import { ProductController } from './product.controller';
+import { CategoryModule } from '../category/category.module';
+import { Category, CategorySchema } from 'src/schemas/category.schema';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Product.name, schema: ProductSchema }]),
+    MongooseModule.forFeature([
+      { name: Product.name, schema: ProductSchema },
+      { name: Category.name, schema: CategorySchema },
+    ]),
     MulterModule.register(createMulterOptions()),
     MediaModule,
     JwtModule,
+    CategoryModule,
   ],
   providers: [ProductService],
   controllers: [ProductController],

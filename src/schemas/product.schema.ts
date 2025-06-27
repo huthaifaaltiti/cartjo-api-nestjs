@@ -105,6 +105,9 @@ export class Product {
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', default: null })
   deletedBy: MongooseSchema.Types.ObjectId;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', default: null })
+  unDeletedBy: MongooseSchema.Types.ObjectId;
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);
