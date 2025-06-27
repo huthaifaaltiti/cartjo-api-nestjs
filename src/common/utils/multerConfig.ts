@@ -2,7 +2,7 @@ import { diskStorage } from 'multer';
 import * as fs from 'fs';
 import { getMessage } from './translator';
 
-export function createMulterOptions() {
+export function createMulterOptions(key: string) {
   return {
     fileFilter: (req, file, cb) => {
       if (!file) {
@@ -12,23 +12,23 @@ export function createMulterOptions() {
     },
     storage: diskStorage({
       destination: (req, file, cb) => {
-        let uploadPath = './uploads';
+        let uploadPath = `./uploads/${key}`;
 
         if (file.mimetype.startsWith('image/')) {
-          uploadPath = './uploads/image';
+          uploadPath = `./uploads/${key}/image`;
         } else if (file.mimetype.startsWith('audio/')) {
-          uploadPath = './uploads/audio';
+          uploadPath = `./uploads/${key}/audio`;
         } else if (file.mimetype.startsWith('video/')) {
-          uploadPath = './uploads/video';
+          uploadPath = `./uploads/${key}/video`;
         } else if (
           file?.mimetype?.startsWith('application/') &&
           file?.mimetype?.includes('excel')
         ) {
-          uploadPath = './uploads/doc/sheet';
+          uploadPath = `./uploads/${key}/doc/sheet`;
         } else if (file.mimetype.startsWith('application/')) {
-          uploadPath = './uploads/doc';
+          uploadPath = `./uploads/${key}/doc`;
         } else {
-          uploadPath = './uploads/others';
+          uploadPath = `./uploads/${key}/others`;
         }
 
         try {
@@ -42,7 +42,7 @@ export function createMulterOptions() {
       },
       filename: (req, file, cb) => {
         try {
-          const filename = `${Date.now()}-${file.originalname}`;
+          const filename = `${key}-${Date.now()}-${file.originalname.trim()}`;
           cb(null, filename);
         } catch (error) {
           cb(new Error(getMessage('media_mediaUploadFailed', 'en')), null);

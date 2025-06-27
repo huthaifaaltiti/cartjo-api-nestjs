@@ -12,6 +12,7 @@ import { AuthGuard } from '@nestjs/passport';
 
 import { MediaService } from './media.service';
 import { UploadFileBodyDto } from './dto/upload-file.dto';
+import { Modules } from 'src/enums/appModules.enum';
 
 @Controller('api/v1/media')
 export class MediaController {
@@ -31,6 +32,11 @@ export class MediaController {
     const { lang } = body;
     const { user } = req;
 
-    return this.fileUploadService.handleFileUpload(file, user, lang);
+    return this.fileUploadService.handleFileUpload(
+      file,
+      user,
+      lang,
+      Modules.MEDIA,
+    );
   }
 }

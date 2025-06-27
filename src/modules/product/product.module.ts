@@ -10,6 +10,7 @@ import { ProductService } from './product.service';
 import { ProductController } from './product.controller';
 import { CategoryModule } from '../category/category.module';
 import { Category, CategorySchema } from 'src/schemas/category.schema';
+import { Modules } from 'src/enums/appModules.enum';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { Category, CategorySchema } from 'src/schemas/category.schema';
       { name: Product.name, schema: ProductSchema },
       { name: Category.name, schema: CategorySchema },
     ]),
-    MulterModule.register(createMulterOptions()),
+    MulterModule.register(createMulterOptions(Modules.PRODUCT)),
     MediaModule,
     JwtModule,
     CategoryModule,

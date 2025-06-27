@@ -11,6 +11,7 @@ import { MediaModule } from '../media/media.module';
 import { JwtModule } from '../jwt/jwt.module';
 import { CategoryModule } from '../category/category.module';
 import { Category, CategorySchema } from 'src/schemas/category.schema';
+import { Modules } from 'src/enums/appModules.enum';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { Category, CategorySchema } from 'src/schemas/category.schema';
       { name: SubCategory.name, schema: SubCategorySchema },
       { name: Category.name, schema: CategorySchema },
     ]),
-    MulterModule.register(createMulterOptions()),
+    MulterModule.register(createMulterOptions(Modules.SUB_CATEGORY)),
     MediaModule,
     CategoryModule,
     JwtModule,

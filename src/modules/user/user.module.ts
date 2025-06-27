@@ -8,11 +8,12 @@ import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { JwtModule } from '../jwt/jwt.module';
 import { MediaModule } from '../media/media.module';
+import { Modules } from 'src/enums/appModules.enum';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
-    MulterModule.register(createMulterOptions()),
+    MulterModule.register(createMulterOptions(Modules.USER)),
     MediaModule,
     JwtModule,
   ],

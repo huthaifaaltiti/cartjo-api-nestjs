@@ -20,6 +20,7 @@ import { DeleteSubCategoryDto } from './dto/delete-subCategory.dto';
 import { UnDeleteSubCategoryBodyDto } from './dto/unDelete-subCategory.dto';
 import { Locale } from 'src/types/Locale';
 import { Category, CategoryDocument } from 'src/schemas/category.schema';
+import { Modules } from 'src/enums/appModules.enum';
 
 @Injectable()
 export class SubCategoryService {
@@ -63,6 +64,7 @@ export class SubCategoryService {
         image,
         { userId: user?.userId },
         lang,
+        Modules.SUB_CATEGORY,
       );
       if (result?.isSuccess) imageUrl = result.fileUrl;
     }
@@ -138,6 +140,7 @@ export class SubCategoryService {
         image,
         { userId: requestingUser?.userId },
         lang,
+        Modules.SUB_CATEGORY,
       );
       if (result?.isSuccess) imageUrl = result.fileUrl;
     }

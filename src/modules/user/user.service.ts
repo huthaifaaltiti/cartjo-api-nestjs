@@ -21,6 +21,7 @@ import { JwtService } from '../jwt/jwt.service';
 import { MediaService } from '../media/media.service';
 import { checkUserRole } from 'src/common/utils/checkUserRole';
 import { validateSameUsersRoleLevel } from 'src/common/utils/validateSameUsersRoleLevel';
+import { Modules } from 'src/enums/appModules.enum';
 
 @Injectable()
 export class UserService {
@@ -364,6 +365,7 @@ export class UserService {
         profilePic,
         { userId: process.env.DB_SYSTEM_OBJ_ID }, // fake user since user is not registered yet
         lang,
+        Modules.USER,
       );
 
       if (result?.isSuccess) {
@@ -534,6 +536,7 @@ export class UserService {
         profilePic,
         { userId: requestingUser?.userId },
         lang,
+        Modules.USER,
       );
       if (result?.isSuccess) {
         user.profilePic = result.fileUrl;

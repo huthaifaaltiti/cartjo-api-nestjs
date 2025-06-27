@@ -9,6 +9,7 @@ import { buildTownHierarchy } from 'src/common/utils/buildTownHierarchy';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { Location, LocationDocument } from 'src/schemas/location.schema';
 import { DeleteLocationBodyDto } from './dto/delete-location-body.dto';
+import { Modules } from 'src/enums/appModules.enum';
 
 @Injectable()
 export class LocationService {
@@ -39,6 +40,7 @@ export class LocationService {
         file,
         requestingUser,
         lang,
+        Modules.LOCATION,
       );
 
       if (uploadResult?.fileUrl) {

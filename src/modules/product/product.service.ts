@@ -21,6 +21,7 @@ import { Locale } from 'src/types/Locale';
 import { Category, CategoryDocument } from 'src/schemas/category.schema';
 import { DeleteProductDto } from './dto/delete-product.dto';
 import { UnDeleteProductBodyDto } from './dto/unDelete-product.dto';
+import { Modules } from 'src/enums/appModules.enum';
 
 @Injectable()
 export class ProductService {
@@ -183,6 +184,7 @@ export class ProductService {
         mainImage,
         { userId: user?.userId },
         lang,
+        Modules.PRODUCT,
       );
       if (mainUpload?.isSuccess) {
         mainImageUrl = mainUpload.fileUrl;
@@ -194,6 +196,7 @@ export class ProductService {
         img,
         { userId: user?.userId },
         lang,
+        Modules.PRODUCT,
       );
       if (upload?.isSuccess) {
         imageUrls.push(upload.fileUrl);
@@ -332,6 +335,7 @@ export class ProductService {
         mainImage,
         { userId: user?.userId },
         lang,
+        Modules.PRODUCT,
       );
       if (mainUpload?.isSuccess) {
         product.mainImage = mainUpload.fileUrl;
@@ -347,6 +351,7 @@ export class ProductService {
           img,
           { userId: user?.userId },
           lang,
+          Modules.PRODUCT,
         );
         if (upload?.isSuccess) {
           imageUrls.push(upload.fileUrl);

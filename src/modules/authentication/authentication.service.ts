@@ -15,6 +15,7 @@ import { RolePermissions } from 'src/common/constants/roles-permissions.constant
 import { RegisterDto } from './dto/register.dto';
 import { JwtService } from '../jwt/jwt.service';
 import { MediaService } from '../media/media.service';
+import { Modules } from 'src/enums/appModules.enum';
 
 @Injectable()
 export class AuthService {
@@ -47,6 +48,7 @@ export class AuthService {
         profilePic,
         { userId: process.env.DB_SYSTEM_OBJ_ID }, // fake user since user is not registered yet
         lang,
+        Modules.AUTHENTICATION,
       );
 
       if (result?.isSuccess) {

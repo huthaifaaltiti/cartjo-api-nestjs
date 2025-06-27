@@ -9,6 +9,7 @@ import { AuthController } from './authentication.controller';
 import { AuthService } from './authentication.service';
 import { JwtService } from '../jwt/jwt.service';
 import { MediaModule } from '../media/media.module';
+import { Modules } from 'src/enums/appModules.enum';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { MediaModule } from '../media/media.module';
       secret: process.env.JWT_SECRET_KEY,
       signOptions: { expiresIn: process.env.JWT_MAX_EXPIRATION_TIME },
     }),
-    MulterModule.register(createMulterOptions()),
+    MulterModule.register(createMulterOptions(Modules.AUTHENTICATION)),
     MediaModule,
   ],
   controllers: [AuthController],
