@@ -13,8 +13,12 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 import { UserService } from './user.service';
+
+import { ALLOWED_AUTHENTICATED_ROLES } from 'src/common/constants/roles.constants';
+
 import { GetUsersStatsQueryDto } from './dto/get-users-stats.dto';
 import { GetAllUsersQueryDto } from './dto/get-all-users-query.dto';
 import { DeleteUserBodyDto } from './dto/delete-user-body.dto';
@@ -28,9 +32,7 @@ import {
   UnDeleteUserParamDto,
 } from './dto/un-delete-user.dto';
 import { GetUserParamDto, GetUserQueryDto } from './dto/get-user.dto';
-import { ALLOWED_AUTHENTICATED_ROLES } from 'src/common/constants/roles.constants';
 import { CreateAdminBodyDto } from './dto/create-admin.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateAdminUserParamsDto } from './dto/update-admin.dto';
 
 @Controller('/api/v1/user')
