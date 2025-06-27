@@ -4,10 +4,10 @@ import { Model } from 'mongoose';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
+import { getMessage } from 'src/common/utils/translator';
+
 import { Locale } from 'src/types/Locale';
 import { User, UserDocument } from '../../schemas/user.schema';
-
-import { getMessage } from 'src/common/utils/translator';
 
 @Injectable()
 export class MediaService {

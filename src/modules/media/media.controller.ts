@@ -11,6 +11,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 
 import { MediaService } from './media.service';
+
 import { UploadFileBodyDto } from './dto/upload-file.dto';
 import { Modules } from 'src/enums/appModules.enum';
 
@@ -18,9 +19,6 @@ import { Modules } from 'src/enums/appModules.enum';
 export class MediaController {
   constructor(private readonly fileUploadService: MediaService) {}
 
-  // ✔️ Route access: 🔒 Private route
-  // ✔️ Endpoint desc: 👤 Upload media for authorized users
-  // ✔️ Endpoint: 🔗 POST /api/v1/media/upload
   @UseGuards(AuthGuard('jwt'))
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
