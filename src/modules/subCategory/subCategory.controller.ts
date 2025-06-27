@@ -15,8 +15,9 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 
-import { CreateSubCategoryDto } from './dto/create-subCategory.dto';
 import { SubCategoryService } from './subCategory.service';
+
+import { CreateSubCategoryDto } from './dto/create-subCategory.dto';
 import {
   UpdateSubCategoryDto,
   UpdateSubCategoryParamsDto,

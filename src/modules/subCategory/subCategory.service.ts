@@ -6,21 +6,22 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 
-import {
-  SubCategory,
-  SubCategoryDocument,
-} from 'src/schemas/subCategory.schema';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
 
 import { MediaService } from '../media/media.service';
+
+import {
+  SubCategory,
+  SubCategoryDocument,
+} from 'src/schemas/subCategory.schema';
+import { Locale } from 'src/types/Locale';
+import { Category, CategoryDocument } from 'src/schemas/category.schema';
+import { Modules } from 'src/enums/appModules.enum';
 import { CreateSubCategoryDto } from './dto/create-subCategory.dto';
 import { UpdateSubCategoryDto } from './dto/update-subCategory.dto';
 import { DeleteSubCategoryDto } from './dto/delete-subCategory.dto';
 import { UnDeleteSubCategoryBodyDto } from './dto/unDelete-subCategory.dto';
-import { Locale } from 'src/types/Locale';
-import { Category, CategoryDocument } from 'src/schemas/category.schema';
-import { Modules } from 'src/enums/appModules.enum';
 
 @Injectable()
 export class SubCategoryService {
