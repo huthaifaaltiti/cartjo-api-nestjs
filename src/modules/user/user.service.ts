@@ -13,14 +13,18 @@ import { validateSameUserAccess } from 'src/common/utils/validateSameUserAccess'
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { RolePermissions } from 'src/common/constants/roles-permissions.constant';
 import { generateUsername } from 'src/common/functions/generators/uniqueUsername';
+import { checkUserRole } from 'src/common/utils/checkUserRole';
+import { validateSameUsersRoleLevel } from 'src/common/utils/validateSameUsersRoleLevel';
+import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
+import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
+
 import { UserRole } from 'src/enums/user-role.enum';
 import { User, UserDocument } from 'src/schemas/user.schema';
 import { Locale } from 'src/types/Locale';
 import { CreateAdminBodyDto } from './dto/create-admin.dto';
+
 import { JwtService } from '../jwt/jwt.service';
 import { MediaService } from '../media/media.service';
-import { checkUserRole } from 'src/common/utils/checkUserRole';
-import { validateSameUsersRoleLevel } from 'src/common/utils/validateSameUsersRoleLevel';
 import { Modules } from 'src/enums/appModules.enum';
 
 @Injectable()
@@ -361,6 +365,8 @@ export class UserService {
     let profilePicUrl: string | undefined = undefined;
 
     if (profilePic && Object.keys(profilePic).length > 0) {
+      fileSizeValidator(profilePic, MAX_FILE_SIZES.USER_PROFILE_IMAGE, lang);
+
       const result = await this.mediaService.handleFileUpload(
         profilePic,
         { userId: process.env.DB_SYSTEM_OBJ_ID }, // fake user since user is not registered yet
@@ -532,6 +538,8 @@ export class UserService {
     }
 
     if (profilePic && Object.keys(profilePic).length > 0) {
+      fileSizeValidator(profilePic, MAX_FILE_SIZES.USER_PROFILE_IMAGE, lang);
+
       const result = await this.mediaService.handleFileUpload(
         profilePic,
         { userId: requestingUser?.userId },

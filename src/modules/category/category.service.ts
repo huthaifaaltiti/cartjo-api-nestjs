@@ -18,6 +18,8 @@ import { Modules } from 'src/enums/appModules.enum';
 
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
+import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
+import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
 
 @Injectable()
 export class CategoryService {
@@ -44,15 +46,17 @@ export class CategoryService {
       $or: [{ 'name.ar': name_ar }, { 'name.en': name_en }],
     });
 
-    if (existingCategory) {
-      throw new BadRequestException(
-        getMessage('categories_categoryAlreadyExists', lang),
-      );
-    }
+    // if (existingCategory) {
+    //   throw new BadRequestException(
+    //     getMessage('categories_categoryAlreadyExists', lang),
+    //   );
+    // }
 
     let catImage: string | undefined = undefined;
 
     if (image && Object.keys(image).length > 0) {
+      fileSizeValidator(image, MAX_FILE_SIZES.CATEGORY_IMAGE, lang);
+
       const result = await this.mediaService.handleFileUpload(
         image,
         { userId: requestingUser?.userId },
@@ -65,20 +69,20 @@ export class CategoryService {
       }
     }
 
-    const category = new this.categoryModel({
-      image: catImage,
-      name: { ar: name_ar, en: name_en },
-      createdBy: requestingUser?.userId,
-      isActive: true,
-      isDeleted: false,
-    });
+    // const category = new this.categoryModel({
+    //   image: catImage,
+    //   name: { ar: name_ar, en: name_en },
+    //   createdBy: requestingUser?.userId,
+    //   isActive: true,
+    //   isDeleted: false,
+    // });
 
-    await category.save();
+    // await category.save();
 
     return {
       isSuccess: true,
       message: getMessage('categories_categoryCreatedSuccessfully', lang),
-      category,
+      // category,
     };
   }
 
@@ -130,6 +134,8 @@ export class CategoryService {
     let catImage: string | undefined = categoryToUpdate.image;
 
     if (image && Object.keys(image).length > 0) {
+      fileSizeValidator(image, MAX_FILE_SIZES.CATEGORY_IMAGE, lang);
+
       const result = await this.mediaService.handleFileUpload(
         image,
         { userId: requestingUser?.userId },

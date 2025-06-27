@@ -8,14 +8,18 @@ import { Model } from 'mongoose';
 import { MongoError } from 'mongodb';
 
 import { getMessage } from 'src/common/utils/translator';
+import { generateUsername } from 'src/common/utils/generators';
+import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
+import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
+import { RolePermissions } from 'src/common/constants/roles-permissions.constant';
+
 import { UserRole } from 'src/enums/user-role.enum';
 import { User, UserDocument } from 'src/schemas/user.schema';
-import { generateUsername } from 'src/common/utils/generators';
-import { RolePermissions } from 'src/common/constants/roles-permissions.constant';
 import { RegisterDto } from './dto/register.dto';
+import { Modules } from 'src/enums/appModules.enum';
+
 import { JwtService } from '../jwt/jwt.service';
 import { MediaService } from '../media/media.service';
-import { Modules } from 'src/enums/appModules.enum';
 
 @Injectable()
 export class AuthService {
@@ -44,6 +48,8 @@ export class AuthService {
     let profilePicUrl: string | undefined = undefined;
 
     if (profilePic && Object.keys(profilePic).length > 0) {
+      fileSizeValidator(profilePic, MAX_FILE_SIZES.USER_PROFILE_IMAGE, lang);
+
       const result = await this.mediaService.handleFileUpload(
         profilePic,
         { userId: process.env.DB_SYSTEM_OBJ_ID }, // fake user since user is not registered yet

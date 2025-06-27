@@ -8,6 +8,8 @@ import { Model, Types } from 'mongoose';
 
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
+import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
+import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
 
 import { MediaService } from '../media/media.service';
 
@@ -61,6 +63,8 @@ export class SubCategoryService {
 
     let imageUrl: string | undefined = undefined;
     if (image && Object.keys(image).length > 0) {
+      fileSizeValidator(image, MAX_FILE_SIZES.SUBCATEGORY_IMAGE, lang);
+
       const result = await this.mediaService.handleFileUpload(
         image,
         { userId: user?.userId },
@@ -137,6 +141,8 @@ export class SubCategoryService {
     let imageUrl = subCategoryToUpdate.image;
 
     if (image && Object.keys(image).length > 0) {
+      fileSizeValidator(image, MAX_FILE_SIZES.SUBCATEGORY_IMAGE, lang);
+
       const result = await this.mediaService.handleFileUpload(
         image,
         { userId: requestingUser?.userId },

@@ -11,17 +11,18 @@ import { TypeHint } from 'src/enums/typeHint.enums';
 import { Product, ProductDocument } from 'src/schemas/product.schema';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductBodyDto } from './dto/update-product.dto';
-
-import { MediaService } from '../media/media.service';
-import { CategoryService } from '../category/category.service';
-
-import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
-import { getMessage } from 'src/common/utils/translator';
 import { Locale } from 'src/types/Locale';
 import { Category, CategoryDocument } from 'src/schemas/category.schema';
 import { DeleteProductDto } from './dto/delete-product.dto';
 import { UnDeleteProductBodyDto } from './dto/unDelete-product.dto';
 import { Modules } from 'src/enums/appModules.enum';
+
+import { MediaService } from '../media/media.service';
+
+import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
+import { getMessage } from 'src/common/utils/translator';
+import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
+import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
 
 @Injectable()
 export class ProductService {
@@ -180,6 +181,8 @@ export class ProductService {
     let mainImageUrl: string | undefined;
 
     if (mainImage) {
+      fileSizeValidator(mainImage, MAX_FILE_SIZES.PRODUCT_IMAGE, lang);
+
       const mainUpload = await this.mediaService.handleFileUpload(
         mainImage,
         { userId: user?.userId },
@@ -192,6 +195,8 @@ export class ProductService {
     }
 
     for (const img of images) {
+      fileSizeValidator(img, MAX_FILE_SIZES.PRODUCT_IMAGE, lang);
+
       const upload = await this.mediaService.handleFileUpload(
         img,
         { userId: user?.userId },
@@ -331,6 +336,8 @@ export class ProductService {
 
     // Handle main image upload
     if (mainImage) {
+      fileSizeValidator(mainImage, MAX_FILE_SIZES.PRODUCT_IMAGE, lang);
+
       const mainUpload = await this.mediaService.handleFileUpload(
         mainImage,
         { userId: user?.userId },
@@ -347,6 +354,8 @@ export class ProductService {
       const imageUrls: string[] = [];
 
       for (const img of images) {
+        fileSizeValidator(img, MAX_FILE_SIZES.PRODUCT_IMAGE, lang);
+
         const upload = await this.mediaService.handleFileUpload(
           img,
           { userId: user?.userId },

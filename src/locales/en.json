@@ -17,6 +17,7 @@
   "media_notSupportedDataType": "Not supported data type",
   "media_sheetUploadedSuccessfully": "Sheet uploaded successfully",
   "media_sheetUploadedFailed": "Sheet uploading failed",
+  "media_fileSizeExceedsLimit": "File size exceeds the maximum allowed size of",
   "location_locationNotFound": "Location not found",
   "location_locationDeletedSuccessfully": "Location deleted successfully",
   "location_locationRetrievedSuccessfully": "Locations retrieved successfully",

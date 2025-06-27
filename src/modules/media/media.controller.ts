@@ -15,6 +15,9 @@ import { MediaService } from './media.service';
 import { UploadFileBodyDto } from './dto/upload-file.dto';
 import { Modules } from 'src/enums/appModules.enum';
 
+import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
+import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
+
 @Controller('api/v1/media')
 export class MediaController {
   constructor(private readonly fileUploadService: MediaService) {}
@@ -29,6 +32,8 @@ export class MediaController {
   ) {
     const { lang } = body;
     const { user } = req;
+
+    fileSizeValidator(file, MAX_FILE_SIZES.GENERAL_MEDIA_FILE, lang);
 
     return this.fileUploadService.handleFileUpload(
       file,
