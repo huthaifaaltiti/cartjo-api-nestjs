@@ -15,7 +15,6 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 
-import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import {
   UpdateCategoryDto,
@@ -38,6 +37,8 @@ import {
   UpdateCategoryStatusBodyDto,
   UpdateCategoryStatusParamsDto,
 } from './dto/update-category-status.dto';
+
+import { CategoryService } from './category.service';
 
 @Controller('/api/v1/category')
 export class CategoryController {
@@ -116,7 +117,7 @@ export class CategoryController {
   async getCategories(@Query() query: GetCategoriesQueryDto) {
     const { lang, limit, lastId, search } = query;
 
-    return this.categoryService.getCategories({
+    return this.categoryService.getAll({
       lang,
       limit,
       lastId,
@@ -132,6 +133,6 @@ export class CategoryController {
     const { id } = param;
     const { lang } = query;
 
-    return this.categoryService.getCategory(id, lang);
+    return this.categoryService.getOne(id, lang);
   }
 }

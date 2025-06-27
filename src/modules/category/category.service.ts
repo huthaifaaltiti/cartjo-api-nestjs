@@ -6,16 +6,18 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 
-import { Category, CategoryDocument } from 'src/schemas/category.schema';
-import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
-import { Locale } from 'src/types/Locale';
-
-import { CreateCategoryDto } from './dto/create-category.dto';
 import { MediaService } from '../media/media.service';
-import { getMessage } from 'src/common/utils/translator';
+
+import { Category, CategoryDocument } from 'src/schemas/category.schema';
+import { Locale } from 'src/types/Locale';
+import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { DeleteCategoryDto } from './dto/delete-category.dto';
 import { UnDeleteCategoryBodyDto } from './dto/unDelete-category.dto';
+import { Modules } from 'src/enums/appModules.enum';
+
+import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
+import { getMessage } from 'src/common/utils/translator';
 
 @Injectable()
 export class CategoryService {
@@ -55,6 +57,7 @@ export class CategoryService {
         image,
         { userId: requestingUser?.userId },
         lang,
+        Modules.CATEGORY,
       );
 
       if (result?.isSuccess) {
@@ -131,6 +134,7 @@ export class CategoryService {
         image,
         { userId: requestingUser?.userId },
         lang,
+        Modules.CATEGORY,
       );
 
       if (result?.isSuccess) {
@@ -274,7 +278,7 @@ export class CategoryService {
     };
   }
 
-  async getCategories(params: {
+  async getAll(params: {
     lang?: Locale;
     limit?: string;
     lastId?: string;
@@ -316,7 +320,7 @@ export class CategoryService {
     };
   }
 
-  async getCategory(
+  async getOne(
     id: string,
     lang?: Locale,
   ): Promise<{
