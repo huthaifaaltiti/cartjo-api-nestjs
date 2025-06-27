@@ -3,13 +3,16 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
 import { MediaService } from '../media/media.service';
+
 import { getMessage } from 'src/common/utils/translator';
 import { excelSheetParser } from 'src/common/utils/excelSheetParser';
 import { buildTownHierarchy } from 'src/common/utils/buildTownHierarchy';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
+
 import { Location, LocationDocument } from 'src/schemas/location.schema';
 import { DeleteLocationBodyDto } from './dto/delete-location-body.dto';
 import { Modules } from 'src/enums/appModules.enum';
+import { Locale } from 'src/types/Locale';
 
 @Injectable()
 export class LocationService {
@@ -22,7 +25,7 @@ export class LocationService {
   async handleBulkFileUpload(
     file: Express.Multer.File,
     requestingUser: any,
-    lang: 'en' | 'ar' = 'en',
+    lang: Locale = 'en',
   ): Promise<{
     isSuccess: Boolean;
     message: string;
@@ -68,7 +71,7 @@ export class LocationService {
     }
   }
 
-  async getLocations(lang: 'en' | 'ar' = 'en'): Promise<{
+  async getLocations(lang: Locale = 'en'): Promise<{
     isSuccess: boolean;
     message: string;
     locations: Location[];
@@ -81,28 +84,6 @@ export class LocationService {
       locations,
     };
   }
-
-  // async updateLocation(
-  //   id: string,
-  //   updateData: UpdateLocationBodyDto,
-  //   requestingUser: any,
-  // ): Promise<Location> {
-  //    validateUserRoleAccess(requestingUser, lang);
-
-  //   const { ar, en } = updateData;
-
-  //   const updated = await this.locationModel.findByIdAndUpdate(
-  //     id,
-  //     { name: { ar, en } },
-  //     { new: true },
-  //   );
-
-  //   if (!updated) {
-  //     throw new NotFoundException('Location not found');
-  //   }
-
-  //   return updated;
-  // }
 
   async deleteLocation(
     id: string,

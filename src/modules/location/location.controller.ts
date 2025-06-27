@@ -14,6 +14,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 
 import { LocationService } from './location.service';
+
 import { BulkUploadBodyDto } from './dto/bulk-upload-body.dto';
 import { DeleteLocationBodyDto } from './dto/delete-location-body.dto';
 
@@ -39,18 +40,6 @@ export class LocationController {
   getLocations() {
     return this.locationService.getLocations();
   }
-
-  // @UseGuards(AuthGuard('jwt'))
-  // @Put('update/:id')
-  // updateLocation(
-  //   @Param('id') id: string,
-  //   @Body() body: UpdateLocationBodyDto,
-  //   @Request() req: any,
-  // ) {
-  //   const { user } = req;
-
-  //   return this.locationService.updateLocation(id, body, user);
-  // }
 
   @UseGuards(AuthGuard('jwt'))
   @Delete('delete/:id')
