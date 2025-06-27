@@ -19,6 +19,7 @@ import { UpdateSubCategoryDto } from './dto/update-subCategory.dto';
 import { DeleteSubCategoryDto } from './dto/delete-subCategory.dto';
 import { UnDeleteSubCategoryBodyDto } from './dto/unDelete-subCategory.dto';
 import { Locale } from 'src/types/Locale';
+import { Category, CategoryDocument } from 'src/schemas/category.schema';
 
 @Injectable()
 export class SubCategoryService {
@@ -26,6 +27,9 @@ export class SubCategoryService {
     @InjectModel(SubCategory.name)
     private subCategoryModel: Model<SubCategoryDocument>,
     private mediaService: MediaService,
+
+    @InjectModel(Category.name)
+    private categoryModel: Model<CategoryDocument>,
   ) {}
 
   async create(
@@ -73,6 +77,10 @@ export class SubCategoryService {
     });
 
     await subCategory.save();
+
+    await this.categoryModel.findByIdAndUpdate(categoryId, {
+      $addToSet: { subCategories: subCategory._id },
+    });
 
     return {
       isSuccess: true,
@@ -308,7 +316,10 @@ export class SubCategoryService {
 
     return {
       isSuccess: true,
-      message: getMessage('subCategories_subCategoriesRetrievedSuccessfully', lang),
+      message: getMessage(
+        'subCategories_subCategoriesRetrievedSuccessfully',
+        lang,
+      ),
       subCategoriesNum: subCategories.length,
       subCategories,
     };
@@ -343,7 +354,10 @@ export class SubCategoryService {
 
     return {
       isSuccess: true,
-      message: getMessage('subCategories_subCategoryRetrievedSuccessfully', lang),
+      message: getMessage(
+        'subCategories_subCategoryRetrievedSuccessfully',
+        lang,
+      ),
       subCategory,
     };
   }
