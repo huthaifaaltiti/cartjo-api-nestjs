@@ -19,6 +19,9 @@ export class Category extends Document {
   @Prop({ required: true, default: null })
   image?: string;
 
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Media', default: null })
+  mediaId?: string;
+
   @Prop({
     type: [mongoose.Schema.Types.ObjectId],
     ref: 'SubCategory',

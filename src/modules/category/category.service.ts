@@ -46,13 +46,14 @@ export class CategoryService {
       $or: [{ 'name.ar': name_ar }, { 'name.en': name_en }],
     });
 
-    // if (existingCategory) {
-    //   throw new BadRequestException(
-    //     getMessage('categories_categoryAlreadyExists', lang),
-    //   );
-    // }
+    if (existingCategory) {
+      throw new BadRequestException(
+        getMessage('categories_categoryAlreadyExists', lang),
+      );
+    }
 
     let catImage: string | undefined = undefined;
+    let mediaId: string | undefined = undefined;
 
     if (image && Object.keys(image).length > 0) {
       fileSizeValidator(image, MAX_FILE_SIZES.CATEGORY_IMAGE, lang);
@@ -66,18 +67,20 @@ export class CategoryService {
 
       if (result?.isSuccess) {
         catImage = result.fileUrl;
+        mediaId = result.mediaId;
       }
     }
 
-    // const category = new this.categoryModel({
-    //   image: catImage,
-    //   name: { ar: name_ar, en: name_en },
-    //   createdBy: requestingUser?.userId,
-    //   isActive: true,
-    //   isDeleted: false,
-    // });
+    const category = new this.categoryModel({
+      image: catImage,
+      mediaId,
+      name: { ar: name_ar, en: name_en },
+      createdBy: requestingUser?.userId,
+      isActive: true,
+      isDeleted: false,
+    });
 
-    // await category.save();
+    await category.save();
 
     return {
       isSuccess: true,
