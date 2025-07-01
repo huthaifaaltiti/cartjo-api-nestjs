@@ -113,13 +113,14 @@ export class SubCategoryController {
 
   @Get('all')
   async getAll(@Query() query: GetSubCategoriesQueryDto) {
-    const { lang, limit, lastId, search } = query;
+    const { lang, limit, lastId, search, catId } = query;
 
     return this.subCategoryService.getAll({
       lang,
       limit,
       lastId,
       search,
+      catId,
     });
   }
 

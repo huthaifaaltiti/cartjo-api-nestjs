@@ -18,5 +18,9 @@ export class GetSubCategoriesQueryDto {
 
   @IsString()
   @IsOptional()
+  catId: string;
+
+  @IsString()
+  @IsOptional()
   lang: Locale = 'en';
 }

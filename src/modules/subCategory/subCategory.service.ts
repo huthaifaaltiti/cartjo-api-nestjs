@@ -296,13 +296,14 @@ export class SubCategoryService {
     limit?: string;
     lastId?: string;
     search?: string;
+    catId?: string;
   }): Promise<{
     isSuccess: boolean;
     message: string;
     subCategoriesNum: number;
     subCategories: SubCategory[];
   }> {
-    const { lang = 'en', limit = 10, lastId, search } = params;
+    const { lang = 'en', limit = 10, lastId, search, catId } = params;
 
     const query: any = {};
 
@@ -313,6 +314,10 @@ export class SubCategoryService {
     if (search) {
       const searchRegex = new RegExp(search, 'i');
       query.$or = [{ 'name.ar': searchRegex }, { 'name.en': searchRegex }];
+    }
+
+    if (catId) {
+      query.categoryId = new Types.ObjectId(catId);
     }
 
     const subCategories = await this.subCategoryModel
