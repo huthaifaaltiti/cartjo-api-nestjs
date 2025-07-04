@@ -43,8 +43,8 @@ export class ProductService {
   }): Promise<{
     isSuccess: boolean;
     message: string;
-    productsNum: number;
-    products: Product[];
+    totalCount: number;
+    data: Product[];
   }> {
     const { lang = 'en', limit = 10, lastId, search } = params;
 
@@ -74,13 +74,15 @@ export class ProductService {
       .populate('createdBy', 'firstName lastName email _id')
       .populate('categoryId')
       .populate('subCategoryId')
+      .populate('mainMediaId')
+      .populate('mediaListIds')
       .lean();
 
     return {
       isSuccess: true,
       message: getMessage('products_productsRetrievedSuccessfully', lang),
-      productsNum: products.length,
-      products,
+      totalCount: products.length,
+      data: products,
     };
   }
 
@@ -90,7 +92,7 @@ export class ProductService {
   ): Promise<{
     isSuccess: boolean;
     message: string;
-    product: Product | null;
+    data: Product | null;
   }> {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException(
@@ -112,7 +114,7 @@ export class ProductService {
     return {
       isSuccess: true,
       message: getMessage('products_productRetrievedSuccessfully', lang),
-      product,
+      data: product,
     };
   }
 
@@ -178,6 +180,8 @@ export class ProductService {
     }
 
     let imageUrls: string[] = [];
+    let mediaListIds: string[] = [];
+    let mainMediaId: string | undefined = undefined;
     let mainImageUrl: string | undefined;
 
     if (mainImage) {
@@ -191,6 +195,7 @@ export class ProductService {
       );
       if (mainUpload?.isSuccess) {
         mainImageUrl = mainUpload.fileUrl;
+        mainMediaId = mainUpload.mediaId;
       }
     }
 
@@ -203,8 +208,10 @@ export class ProductService {
         lang,
         Modules.PRODUCT,
       );
+
       if (upload?.isSuccess) {
         imageUrls.push(upload.fileUrl);
+        mediaListIds.push(upload.mediaId);
       }
     }
 
@@ -224,7 +231,9 @@ export class ProductService {
       categoryId,
       subCategoryId,
       mainImage: mainImageUrl || imageUrls[0],
+      mainMediaId: mainMediaId || mediaListIds[0],
       images: imageUrls,
+      mediaListIds,
       isAvailable,
       isActive: true,
       isDeleted: false,
@@ -236,7 +245,7 @@ export class ProductService {
     return {
       isSuccess: true,
       message: getMessage('products_productCreatedSuccessfully', lang),
-      product,
+      data: product,
     };
   }
 
@@ -346,12 +355,14 @@ export class ProductService {
       );
       if (mainUpload?.isSuccess) {
         product.mainImage = mainUpload.fileUrl;
+        product.mainMediaId = mainUpload.mediaId;
       }
     }
 
     // Handle multiple images upload
     if (images?.length) {
       const imageUrls: string[] = [];
+      const mediaListIds: string[] = [];
 
       for (const img of images) {
         fileSizeValidator(img, MAX_FILE_SIZES.PRODUCT_IMAGE, lang);
@@ -362,12 +373,15 @@ export class ProductService {
           lang,
           Modules.PRODUCT,
         );
+
         if (upload?.isSuccess) {
           imageUrls.push(upload.fileUrl);
+          mediaListIds.push(upload.mediaId);
         }
       }
 
       product.images = imageUrls;
+      product.mediaListIds = mediaListIds;
     }
 
     await product.save();
@@ -375,7 +389,7 @@ export class ProductService {
     return {
       isSuccess: true,
       message: getMessage('products_productUpdatedSuccessfully', lang),
-      product,
+      data: product,
     };
   }
 
