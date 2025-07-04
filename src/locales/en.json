@@ -56,6 +56,7 @@
   "subCategories_subCategoryActivatedSuccessfully": "SubCategory activated successfully",
   "subCategories_subCategoryDeactivatedSuccessfully": "SubCategory deactivated successfully",
   "subCategories_invalidSubCategoryId": "Invalid SubCategory Id",
+  "subcategories_categoryShouldBeSelected": "Category should be selected",
   "subCategories_subCategoryRetrievedSuccessfully": "SubCategory retrieved successfully",
   "products_productCreatedSuccessfully": "Product created successfully",
   "products_productWithSlugAlreadyExist": "Product with this slug already exists",
