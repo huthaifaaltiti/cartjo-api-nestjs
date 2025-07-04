@@ -25,8 +25,14 @@ export class Product {
   @Prop({ isRequired: true, type: [String], default: [] })
   images: string[];
 
+  @Prop({ type: [MongooseSchema.Types.ObjectId], ref: 'Media', default: null })
+  mediaListIds?: string[];
+
   @Prop({ required: true, type: String, default: null })
   mainImage?: string;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Media', default: null })
+  mainMediaId?: string;
 
   @Prop({ required: true, default: 1 })
   price: number;
