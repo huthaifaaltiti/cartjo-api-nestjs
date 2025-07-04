@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { Document } from 'mongoose';
+import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
 
 export type SubCategoryDocument = SubCategory & Document;
 
@@ -21,6 +21,9 @@ export class SubCategory extends Document {
 
   @Prop({ default: false })
   isDeleted: boolean;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Media', default: null })
+  mediaId?: string;
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
