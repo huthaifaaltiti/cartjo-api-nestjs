@@ -45,14 +45,16 @@ export class SubCategoryService {
 
     validateUserRoleAccess(user, lang);
 
-    // const exists = await this.subCategoryModel.findOne({
-    //   'name.ar': name_ar,
-    //   'name.en': name_en,
-    //   categoryId,
-    // });
+    const category = await this.categoryModel.findById(categoryId);
+
+    if (!category) {
+      throw new NotFoundException(
+        getMessage('subcategories_categoryShouldBeSelected', lang),
+      );
+    }
 
     const exists = await this.subCategoryModel.findOne({
-      $or: [{ 'name.ar': name_ar }, { 'name.en': name_en }, { categoryId }],
+      $or: [{ 'name.ar': name_ar }, { 'name.en': name_en }],
     });
 
     if (exists) {
@@ -62,6 +64,7 @@ export class SubCategoryService {
     }
 
     let imageUrl: string | undefined = undefined;
+    let mediaId: string | undefined = undefined;
     if (image && Object.keys(image).length > 0) {
       fileSizeValidator(image, MAX_FILE_SIZES.SUBCATEGORY_IMAGE, lang);
 
@@ -71,7 +74,10 @@ export class SubCategoryService {
         lang,
         Modules.SUB_CATEGORY,
       );
-      if (result?.isSuccess) imageUrl = result.fileUrl;
+      if (result?.isSuccess) {
+        imageUrl = result.fileUrl;
+        mediaId = result.mediaId;
+      }
     }
 
     const subCategory = new this.subCategoryModel({
@@ -81,6 +87,7 @@ export class SubCategoryService {
       createdBy: user?.userId,
       isActive: true,
       isDeleted: false,
+      mediaId,
     });
 
     await subCategory.save();
