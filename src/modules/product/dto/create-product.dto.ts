@@ -1,3 +1,4 @@
+import { Type, Transform } from 'class-transformer';
 import {
   IsEnum,
   IsMongoId,
@@ -12,7 +13,6 @@ import {
 
 import { Currency } from 'src/enums/currency.enum';
 import { TypeHint } from 'src/enums/typeHint.enums';
-
 import { Locale } from 'src/types/Locale';
 
 export class CreateProductDto {
@@ -54,10 +54,29 @@ export class CreateProductDto {
   currency: Currency;
 
   @IsOptional()
-  @IsNumber()
+  @Type(() => Number)
+  @Transform(({ value }) => {
+    console.log('discountRate',{ value });
+    if (value === null || value === undefined || value === '') return undefined;
+    const num = Number(value);
+    return isNaN(num) ? value : num;
+  })
+  @IsNumber({}, { message: 'discountRate must be a number' })
   @Min(1, { message: 'Price discount rate cant be less than 1' })
   @Max(100, { message: 'Price discount rate cant be more than 100' })
   discountRate?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @Transform(({ value }) => {
+    console.log('availableCount',{ value });
+    if (value === null || value === undefined || value === '') return undefined;
+    const num = Number(value);
+    return isNaN(num) ? value : num;
+  })
+  @IsNumber({}, { message: 'availableCount must be a number' })
+  @Min(1, { message: 'available count cant be less than 1' })
+  availableCount?: number;
 
   @IsNotEmpty()
   @IsString()
