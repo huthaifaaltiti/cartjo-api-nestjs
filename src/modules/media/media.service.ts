@@ -89,7 +89,11 @@ export class MediaService {
 
       // Generate unique filename
       const fileExtension = path.extname(file.originalname);
-      const fileName = `${key}-${Date.now()}-${file.originalname.replace(fileExtension, '').trim()}${fileExtension}`;
+      const sanitizedBaseName = file.originalname
+        .replace(fileExtension, '')
+        .trim()
+        .replace(/\s+/g, '-'); // Replace spaces with dashes
+      const fileName = `${key}-${Date.now()}-${sanitizedBaseName}${fileExtension}`;
       const fullPath = path.join(uploadPath, fileName);
 
       // Write file to disk
