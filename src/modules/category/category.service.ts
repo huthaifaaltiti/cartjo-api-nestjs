@@ -318,6 +318,7 @@ export class CategoryService {
       .populate('deletedBy', 'firstName lastName email _id')
       .populate('unDeletedBy', 'firstName lastName email _id')
       .populate('createdBy', 'firstName lastName email _id')
+      .populate('mediaId', 'supabaseBackupUrl _id')
       .populate('subCategories')
       .lean();
 
