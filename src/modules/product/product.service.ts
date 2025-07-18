@@ -361,8 +361,8 @@ export class ProductService {
 
     // Handle multiple images upload
     if (images?.length) {
-      const imageUrls: string[] = [];
-      const mediaListIds: string[] = [];
+      const newImageUrls: string[] = [];
+      const newMediaListIds: string[] = [];
 
       for (const img of images) {
         fileSizeValidator(img, MAX_FILE_SIZES.PRODUCT_IMAGE, lang);
@@ -375,13 +375,16 @@ export class ProductService {
         );
 
         if (upload?.isSuccess) {
-          imageUrls.push(upload.fileUrl);
-          mediaListIds.push(upload.mediaId);
+          newImageUrls.push(upload.fileUrl);
+          newMediaListIds.push(upload.mediaId);
         }
       }
 
-      product.images = imageUrls;
-      product.mediaListIds = mediaListIds;
+      product.images = [...(product.images || []), ...newImageUrls];
+      product.mediaListIds = [
+        ...(product.mediaListIds || []),
+        ...newMediaListIds,
+      ];
     }
 
     await product.save();
