@@ -135,6 +135,7 @@ export class CategoryService {
     }
 
     let catImage: string | undefined = categoryToUpdate.image;
+    let mediaId: string | undefined = categoryToUpdate.mediaId;
 
     if (image && Object.keys(image).length > 0) {
       fileSizeValidator(image, MAX_FILE_SIZES.CATEGORY_IMAGE, lang);
@@ -148,6 +149,7 @@ export class CategoryService {
 
       if (result?.isSuccess) {
         catImage = result.fileUrl;
+        mediaId = result.mediaId;
       }
     }
 
@@ -158,6 +160,7 @@ export class CategoryService {
 
     if (catImage !== categoryToUpdate.image) {
       updateData.image = catImage;
+      updateData.mediaId = mediaId;
     }
 
     if (name_ar || name_en) {
