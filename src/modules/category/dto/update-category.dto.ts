@@ -1,15 +1,36 @@
-import { IsMongoId, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import {
+  IsMongoId,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
+
+import { validationConfig } from 'src/configs/validationConfig';
 import { Locale } from 'src/types/Locale';
+
+const { nameMinChars, nameMaxChars } = validationConfig.category;
 
 export class UpdateCategoryDto {
   @IsOptional()
   @IsString()
-  @MinLength(5, { message: 'Category ar name cannot be empty' })
+  @MinLength(nameMinChars, {
+    message: `Category ar name cannot be less than (${nameMinChars}) characters`,
+  })
+  @MaxLength(nameMaxChars, {
+    message: `Category ar name cannot be more than (${nameMaxChars}) characters`,
+  })
   name_ar?: string;
 
   @IsOptional()
   @IsString()
-  @MinLength(5, { message: 'Category en name cannot be empty' })
+  @MinLength(nameMinChars, {
+    message: `Category en name cannot be less than (${nameMinChars}) characters`,
+  })
+  @MaxLength(nameMaxChars, {
+    message: `Category en name cannot be more than (${nameMaxChars}) characters`,
+  })
   name_en?: string;
 
   @IsOptional()
