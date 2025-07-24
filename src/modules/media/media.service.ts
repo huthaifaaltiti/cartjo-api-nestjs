@@ -65,7 +65,7 @@ export class MediaService {
   }> {
     const { userId } = requestingUser;
     const ipAddress =
-      req.headers['x-forwarded-for'] || req.socket.remoteAddress || null;
+      req?.headers['x-forwarded-for'] || req?.socket?.remoteAddress || null;
 
     const user = await this.userModel.findById(userId);
 

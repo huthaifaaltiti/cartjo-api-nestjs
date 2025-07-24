@@ -11,16 +11,21 @@ class Name {
   en: string;
 }
 
+class Media {
+  @Prop({ required: true })
+  id: string;
+
+  @Prop({ required: true, default: null })
+  url: string;
+}
+
 @Schema({ collection: 'categories', timestamps: true })
 export class Category extends Document {
   @Prop({ required: false })
   name?: Name;
 
-  @Prop({ required: true, default: null })
-  image?: string;
-
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Media', default: null })
-  mediaId?: string;
+  @Prop({ required: false, default: {} })
+  media?: Media;
 
   @Prop({
     type: [mongoose.Schema.Types.ObjectId],

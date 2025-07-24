@@ -52,7 +52,7 @@ export class CategoryService {
       );
     }
 
-    let catImage: string | undefined = undefined;
+    let mediaUrl: string | undefined = undefined;
     let mediaId: string | undefined = undefined;
 
     if (image && Object.keys(image).length > 0) {
@@ -66,14 +66,13 @@ export class CategoryService {
       );
 
       if (result?.isSuccess) {
-        catImage = result.fileUrl;
+        mediaUrl = result.fileUrl;
         mediaId = result.mediaId;
       }
     }
 
     const category = new this.categoryModel({
-      image: catImage,
-      mediaId,
+      media: { id: mediaId, url: mediaUrl },
       name: { ar: name_ar, en: name_en },
       createdBy: requestingUser?.userId,
       isActive: true,
@@ -85,7 +84,7 @@ export class CategoryService {
     return {
       isSuccess: true,
       message: getMessage('categories_categoryCreatedSuccessfully', lang),
-      // category,
+      category,
     };
   }
 
@@ -134,8 +133,8 @@ export class CategoryService {
       }
     }
 
-    let catImage: string | undefined = categoryToUpdate.image;
-    let mediaId: string | undefined = categoryToUpdate.mediaId;
+    let mediaUrl: string | undefined = categoryToUpdate.media.url;
+    let mediaId: string | undefined = categoryToUpdate.media.id;
 
     if (image && Object.keys(image).length > 0) {
       fileSizeValidator(image, MAX_FILE_SIZES.CATEGORY_IMAGE, lang);
@@ -148,7 +147,7 @@ export class CategoryService {
       );
 
       if (result?.isSuccess) {
-        catImage = result.fileUrl;
+        mediaUrl = result.fileUrl;
         mediaId = result.mediaId;
       }
     }
@@ -158,9 +157,11 @@ export class CategoryService {
       updatedAt: new Date(),
     };
 
-    if (catImage !== categoryToUpdate.image) {
-      updateData.image = catImage;
-      updateData.mediaId = mediaId;
+    if (mediaUrl !== categoryToUpdate.media?.url) {
+      updateData.media = {
+        id: mediaId,
+        url: mediaUrl,
+      };
     }
 
     if (name_ar || name_en) {
@@ -321,7 +322,6 @@ export class CategoryService {
       .populate('deletedBy', 'firstName lastName email _id')
       .populate('unDeletedBy', 'firstName lastName email _id')
       .populate('createdBy', 'firstName lastName email _id')
-      .populate('mediaId', 'supabaseBackupUrl _id')
       .populate('subCategories')
       .lean();
 
