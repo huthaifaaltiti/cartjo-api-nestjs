@@ -26,7 +26,7 @@ import { ProductModule } from './modules/product/product.module';
       rootPath: path.join(__dirname, '..', './uploads'),
       serveRoot: '/uploads',
     }),
-    MongooseModule.forRoot(process.env.DB_URI),
+    MongooseModule.forRoot(process.env.MONGODB_URI),
     AuthModule,
     JwtModule,
     AuthorizationModule,
