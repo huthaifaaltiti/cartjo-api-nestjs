@@ -1,20 +1,17 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
 
-export type SubCategoryDocument = SubCategory & Document;
+import { MediaPreview, NameRef } from './common.schema';
 
-class Name {
-  @Prop({ required: true }) ar: string;
-  @Prop({ required: true }) en: string;
-}
+export type SubCategoryDocument = SubCategory & Document;
 
 @Schema({ collection: 'subCategories', timestamps: true })
 export class SubCategory extends Document {
-  @Prop({ required: true })
-  name: Name;
+  @Prop({ required: true, default: {} })
+  name: NameRef;
 
-  @Prop({ required: true, default: null })
-  image?: string;
+  @Prop({ required: true, default: {} })
+  media?: MediaPreview;
 
   @Prop({ default: true })
   isActive: boolean;
