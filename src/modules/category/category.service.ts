@@ -8,6 +8,11 @@ import { Model, Types } from 'mongoose';
 
 import { MediaService } from '../media/media.service';
 
+import {
+  BaseResponse,
+  DataListResponse,
+  DataResponse,
+} from 'src/types/service-response.type';
 import { Category, CategoryDocument } from 'src/schemas/category.schema';
 import { Locale } from 'src/types/Locale';
 import { CreateCategoryDto } from './dto/create-category.dto';
@@ -33,11 +38,7 @@ export class CategoryService {
     requestingUser: any,
     dto: CreateCategoryDto,
     image: Express.Multer.File,
-  ): Promise<{
-    isSuccess: boolean;
-    message: string;
-    category?: Category;
-  }> {
+  ): Promise<DataResponse<Category>> {
     const { lang, name_ar, name_en } = dto;
 
     validateUserRoleAccess(requestingUser, lang);
@@ -84,7 +85,7 @@ export class CategoryService {
     return {
       isSuccess: true,
       message: getMessage('categories_categoryCreatedSuccessfully', lang),
-      category,
+      data: category,
     };
   }
 
@@ -93,11 +94,7 @@ export class CategoryService {
     dto: UpdateCategoryDto,
     image: Express.Multer.File,
     id: string,
-  ): Promise<{
-    isSuccess: boolean;
-    message: string;
-    category?: Category;
-  }> {
+  ): Promise<DataResponse<Category>> {
     const { lang, name_ar, name_en } = dto;
 
     validateUserRoleAccess(requestingUser, lang);
@@ -180,7 +177,7 @@ export class CategoryService {
     return {
       isSuccess: true,
       message: getMessage('categories_categoryUpdatedSuccessfully', lang),
-      category: updatedCategory,
+      data: updatedCategory,
     };
   }
 
@@ -188,10 +185,7 @@ export class CategoryService {
     requestingUser: any,
     body: DeleteCategoryDto,
     id: string,
-  ): Promise<{
-    isSuccess: boolean;
-    message: string;
-  }> {
+  ): Promise<BaseResponse> {
     const { lang } = body;
 
     validateUserRoleAccess(requestingUser, lang);
@@ -222,10 +216,7 @@ export class CategoryService {
     requestingUser: any,
     body: UnDeleteCategoryBodyDto,
     id: string,
-  ): Promise<{
-    isSuccess: boolean;
-    message: string;
-  }> {
+  ): Promise<BaseResponse> {
     const { lang } = body;
 
     validateUserRoleAccess(requestingUser, lang);
@@ -257,10 +248,7 @@ export class CategoryService {
     isActive: boolean,
     lang: Locale = 'en',
     requestingUser: any,
-  ): Promise<{
-    isSuccess: boolean;
-    message: string;
-  }> {
+  ): Promise<BaseResponse> {
     validateUserRoleAccess(requestingUser, lang);
 
     const category = await this.categoryModel.findById(id);
@@ -296,12 +284,7 @@ export class CategoryService {
     limit?: string;
     lastId?: string;
     search?: string;
-  }): Promise<{
-    isSuccess: boolean;
-    message: string;
-    categoriesNum: number;
-    categories: Category[];
-  }> {
+  }): Promise<DataListResponse<Category>> {
     const { lang = 'en', limit = 10, lastId, search } = params;
 
     const query: any = {};
@@ -323,24 +306,18 @@ export class CategoryService {
       .populate('unDeletedBy', 'firstName lastName email _id')
       .populate('createdBy', 'firstName lastName email _id')
       .populate('subCategories')
+      .select('-__v')
       .lean();
 
     return {
       isSuccess: true,
       message: getMessage('categories_categoriesRetrievedSuccessfully', lang),
-      categoriesNum: categories.length,
-      categories,
+      dataCount: categories.length,
+      data: categories,
     };
   }
 
-  async getOne(
-    id: string,
-    lang?: Locale,
-  ): Promise<{
-    isSuccess: boolean;
-    message: string;
-    category: Category | null;
-  }> {
+  async getOne(id: string, lang?: Locale): Promise<DataResponse<Category>> {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException(
         getMessage('categories_invalidCategoryId', lang),
@@ -364,7 +341,7 @@ export class CategoryService {
     return {
       isSuccess: true,
       message: getMessage('categories_categoryRetrievedSuccessfully', lang),
-      category,
+      data: category,
     };
   }
 }
