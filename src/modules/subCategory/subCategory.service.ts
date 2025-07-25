@@ -17,6 +17,11 @@ import {
   SubCategory,
   SubCategoryDocument,
 } from 'src/schemas/subCategory.schema';
+import {
+  BaseResponse,
+  DataListResponse,
+  DataResponse,
+} from 'src/types/service-response.type';
 import { Locale } from 'src/types/Locale';
 import { Category, CategoryDocument } from 'src/schemas/category.schema';
 import { Modules } from 'src/enums/appModules.enum';
@@ -40,7 +45,7 @@ export class SubCategoryService {
     user: any,
     dto: CreateSubCategoryDto,
     image: Express.Multer.File,
-  ): Promise<any> {
+  ): Promise<DataResponse<SubCategory>> {
     const { lang, name_ar, name_en, categoryId } = dto;
 
     validateUserRoleAccess(user, lang);
@@ -63,7 +68,7 @@ export class SubCategoryService {
       );
     }
 
-    let imageUrl: string | undefined = undefined;
+    let mediaUrl: string | undefined = undefined;
     let mediaId: string | undefined = undefined;
     if (image && Object.keys(image).length > 0) {
       fileSizeValidator(image, MAX_FILE_SIZES.SUBCATEGORY_IMAGE, lang);
@@ -75,7 +80,7 @@ export class SubCategoryService {
         Modules.SUB_CATEGORY,
       );
       if (result?.isSuccess) {
-        imageUrl = result.fileUrl;
+        mediaUrl = result.fileUrl;
         mediaId = result.mediaId;
       }
     }
@@ -83,7 +88,7 @@ export class SubCategoryService {
     const subCategory = new this.subCategoryModel({
       name: { ar: name_ar, en: name_en },
       categoryId,
-      image: imageUrl,
+      media: { id: mediaId, url: mediaUrl },
       createdBy: user?.userId,
       isActive: true,
       isDeleted: false,
@@ -99,7 +104,7 @@ export class SubCategoryService {
     return {
       isSuccess: true,
       message: getMessage('subcategories_subCategoryCreatedSuccessfully', lang),
-      subCategory,
+      data: subCategory,
     };
   }
 
@@ -108,11 +113,7 @@ export class SubCategoryService {
     dto: UpdateSubCategoryDto,
     image: Express.Multer.File,
     id: string,
-  ): Promise<{
-    isSuccess: boolean;
-    message: string;
-    subCategory?: SubCategory;
-  }> {
+  ): Promise<DataResponse<SubCategory>> {
     const { lang, name_ar, name_en, categoryId } = dto;
 
     validateUserRoleAccess(requestingUser, lang);
@@ -145,7 +146,8 @@ export class SubCategoryService {
       }
     }
 
-    let imageUrl = subCategoryToUpdate.image;
+    let mediaUrl: string | undefined = subCategoryToUpdate.media.url;
+    let mediaId: string | undefined = subCategoryToUpdate.media.id;
 
     if (image && Object.keys(image).length > 0) {
       fileSizeValidator(image, MAX_FILE_SIZES.SUBCATEGORY_IMAGE, lang);
@@ -156,7 +158,10 @@ export class SubCategoryService {
         lang,
         Modules.SUB_CATEGORY,
       );
-      if (result?.isSuccess) imageUrl = result.fileUrl;
+
+      if (result?.isSuccess) {
+        mediaUrl = result.fileUrl;
+      }
     }
 
     const updatedData: any = {
@@ -164,7 +169,12 @@ export class SubCategoryService {
       updatedAt: new Date(),
     };
 
-    if (imageUrl !== subCategoryToUpdate.image) updatedData.image = imageUrl;
+    if (mediaUrl !== subCategoryToUpdate.media?.url) {
+      updatedData.media = {
+        id: mediaId,
+        url: mediaUrl,
+      };
+    }
 
     if (name_ar || name_en) {
       updatedData.name = {
@@ -184,7 +194,7 @@ export class SubCategoryService {
     return {
       isSuccess: true,
       message: getMessage('subcategories_subCategoryUpdatedSuccessfully', lang),
-      subCategory: updatedSubCategory,
+      data: updatedSubCategory,
     };
   }
 
@@ -192,10 +202,7 @@ export class SubCategoryService {
     requestingUser: any,
     body: DeleteSubCategoryDto,
     id: string,
-  ): Promise<{
-    isSuccess: boolean;
-    message: string;
-  }> {
+  ): Promise<BaseResponse> {
     const { lang } = body;
 
     validateUserRoleAccess(requestingUser, lang);
@@ -226,10 +233,7 @@ export class SubCategoryService {
     requestingUser: any,
     body: UnDeleteSubCategoryBodyDto,
     id: string,
-  ): Promise<{
-    isSuccess: boolean;
-    message: string;
-  }> {
+  ): Promise<BaseResponse> {
     const { lang } = body;
 
     validateUserRoleAccess(requestingUser, lang);
@@ -264,10 +268,7 @@ export class SubCategoryService {
     isActive: boolean,
     lang: Locale = 'en',
     requestingUser: any,
-  ): Promise<{
-    isSuccess: boolean;
-    message: string;
-  }> {
+  ): Promise<BaseResponse> {
     validateUserRoleAccess(requestingUser, lang);
 
     const subCategory = await this.subCategoryModel.findById(id);
@@ -304,12 +305,7 @@ export class SubCategoryService {
     lastId?: string;
     search?: string;
     catId?: string;
-  }): Promise<{
-    isSuccess: boolean;
-    message: string;
-    subCategoriesNum: number;
-    subCategories: SubCategory[];
-  }> {
+  }): Promise<DataListResponse<SubCategory>> {
     const { lang = 'en', limit = 10, lastId, search, catId } = params;
 
     const query: any = {};
@@ -342,19 +338,12 @@ export class SubCategoryService {
         'subCategories_subCategoriesRetrievedSuccessfully',
         lang,
       ),
-      subCategoriesNum: subCategories.length,
-      subCategories,
+      dataCount: subCategories.length,
+      data: subCategories,
     };
   }
 
-  async getOne(
-    id: string,
-    lang?: Locale,
-  ): Promise<{
-    isSuccess: boolean;
-    message: string;
-    subCategory: SubCategory | null;
-  }> {
+  async getOne(id: string, lang?: Locale): Promise<DataResponse<SubCategory>> {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException(
         getMessage('subCategories_invalidSubCategoryId', lang),
@@ -380,7 +369,7 @@ export class SubCategoryService {
         'subCategories_subCategoryRetrievedSuccessfully',
         lang,
       ),
-      subCategory,
+      data: subCategory,
     };
   }
 }
