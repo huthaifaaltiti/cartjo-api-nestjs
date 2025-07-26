@@ -7,6 +7,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import slugify from 'slugify';
 import { Model, Types } from 'mongoose';
 
+import {
+  BaseResponse,
+  DataListResponse,
+  DataResponse,
+} from 'src/types/service-response.type';
 import { TypeHint } from 'src/enums/typeHint.enums';
 import { Product, ProductDocument } from 'src/schemas/product.schema';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -40,12 +45,7 @@ export class ProductService {
     limit?: string;
     lastId?: string;
     search?: string;
-  }): Promise<{
-    isSuccess: boolean;
-    message: string;
-    totalCount: number;
-    data: Product[];
-  }> {
+  }): Promise<DataListResponse<Product>> {
     const { lang = 'en', limit = 10, lastId, search } = params;
 
     const query: any = {};
@@ -81,19 +81,12 @@ export class ProductService {
     return {
       isSuccess: true,
       message: getMessage('products_productsRetrievedSuccessfully', lang),
-      totalCount: products.length,
+      dataCount: products.length,
       data: products,
     };
   }
 
-  async getOne(
-    id: string,
-    lang?: Locale,
-  ): Promise<{
-    isSuccess: boolean;
-    message: string;
-    data: Product | null;
-  }> {
+  async getOne(id: string, lang?: Locale): Promise<DataResponse<Product>> {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException(
         getMessage('products_invalidProductId', lang),
@@ -123,7 +116,7 @@ export class ProductService {
     dto: CreateProductDto,
     mainImage: Express.Multer.File,
     images: Express.Multer.File[],
-  ) {
+  ): Promise<DataResponse<Product>> {
     const {
       name_ar,
       name_en,
@@ -255,7 +248,7 @@ export class ProductService {
     body: UpdateProductBodyDto,
     mainImage?: Express.Multer.File,
     images?: Express.Multer.File[],
-  ) {
+  ): Promise<DataResponse<Product>> {
     const {
       name_ar,
       name_en,
@@ -401,10 +394,7 @@ export class ProductService {
     isActive: boolean,
     lang: Locale = 'en',
     requestingUser: any,
-  ): Promise<{
-    isSuccess: boolean;
-    message: string;
-  }> {
+  ): Promise<BaseResponse> {
     validateUserRoleAccess(requestingUser, lang);
 
     const product = await this.productModel.findById(id);
@@ -437,10 +427,7 @@ export class ProductService {
     requestingUser: any,
     body: DeleteProductDto,
     id: string,
-  ): Promise<{
-    isSuccess: boolean;
-    message: string;
-  }> {
+  ): Promise<BaseResponse> {
     const { lang } = body;
 
     validateUserRoleAccess(requestingUser, lang);
@@ -471,10 +458,7 @@ export class ProductService {
     requestingUser: any,
     body: UnDeleteProductBodyDto,
     id: string,
-  ): Promise<{
-    isSuccess: boolean;
-    message: string;
-  }> {
+  ): Promise<BaseResponse> {
     const { lang } = body;
 
     validateUserRoleAccess(requestingUser, lang);
