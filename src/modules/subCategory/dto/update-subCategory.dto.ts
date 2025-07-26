@@ -3,22 +3,33 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  MaxLength,
   MinLength,
 } from 'class-validator';
+
+import { validationConfig } from 'src/configs/validationConfig';
 import { Locale } from 'src/types/Locale';
+
+const { nameMinChars, nameMaxChars } = validationConfig.subCategory;
 
 export class UpdateSubCategoryDto {
   @IsOptional()
   @IsString()
-  @MinLength(5, {
-    message: 'SubCategory ar name cannot be less than 5 characters',
+  @MinLength(nameMinChars, {
+    message: `Sub-Category ar name cannot be less than (${nameMinChars}) characters`,
+  })
+  @MaxLength(nameMaxChars, {
+    message: `Sub-Category ar name cannot be more than (${nameMaxChars}) characters`,
   })
   name_ar?: string;
 
   @IsOptional()
   @IsString()
-  @MinLength(5, {
-    message: 'SubCategory en name cannot be less than 5 characters',
+  @MinLength(nameMinChars, {
+    message: `Sub-Category en name cannot be less than (${nameMinChars}) characters`,
+  })
+  @MaxLength(nameMaxChars, {
+    message: `Sub-Category en name cannot be more than (${nameMaxChars}) characters`,
   })
   name_en?: string;
 
