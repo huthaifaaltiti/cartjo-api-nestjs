@@ -74,5 +74,7 @@
   "logo_logoAlreadyExists": "Logo already exists",
   "logo_logoCreatedSuccessfully": "Logo created successfully",
   "logo_logoNotFound": "Logo not found",
-  "logo_logoUpdatedSuccessfully": "Logo updated successfully"
+  "logo_logoUpdatedSuccessfully": "Logo updated successfully",
+  "logo_cannotDeleteDefaultLogo": "Default Logo cannot be deleted",
+  "logo_logoDeletedSuccessfully": "Logo deleted successfully"
 }

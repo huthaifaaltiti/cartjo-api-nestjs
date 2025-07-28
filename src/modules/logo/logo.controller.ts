@@ -8,6 +8,7 @@ import {
   Request,
   Put,
   Param,
+  Delete,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
@@ -16,6 +17,7 @@ import { LogoService } from './logo.service';
 
 import { CreateLogoDto } from './dto/create-logo.dto';
 import { UpdateLogoDto, UpdateLogoParamsDto } from './dto/update-logo.dto';
+import { DeleteLogoDto, DeleteLogoParamsDto } from './dto/delete-logo.dto';
 
 @Controller('/api/v1/logo')
 export class LogoController {
@@ -47,5 +49,18 @@ export class LogoController {
     const { id } = param;
 
     return this.logoService.update(user, body, image, id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('delete/:id')
+  async delete(
+    @Request() req: any,
+    @Body() body: DeleteLogoDto,
+    @Param() param: DeleteLogoParamsDto,
+  ) {
+    const { user } = req;
+    const { id } = param;
+
+    return this.logoService.delete(user, body, id);
   }
 }

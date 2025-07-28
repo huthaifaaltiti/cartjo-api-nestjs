@@ -73,5 +73,7 @@
   "logo_logoAlreadyExists": "اللجو موجود بالفعل",
   "logo_logoCreatedSuccessfully": "تم إنشاء اللوجو بنجاح",
   "logo_logoNotFound": "لم يتم إيجاد اللوجو",
-  "logo_logoUpdatedSuccessfully": "تم تحديث اللوجو بنجاح"
+  "logo_logoUpdatedSuccessfully": "تم تحديث اللوجو بنجاح",
+  "logo_cannotDeleteDefaultLogo": "لا يمكن حذف اللوجو الأساسي",
+  "logo_logoDeletedSuccessfully": "تم حذف اللوجو بنجاح"
 }

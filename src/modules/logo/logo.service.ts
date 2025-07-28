@@ -2,8 +2,9 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
 import { MediaService } from '../media/media.service';
+import { activateDefaultLogoIfAllInactive } from 'src/common/functions/helpers/activateDefaultLogoIfAllInactive.helper';
 
-import { DataResponse } from 'src/types/service-response.type';
+import { BaseResponse, DataResponse } from 'src/types/service-response.type';
 import { Logo, LogoDocument } from 'src/schemas/logo.schema';
 import { Modules } from 'src/enums/appModules.enum';
 
@@ -14,6 +15,7 @@ import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
 import { CreateLogoDto } from './dto/create-logo.dto';
 import { Model } from 'mongoose';
 import { UpdateLogoDto } from './dto/update-logo.dto';
+import { DeleteLogoDto } from './dto/delete-logo.dto';
 
 @Injectable()
 export class LogoService {
@@ -154,6 +156,45 @@ export class LogoService {
       isSuccess: true,
       message: getMessage('logo_logoUpdatedSuccessfully', lang),
       data: updatedLogo,
+    };
+  }
+
+  async delete(
+    requestingUser: any,
+    body: DeleteLogoDto,
+    id: string,
+  ): Promise<BaseResponse> {
+    const { lang } = body;
+
+    validateUserRoleAccess(requestingUser, lang);
+
+    const defaultLogoId = process.env.DEFAULT_LOGO_ID;
+
+    if (id === defaultLogoId) {
+      throw new BadRequestException(
+        getMessage('logo_cannotDeleteDefaultLogo', lang),
+      );
+    }
+
+    const logo = await this.logoModel.findById(id);
+
+    if (!logo) {
+      throw new BadRequestException(getMessage('logo_logoNotFound', lang));
+    }
+
+    logo.isDeleted = true;
+    logo.isActive = false;
+    logo.deletedAt = new Date();
+    logo.deletedBy = requestingUser.userId;
+    logo.unDeletedBy = null;
+
+    await logo.save();
+
+    await activateDefaultLogoIfAllInactive(this.logoModel, defaultLogoId);
+
+    return {
+      isSuccess: true,
+      message: getMessage('logo_logoDeletedSuccessfully', lang),
     };
   }
 }

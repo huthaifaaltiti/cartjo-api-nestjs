@@ -93,7 +93,6 @@ export class CategoryController {
     @Body() body: UnDeleteCategoryBodyDto,
   ) {
     const { user } = req;
-    const { lang } = body;
     const { id } = param;
 
     return this.categoryService.unDelete(user, body, id);
