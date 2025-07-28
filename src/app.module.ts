@@ -15,6 +15,7 @@ import { UserModule } from './modules/user/user.module';
 import { CategoryModule } from './modules/category/category.module';
 import { SubCategoryModule } from './modules/subCategory/subCategory.module';
 import { ProductModule } from './modules/product/product.module';
+import { LogoModule } from './modules/logo/logo.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { ProductModule } from './modules/product/product.module';
     CategoryModule,
     SubCategoryModule,
     ProductModule,
+    LogoModule,
   ],
   controllers: [AppController],
   providers: [AppService],

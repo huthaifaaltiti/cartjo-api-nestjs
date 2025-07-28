@@ -6,4 +6,5 @@ export enum Modules {
   USER = 'User',
   AUTHENTICATION = 'Authentication',
   LOCATION = 'Location',
+  LOGO = 'Logo',
 }

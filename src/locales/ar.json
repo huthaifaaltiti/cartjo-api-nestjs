@@ -69,5 +69,7 @@
   "products_productDeactivatedSuccessfully": "تم إلغاء تفعيل المنتج بنجاح",
   "products_productActivatedSuccessfully": "تم تفعيل المنتج بنجاح",
   "products_productDeletedSuccessfully": "تم حذف المنتج بنجاح",
-  "products_productUnDeletedSuccessfully": "تم استرجاع المنتج بنجاح"
+  "products_productUnDeletedSuccessfully": "تم استرجاع المنتج بنجاح",
+  "logo_logoAlreadyExists": "اللجو موجود بالفعل",
+  "logo_logoCreatedSuccessfully": "تم إنشاء اللوجو بنجاح"
 }
