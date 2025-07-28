@@ -290,6 +290,12 @@ export class LogoService {
       throw new BadRequestException(getMessage('logo_logoNotFound', lang));
     }
 
+    if (id === this.defaultLogoId) {
+      throw new BadRequestException(
+        getMessage('logo_cannotUnDeleteDefaultLogo', lang),
+      );
+    }
+
     logo.isDeleted = false;
     logo.deletedAt = null;
     logo.deletedBy = null;

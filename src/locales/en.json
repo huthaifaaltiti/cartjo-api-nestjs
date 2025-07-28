@@ -76,6 +76,7 @@
   "logo_logoNotFound": "Logo not found",
   "logo_logoUpdatedSuccessfully": "Logo updated successfully",
   "logo_cannotDeleteDefaultLogo": "Default Logo cannot be deleted",
+  "logo_cannotUnDeleteDefaultLogo": "Default Logo cannot be un-deleted",
   "logo_logoDeletedSuccessfully": "Logo deleted successfully",
   "logo_logoUnDeletedSuccessfully": "Logo un-deleted successfully",
   "logo_logoActivatedSuccessfully": "Logo activated successfully",
