@@ -104,6 +104,25 @@ export class LogoService {
     };
   }
 
+  async getActiveLogo(lang?: Locale): Promise<DataResponse<Logo>> {
+    const logo = await this.logoModel
+      .findOne({ isActive: true, isDeleted: false })
+      .populate('deletedBy', 'firstName lastName email _id')
+      .populate('unDeletedBy', 'firstName lastName email _id')
+      .populate('createdBy', 'firstName lastName email _id')
+      .lean();
+
+    if (!logo) {
+      throw new NotFoundException(getMessage('logo_noActiveLogoFound', lang));
+    }
+
+    return {
+      isSuccess: true,
+      message: getMessage('logo_activeLogoRetrievedSuccessfully', lang),
+      data: logo,
+    };
+  }
+
   async create(
     requestingUser: any,
     dto: CreateLogoDto,

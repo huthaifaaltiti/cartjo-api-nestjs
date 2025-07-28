@@ -49,6 +49,12 @@ export class LogoController {
     });
   }
 
+  @Get('active')
+  async getActiveLogo(@Query() query: GetLogoQueryDto) {
+    const { lang } = query;
+    return this.logoService.getActiveLogo(lang);
+  }
+
   @Get('/:id')
   async getLogo(
     @Param() param: GetLogoParamDto,

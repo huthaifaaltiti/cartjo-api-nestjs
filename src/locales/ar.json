@@ -82,5 +82,7 @@
   "logo_logoDeactivatedSuccessfully": "تم إلغاء التفعيل الشعار بنجاح",
   "logo_logosRetrievedSuccessfully": "تم استرداد الشعارات بنجاح",
   "logo_invalidLogoId": "معرّف الشعار غير صحيح",
-  "logo_logoRetrievedSuccessfully": "تم استرداد الشعار بنجاح"
+  "logo_logoRetrievedSuccessfully": "تم استرداد الشعار بنجاح",
+  "logo_noActiveLogoFound": "لم يام العثور على الشعار الفعال",
+  "logo_activeLogoRetrievedSuccessfully": "تم استرداد الشعار الفعال بنجاح"
 }
