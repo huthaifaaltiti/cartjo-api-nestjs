@@ -68,7 +68,6 @@ export class LogoService {
       .populate('deletedBy', 'firstName lastName email _id')
       .populate('unDeletedBy', 'firstName lastName email _id')
       .populate('createdBy', 'firstName lastName email _id')
-      .populate('subCategories')
       .select('-__v')
       .lean();
 
@@ -90,7 +89,6 @@ export class LogoService {
       .populate('deletedBy', 'firstName lastName email _id')
       .populate('unDeletedBy', 'firstName lastName email _id')
       .populate('createdBy', 'firstName lastName email _id')
-      .populate('subCategories')
       .lean();
 
     if (!logo) {
