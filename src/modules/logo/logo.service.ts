@@ -39,6 +39,13 @@ export class LogoService {
       throw new BadRequestException(getMessage('logo_logoAlreadyExists', lang));
     }
 
+    const activeLogo = await this.logoModel.findOne({ isActive: true });
+
+    if (activeLogo) {
+      activeLogo.isActive = false;
+      await activeLogo.save();
+    }
+
     let mediaUrl: string | undefined = undefined;
     let mediaId: string | undefined = undefined;
 
