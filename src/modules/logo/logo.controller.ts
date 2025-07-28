@@ -6,12 +6,16 @@ import {
   UseInterceptors,
   UseGuards,
   Request,
+  Put,
+  Param,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 
 import { LogoService } from './logo.service';
+
 import { CreateLogoDto } from './dto/create-logo.dto';
+import { UpdateLogoDto, UpdateLogoParamsDto } from './dto/update-logo.dto';
 
 @Controller('/api/v1/logo')
 export class LogoController {
@@ -28,5 +32,20 @@ export class LogoController {
     const { user } = req;
 
     return this.logoService.create(user, body, image);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Put('update/:id')
+  @UseInterceptors(FileInterceptor('image'))
+  async update(
+    @UploadedFile() image: Express.Multer.File,
+    @Request() req: any,
+    @Body() body: UpdateLogoDto,
+    @Param() param: UpdateLogoParamsDto,
+  ) {
+    const { user } = req;
+    const { id } = param;
+
+    return this.logoService.update(user, body, image, id);
   }
 }

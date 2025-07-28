@@ -72,5 +72,7 @@
   "products_productDeletedSuccessfully": "Product deleted successfully",
   "products_productUnDeletedSuccessfully": "Product undeleted successfully",
   "logo_logoAlreadyExists": "Logo already exists",
-  "logo_logoCreatedSuccessfully": "Logo created successfully"
+  "logo_logoCreatedSuccessfully": "Logo created successfully",
+  "logo_logoNotFound": "Logo not found",
+  "logo_logoUpdatedSuccessfully": "Logo updated successfully"
 }

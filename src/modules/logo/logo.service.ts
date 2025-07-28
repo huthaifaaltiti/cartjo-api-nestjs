@@ -13,6 +13,7 @@ import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValid
 import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
 import { CreateLogoDto } from './dto/create-logo.dto';
 import { Model } from 'mongoose';
+import { UpdateLogoDto } from './dto/update-logo.dto';
 
 @Injectable()
 export class LogoService {
@@ -80,6 +81,79 @@ export class LogoService {
       isSuccess: true,
       message: getMessage('logo_logoCreatedSuccessfully', lang),
       data: logo,
+    };
+  }
+
+  async update(
+    requestingUser: any,
+    dto: UpdateLogoDto,
+    image: Express.Multer.File,
+    id: string,
+  ): Promise<DataResponse<Logo>> {
+    const { lang, name, altText } = dto;
+
+    validateUserRoleAccess(requestingUser, lang);
+
+    const logoToUpdate = await this.logoModel.findById(id);
+    if (!logoToUpdate) {
+      throw new BadRequestException(getMessage('logo_logoNotFound', lang));
+    }
+
+    if (name) {
+      const existingLogo = await this.logoModel.findOne({
+        _id: { $ne: id },
+        name,
+      });
+
+      if (existingLogo) {
+        throw new BadRequestException(
+          getMessage('logo_logoAlreadyExists', lang),
+        );
+      }
+    }
+
+    let mediaUrl: string | undefined = logoToUpdate.media.url;
+    let mediaId: string | undefined = logoToUpdate.media.id?.toString();
+
+    if (image && Object.keys(image).length > 0) {
+      fileSizeValidator(image, MAX_FILE_SIZES.LOGO_IMAGE, lang);
+
+      const result = await this.mediaService.handleFileUpload(
+        image,
+        { userId: requestingUser?.userId },
+        lang,
+        Modules.LOGO,
+      );
+
+      if (result?.isSuccess) {
+        mediaUrl = result.fileUrl;
+        mediaId = result.mediaId;
+      }
+    }
+
+    const updateData: Partial<Logo> = {
+      updatedBy: requestingUser?.userId,
+      updatedAt: new Date(),
+    };
+
+    if (mediaUrl !== logoToUpdate.media?.url) {
+      updateData.media = {
+        id: mediaId,
+        url: mediaUrl,
+      };
+    }
+
+    if (name) updateData.name = name;
+    if (altText) updateData.altText = altText;
+
+    const updatedLogo = await this.logoModel.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
+
+    return {
+      isSuccess: true,
+      message: getMessage('logo_logoUpdatedSuccessfully', lang),
+      data: updatedLogo,
     };
   }
 }
