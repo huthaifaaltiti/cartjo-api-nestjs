@@ -10,7 +10,11 @@ import { defaultLogoId } from 'src/configs/defaultLogo.config';
 import { MediaService } from '../media/media.service';
 import { activateDefaultLogoIfAllInactive } from 'src/common/functions/helpers/activateDefaultLogoIfAllInactive.helper';
 
-import { BaseResponse, DataResponse } from 'src/types/service-response.type';
+import {
+  BaseResponse,
+  DataListResponse,
+  DataResponse,
+} from 'src/types/service-response.type';
 import { Logo, LogoDocument } from 'src/schemas/logo.schema';
 import { Modules } from 'src/enums/appModules.enum';
 
@@ -19,7 +23,7 @@ import { getMessage } from 'src/common/utils/translator';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
 import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
 import { CreateLogoDto } from './dto/create-logo.dto';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { UpdateLogoDto } from './dto/update-logo.dto';
 import { DeleteLogoDto } from './dto/delete-logo.dto';
 import { UnDeleteLogoBodyDto } from './dto/unDelete-logo.dto';
@@ -32,6 +36,73 @@ export class LogoService {
     private logoModel: Model<LogoDocument>,
     private mediaService: MediaService,
   ) {}
+
+  async getAll(
+    requestingUser: any,
+    params: {
+      lang?: Locale;
+      limit?: string;
+      lastId?: string;
+      search?: string;
+    },
+  ): Promise<DataListResponse<Logo>> {
+    const { lang = 'en', limit = 10, lastId, search } = params;
+
+    validateUserRoleAccess(requestingUser, lang);
+
+    const query: any = {};
+
+    if (lastId) {
+      query._id = { $lt: new Types.ObjectId(lastId) };
+    }
+
+    if (search) {
+      const searchRegex = new RegExp(search, 'i');
+      query.$or = [{ name: searchRegex }, { altText: searchRegex }];
+    }
+
+    const logos = await this.logoModel
+      .find(query)
+      .sort({ _id: -1 })
+      .limit(Number(limit))
+      .populate('deletedBy', 'firstName lastName email _id')
+      .populate('unDeletedBy', 'firstName lastName email _id')
+      .populate('createdBy', 'firstName lastName email _id')
+      .populate('subCategories')
+      .select('-__v')
+      .lean();
+
+    return {
+      isSuccess: true,
+      message: getMessage('logo_logosRetrievedSuccessfully', lang),
+      dataCount: logos.length,
+      data: logos,
+    };
+  }
+
+  async getOne(id: string, lang?: Locale): Promise<DataResponse<Logo>> {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new NotFoundException(getMessage('logo_invalidLogoId', lang));
+    }
+
+    const logo = await this.logoModel
+      .findById(id)
+      .populate('deletedBy', 'firstName lastName email _id')
+      .populate('unDeletedBy', 'firstName lastName email _id')
+      .populate('createdBy', 'firstName lastName email _id')
+      .populate('subCategories')
+      .lean();
+
+    if (!logo) {
+      throw new NotFoundException(getMessage('logo_logoNotFound', lang));
+    }
+
+    return {
+      isSuccess: true,
+      message: getMessage('logo_logoRetrievedSuccessfully', lang),
+      data: logo,
+    };
+  }
 
   async create(
     requestingUser: any,

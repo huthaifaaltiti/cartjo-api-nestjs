@@ -79,5 +79,8 @@
   "logo_logoDeletedSuccessfully": "Logo deleted successfully",
   "logo_logoUnDeletedSuccessfully": "Logo un-deleted successfully",
   "logo_logoActivatedSuccessfully": "Logo activated successfully",
-  "logo_logoDeactivatedSuccessfully": "Logo de-activated successfully"
+  "logo_logoDeactivatedSuccessfully": "Logo de-activated successfully",
+  "logo_logosRetrievedSuccessfully": "Logos retrieved successfully",
+  "logo_invalidLogoId": "Invalid logo Id",
+  "logo_logoRetrievedSuccessfully": "Logo retrieved successfully"
 }

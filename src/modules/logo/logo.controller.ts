@@ -9,6 +9,8 @@ import {
   Put,
   Param,
   Delete,
+  Get,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
@@ -26,10 +28,37 @@ import {
   UpdateLogoStatusBodyDto,
   UpdateLogoStatusParamsDto,
 } from './dto/update-logo-status.dto';
+import { GetLogoParamDto, GetLogoQueryDto } from './dto/get-logo.dto';
+import { GetLogosQueryDto } from './dto/get-logos-query.dto';
 
 @Controller('/api/v1/logo')
 export class LogoController {
   constructor(private readonly logoService: LogoService) {}
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('all')
+  async getLogos(@Query() query: GetLogosQueryDto, @Request() req: any) {
+    const { lang, limit, lastId, search } = query;
+    const { user } = req;
+
+    return this.logoService.getAll(user, {
+      lang,
+      limit,
+      lastId,
+      search,
+    });
+  }
+
+  @Get('/:id')
+  async getLogo(
+    @Param() param: GetLogoParamDto,
+    @Query() query: GetLogoQueryDto,
+  ) {
+    const { id } = param;
+    const { lang } = query;
+
+    return this.logoService.getOne(id, lang);
+  }
 
   @UseGuards(AuthGuard('jwt'))
   @Post('create')
