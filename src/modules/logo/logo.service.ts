@@ -16,6 +16,7 @@ import { CreateLogoDto } from './dto/create-logo.dto';
 import { Model } from 'mongoose';
 import { UpdateLogoDto } from './dto/update-logo.dto';
 import { DeleteLogoDto } from './dto/delete-logo.dto';
+import { UnDeleteLogoBodyDto } from './dto/unDelete-logo.dto';
 
 @Injectable()
 export class LogoService {
@@ -195,6 +196,39 @@ export class LogoService {
     return {
       isSuccess: true,
       message: getMessage('logo_logoDeletedSuccessfully', lang),
+    };
+  }
+
+  async unDelete(
+    requestingUser: any,
+    body: UnDeleteLogoBodyDto,
+    id: string,
+  ): Promise<BaseResponse> {
+    const { lang } = body;
+
+    validateUserRoleAccess(requestingUser, lang);
+
+    const defaultLogoId = process.env.DEFAULT_LOGO_ID;
+
+    const logo = await this.logoModel.findById(id);
+
+    if (!logo) {
+      throw new BadRequestException(getMessage('logo_logoNotFound', lang));
+    }
+
+    logo.isDeleted = false;
+    logo.deletedAt = null;
+    logo.deletedBy = null;
+    logo.unDeletedBy = requestingUser.userId;
+    logo.unDeletedAt = new Date();
+
+    await logo.save();
+
+    await activateDefaultLogoIfAllInactive(this.logoModel, defaultLogoId);
+
+    return {
+      isSuccess: true,
+      message: getMessage('logo_logoUnDeletedSuccessfully', lang),
     };
   }
 }

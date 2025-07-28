@@ -18,6 +18,7 @@ import { LogoService } from './logo.service';
 import { CreateLogoDto } from './dto/create-logo.dto';
 import { UpdateLogoDto, UpdateLogoParamsDto } from './dto/update-logo.dto';
 import { DeleteLogoDto, DeleteLogoParamsDto } from './dto/delete-logo.dto';
+import { UnDeleteLogoBodyDto, UnDeleteLogoParamsDto } from './dto/unDelete-logo.dto';
 
 @Controller('/api/v1/logo')
 export class LogoController {
@@ -62,5 +63,18 @@ export class LogoController {
     const { id } = param;
 
     return this.logoService.delete(user, body, id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('un-delete/:id')
+  async unDeleteCategory(
+    @Request() req: any,
+    @Param() param: UnDeleteLogoParamsDto,
+    @Body() body: UnDeleteLogoBodyDto,
+  ) {
+    const { user } = req;
+    const { id } = param;
+
+    return this.logoService.unDelete(user, body, id);
   }
 }
