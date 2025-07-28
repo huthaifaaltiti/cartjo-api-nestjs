@@ -1,5 +1,11 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+
+import { defaultLogoId } from 'src/configs/defaultLogo.config';
 
 import { MediaService } from '../media/media.service';
 import { activateDefaultLogoIfAllInactive } from 'src/common/functions/helpers/activateDefaultLogoIfAllInactive.helper';
@@ -17,6 +23,7 @@ import { Model } from 'mongoose';
 import { UpdateLogoDto } from './dto/update-logo.dto';
 import { DeleteLogoDto } from './dto/delete-logo.dto';
 import { UnDeleteLogoBodyDto } from './dto/unDelete-logo.dto';
+import { Locale } from 'src/types/Locale';
 
 @Injectable()
 export class LogoService {
@@ -169,8 +176,6 @@ export class LogoService {
 
     validateUserRoleAccess(requestingUser, lang);
 
-    const defaultLogoId = process.env.DEFAULT_LOGO_ID;
-
     if (id === defaultLogoId) {
       throw new BadRequestException(
         getMessage('logo_cannotDeleteDefaultLogo', lang),
@@ -208,8 +213,6 @@ export class LogoService {
 
     validateUserRoleAccess(requestingUser, lang);
 
-    const defaultLogoId = process.env.DEFAULT_LOGO_ID;
-
     const logo = await this.logoModel.findById(id);
 
     if (!logo) {
@@ -229,6 +232,46 @@ export class LogoService {
     return {
       isSuccess: true,
       message: getMessage('logo_logoUnDeletedSuccessfully', lang),
+    };
+  }
+
+  async updateStatus(
+    id: string,
+    isActive: boolean,
+    lang: Locale = 'en',
+    requestingUser: any,
+  ): Promise<BaseResponse> {
+    validateUserRoleAccess(requestingUser, lang);
+
+    const logo = await this.logoModel.findById(id);
+
+    if (!logo) {
+      // throw new NotFoundException(
+      //   getMessage('logo_logoNotFound', lang),
+      // );
+
+      throw new BadRequestException(getMessage('logo_logoNotFound', lang));
+    }
+
+    if (isActive) {
+      logo.isDeleted = false;
+      logo.deletedAt = null;
+    }
+
+    logo.isActive = isActive;
+
+    await logo.save();
+
+    await activateDefaultLogoIfAllInactive(this.logoModel, defaultLogoId);
+
+    return {
+      isSuccess: true,
+      message: getMessage(
+        isActive
+          ? 'logo_logoActivatedSuccessfully'
+          : 'logo_logoDeactivatedSuccessfully',
+        lang,
+      ),
     };
   }
 }

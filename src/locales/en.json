@@ -77,5 +77,7 @@
   "logo_logoUpdatedSuccessfully": "Logo updated successfully",
   "logo_cannotDeleteDefaultLogo": "Default Logo cannot be deleted",
   "logo_logoDeletedSuccessfully": "Logo deleted successfully",
-  "logo_logoUnDeletedSuccessfully": "Logo un-deleted successfully"
+  "logo_logoUnDeletedSuccessfully": "Logo un-deleted successfully",
+  "logo_logoActivatedSuccessfully": "Logo activated successfully",
+  "logo_logoDeactivatedSuccessfully": "Logo de-activated successfully"
 }

@@ -76,5 +76,7 @@
   "logo_logoUpdatedSuccessfully": "تم تحديث اللوجو بنجاح",
   "logo_cannotDeleteDefaultLogo": "لا يمكن حذف اللوجو الأساسي",
   "logo_logoDeletedSuccessfully": "تم حذف اللوجو بنجاح",
-  "logo_logoUnDeletedSuccessfully":"تم استرداد اللوجو بنجاح"
+  "logo_logoUnDeletedSuccessfully": "تم استرداد اللوجو بنجاح",
+  "logo_logoActivatedSuccessfully": "تم تفعيل اللوجو بنجاح",
+  "logo_logoDeactivatedSuccessfully": "تم إلغاء التفعيل اللوجو بنجاح"
 }
