@@ -5,8 +5,6 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
-import { defaultLogoId } from 'src/configs/defaultLogo.config';
-
 import { MediaService } from '../media/media.service';
 import { activateDefaultLogoIfAllInactive } from 'src/common/functions/helpers/activateDefaultLogoIfAllInactive.helper';
 
@@ -31,11 +29,15 @@ import { Locale } from 'src/types/Locale';
 
 @Injectable()
 export class LogoService {
+  private readonly defaultLogoId: string;
+
   constructor(
     @InjectModel(Logo.name)
     private logoModel: Model<LogoDocument>,
     private mediaService: MediaService,
-  ) {}
+  ) {
+    this.defaultLogoId = process.env.DEFAULT_LOGO_ID;
+  }
 
   async getAll(
     requestingUser: any,
@@ -245,7 +247,7 @@ export class LogoService {
 
     validateUserRoleAccess(requestingUser, lang);
 
-    if (id === defaultLogoId) {
+    if (id === this.defaultLogoId) {
       throw new BadRequestException(
         getMessage('logo_cannotDeleteDefaultLogo', lang),
       );
@@ -265,7 +267,7 @@ export class LogoService {
 
     await logo.save();
 
-    await activateDefaultLogoIfAllInactive(this.logoModel, defaultLogoId);
+    await activateDefaultLogoIfAllInactive(this.logoModel, this.defaultLogoId);
 
     return {
       isSuccess: true,
@@ -296,7 +298,7 @@ export class LogoService {
 
     await logo.save();
 
-    await activateDefaultLogoIfAllInactive(this.logoModel, defaultLogoId);
+    await activateDefaultLogoIfAllInactive(this.logoModel, this.defaultLogoId);
 
     return {
       isSuccess: true,
@@ -315,23 +317,35 @@ export class LogoService {
     const logo = await this.logoModel.findById(id);
 
     if (!logo) {
-      // throw new NotFoundException(
-      //   getMessage('logo_logoNotFound', lang),
-      // );
-
-      throw new BadRequestException(getMessage('logo_logoNotFound', lang));
+      throw new NotFoundException(getMessage('logo_logoNotFound', lang));
     }
 
     if (isActive) {
+      // Deactivate all other logos
+      await this.logoModel.updateMany(
+        { _id: { $ne: id } },
+        {
+          $set: {
+            isActive: false,
+            isDeleted: false,
+            deletedAt: null,
+          },
+        },
+      );
+
+      // Activate current logo
+      logo.isActive = true;
       logo.isDeleted = false;
       logo.deletedAt = null;
+    } else {
+      // Deactivate current logo
+      logo.isActive = false;
     }
-
-    logo.isActive = isActive;
 
     await logo.save();
 
-    await activateDefaultLogoIfAllInactive(this.logoModel, defaultLogoId);
+    // Activate default logo if all are inactive
+    await activateDefaultLogoIfAllInactive(this.logoModel, this.defaultLogoId);
 
     return {
       isSuccess: true,
