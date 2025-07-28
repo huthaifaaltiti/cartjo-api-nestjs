@@ -1,4 +1,11 @@
-import { IsMongoId, IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  IsMongoId,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 import { validationConfig } from 'src/configs/validationConfig';
 import { Locale } from 'src/types/Locale';
@@ -14,7 +21,7 @@ export class UpdateLogoParamsDto {
 
 export class UpdateLogoDto {
   @IsString()
-  @IsNotEmpty({ message: 'Logo name is required' })
+  @IsOptional()
   @MinLength(nameMinChars, {
     message: `Logo name cannot be less than (${nameMinChars}) characters`,
   })
@@ -24,7 +31,7 @@ export class UpdateLogoDto {
   name: string;
 
   @IsString()
-  @IsNotEmpty({ message: 'Logo descriptive text is required' })
+  @IsOptional()
   @MinLength(altMinChars, {
     message: `Logo descriptive text cannot be less than (${altMinChars}) characters`,
   })
