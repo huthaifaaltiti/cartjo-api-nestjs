@@ -32,7 +32,7 @@ export class LogoService {
     validateUserRoleAccess(requestingUser, lang);
 
     const existingLogo = await this.logoModel.findOne({
-      $or: [{ name: name }, { altText: altText }],
+      $or: [{ name }, { altText }],
     });
 
     if (existingLogo) {
