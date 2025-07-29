@@ -8,6 +8,11 @@ export class NameRef {
   en: string;
 }
 
+export class MultiLangText {
+  @Prop({ required: true }) ar: string;
+  @Prop({ required: true }) en: string;
+}
+
 export class MediaPreview {
   @Prop({ required: true })
   id: string;

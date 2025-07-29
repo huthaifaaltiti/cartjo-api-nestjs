@@ -16,6 +16,7 @@ import { CategoryModule } from './modules/category/category.module';
 import { SubCategoryModule } from './modules/subCategory/subCategory.module';
 import { ProductModule } from './modules/product/product.module';
 import { LogoModule } from './modules/logo/logo.module';
+import { BannerModule } from './modules/banner/banner.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { LogoModule } from './modules/logo/logo.module';
     SubCategoryModule,
     ProductModule,
     LogoModule,
+    BannerModule
   ],
   controllers: [AppController],
   providers: [AppService],
