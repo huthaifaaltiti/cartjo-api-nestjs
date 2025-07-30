@@ -21,6 +21,7 @@ import { GetBannerParamDto, GetBannerQueryDto } from './dto/get-one.dto';
 import { CreateBannerDto } from './dto/create.dto';
 import { UpdateBannerDto, UpdateBannerParamsDto } from './dto/update.dto';
 import { DeleteDto, DeleteParamsDto } from './dto/delete.dto';
+import { UnDeleteDto, UnDeleteParamsDto } from './dto/unDelete.dto';
 
 @Controller('/api/v1/banner')
 export class BannerController {
@@ -99,5 +100,18 @@ export class BannerController {
     const { id } = param;
 
     return this.bannerService.delete(user, body, id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('un-delete/:id')
+  async unDelete(
+    @Request() req: any,
+    @Param() param: UnDeleteParamsDto,
+    @Body() body: UnDeleteDto,
+  ) {
+    const { user } = req;
+    const { id } = param;
+
+    return this.bannerService.unDelete(user, body, id);
   }
 }

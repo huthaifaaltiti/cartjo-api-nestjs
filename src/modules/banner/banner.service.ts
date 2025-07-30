@@ -26,6 +26,7 @@ import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
 import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
 import { UpdateBannerDto } from './dto/update.dto';
 import { DeleteDto } from './dto/delete.dto';
+import { UnDeleteDto } from './dto/unDelete.dto';
 
 @Injectable()
 export class BannerService {
@@ -371,6 +372,43 @@ export class BannerService {
     return {
       isSuccess: true,
       message: getMessage('banner_bannerDeletedSuccessfully', lang),
+    };
+  }
+
+  async unDelete(
+    requestingUser: any,
+    body: UnDeleteDto,
+    id: string,
+  ): Promise<BaseResponse> {
+    const { lang } = body;
+
+    validateUserRoleAccess(requestingUser, lang);
+
+    const banner = await this.bannerModel.findById(id);
+
+    if (!banner) {
+      throw new NotFoundException(getMessage('banner_bannerNotFound', lang));
+    }
+
+    if (id === this.defaultBannerId) {
+      throw new ForbiddenException(
+        getMessage('banner_cannotUnDeleteDefaultBanner', lang),
+      );
+    }
+
+    banner.isDeleted = false;
+    banner.deletedAt = null;
+    banner.deletedBy = null;
+    banner.unDeletedBy = requestingUser.userId;
+    banner.unDeletedAt = new Date();
+
+    await banner.save();
+
+    await activateDefaultIfAllInactive(this.bannerModel, this.defaultBannerId);
+
+    return {
+      isSuccess: true,
+      message: getMessage('banner_bannerUnDeletedSuccessfully', lang),
     };
   }
 }
