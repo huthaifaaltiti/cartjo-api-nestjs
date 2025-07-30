@@ -98,5 +98,7 @@
   "banner_cannotDeleteDefaultBanner": "لا يمكن حذف اللافتة الأساسية",
   "banner_bannerDeletedSuccessfully": "تم حذف اللافتة بنجاح",
   "banner_cannotUnDeleteDefaultBanner": "لا يمكن استرداد اللافتة الأساسية",
-  "banner_bannerUnDeletedSuccessfully": "تم استرداد اللافتة بنجاح"
+  "banner_bannerUnDeletedSuccessfully": "تم استرداد اللافتة بنجاح",
+  "banner_bannerActivatedSuccessfully": "تم تفعيل اللافتة بنجاح",
+  "banner_bannerDeActivatedSuccessfully": "تم إلغاء تفعيل اللافتة بنجاح"
 }

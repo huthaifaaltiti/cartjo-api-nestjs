@@ -411,4 +411,56 @@ export class BannerService {
       message: getMessage('banner_bannerUnDeletedSuccessfully', lang),
     };
   }
+
+  async updateStatus(
+    id: string,
+    isActive: boolean,
+    lang: Locale = 'en',
+    requestingUser: any,
+  ): Promise<BaseResponse> {
+    validateUserRoleAccess(requestingUser, lang);
+
+    const banner = await this.bannerModel.findById(id);
+
+    if (!banner) {
+      throw new NotFoundException(getMessage('banner_bannerNotFound', lang));
+    }
+
+    if (isActive) {
+      // Deactivate all other banners
+      await this.bannerModel.updateMany(
+        { _id: { $ne: id } },
+        {
+          $set: {
+            isActive: false,
+            isDeleted: false,
+            deletedAt: null,
+          },
+        },
+      );
+
+      // Activate current banner
+      banner.isActive = true;
+      banner.isDeleted = false;
+      banner.deletedAt = null;
+    } else {
+      // Deactivate current banner
+      banner.isActive = false;
+    }
+
+    await banner.save();
+
+    // Activate default banner if all are inactive
+    await activateDefaultIfAllInactive(this.bannerModel, this.defaultBannerId);
+
+    return {
+      isSuccess: true,
+      message: getMessage(
+        isActive
+          ? 'banner_bannerActivatedSuccessfully'
+          : 'banner_bannerDeactivatedSuccessfully',
+        lang,
+      ),
+    };
+  }
 }

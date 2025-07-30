@@ -7,13 +7,13 @@ import {
 } from 'class-validator';
 import { Locale } from 'src/types/Locale';
 
-export class UpdateCategoryStatusParamsDto {
-  @IsMongoId({ message: 'Invalid Category ID format' })
-  @IsNotEmpty({ message: 'Category ID is required' })
+export class UpdateStatusParamsDto {
+  @IsMongoId({ message: 'Invalid ID format' })
+  @IsNotEmpty({ message: 'ID is required' })
   id: string;
 }
 
-export class UpdateCategoryStatusBodyDto {
+export class UpdateStatusBodyDto {
   @IsBoolean()
   @IsNotEmpty()
   isActive: boolean;

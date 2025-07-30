@@ -22,6 +22,7 @@ import { CreateBannerDto } from './dto/create.dto';
 import { UpdateBannerDto, UpdateBannerParamsDto } from './dto/update.dto';
 import { DeleteDto, DeleteParamsDto } from './dto/delete.dto';
 import { UnDeleteDto, UnDeleteParamsDto } from './dto/unDelete.dto';
+import { UpdateStatusBodyDto, UpdateStatusParamsDto } from './dto/update-active-status.dto';
 
 @Controller('/api/v1/banner')
 export class BannerController {
@@ -113,5 +114,19 @@ export class BannerController {
     const { id } = param;
 
     return this.bannerService.unDelete(user, body, id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Put('status/:id')
+  async updateStatus(
+    @Param() param: UpdateStatusParamsDto,
+    @Body() body: UpdateStatusBodyDto,
+    @Request() req: any,
+  ) {
+    const { lang, isActive } = body;
+    const { user } = req;
+    const { id } = param;
+
+    return this.bannerService.updateStatus(id, isActive, lang, user);
   }
 }
