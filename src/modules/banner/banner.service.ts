@@ -426,27 +426,29 @@ export class BannerService {
       throw new NotFoundException(getMessage('banner_bannerNotFound', lang));
     }
 
-    if (isActive) {
-      // Deactivate all other banners
-      await this.bannerModel.updateMany(
-        { _id: { $ne: id } },
-        {
-          $set: {
-            isActive: false,
-            isDeleted: false,
-            deletedAt: null,
-          },
-        },
-      );
+    // if (isActive) {
+    //   // Deactivate all other banners
+    //   await this.bannerModel.updateMany(
+    //     { _id: { $ne: id } },
+    //     {
+    //       $set: {
+    //         isActive: false,
+    //         isDeleted: false,
+    //         deletedAt: null,
+    //       },
+    //     },
+    //   );
 
-      // Activate current banner
-      banner.isActive = true;
-      banner.isDeleted = false;
-      banner.deletedAt = null;
-    } else {
-      // Deactivate current banner
-      banner.isActive = false;
-    }
+    //   // Activate current banner
+    //   banner.isActive = true;
+    //   banner.isDeleted = false;
+    //   banner.deletedAt = null;
+    // } else {
+    //   // Deactivate current banner
+    //   banner.isActive = false;
+    // }
+
+    banner.isActive = isActive;
 
     await banner.save();
 
