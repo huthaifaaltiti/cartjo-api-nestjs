@@ -1,8 +1,7 @@
-import { IsMongoId, IsOptional, IsString } from 'class-validator';
-
+import { IsMongoId, IsOptional, IsString, IsDateString } from 'class-validator';
 import { Locale } from 'src/types/Locale';
 
-export class GetCategoriesQueryDto {
+export class GetBannersQueryDto {
   @IsOptional()
   @IsString()
   limit?: string;
@@ -14,9 +13,17 @@ export class GetCategoriesQueryDto {
 
   @IsString()
   @IsOptional()
-  search: string;
+  search?: string;
 
   @IsString()
   @IsOptional()
   lang: Locale = 'en';
+
+  @IsOptional()
+  @IsDateString()
+  startDate?: string; // YYYY-MM-DD format
+
+  @IsOptional()
+  @IsDateString()
+  endDate?: string; // YYYY-MM-DD format
 }

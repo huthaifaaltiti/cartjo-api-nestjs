@@ -85,5 +85,6 @@
   "logo_invalidLogoId": "Invalid logo Id",
   "logo_logoRetrievedSuccessfully": "Logo retrieved successfully",
   "logo_noActiveLogoFound": "No active logo found",
-  "logo_activeLogoRetrievedSuccessfully": "Active logo retrieved successfully"
+  "logo_activeLogoRetrievedSuccessfully": "Active logo retrieved successfully",
+  "banner_bannersRetrievedSuccessfully": "Banners retrieved successfully"
 }

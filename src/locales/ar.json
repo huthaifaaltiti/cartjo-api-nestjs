@@ -84,5 +84,6 @@
   "logo_invalidLogoId": "معرّف الشعار غير صحيح",
   "logo_logoRetrievedSuccessfully": "تم استرداد الشعار بنجاح",
   "logo_noActiveLogoFound": "لم يام العثور على الشعار الفعال",
-  "logo_activeLogoRetrievedSuccessfully": "تم استرداد الشعار الفعال بنجاح"
+  "logo_activeLogoRetrievedSuccessfully": "تم استرداد الشعار الفعال بنجاح",
+  "banner_bannersRetrievedSuccessfully": "تم استرداد اللافتات بنجاح"
 }
