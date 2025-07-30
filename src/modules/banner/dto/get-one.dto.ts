@@ -1,14 +1,14 @@
 import { IsMongoId, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { Locale } from 'src/types/Locale';
 
-export class GetCategoryQueryDto {
+export class GetBannerQueryDto {
   @IsString()
   @IsOptional()
   lang: Locale = 'en';
 }
 
-export class GetCategoryParamDto {
-  @IsMongoId({ message: 'Invalid Category ID format' })
-  @IsNotEmpty({ message: 'Category ID is required' })
+export class GetBannerParamDto {
+  @IsMongoId({ message: 'Invalid Banner ID format' })
+  @IsNotEmpty({ message: 'Banner ID is required' })
   id: string;
 }

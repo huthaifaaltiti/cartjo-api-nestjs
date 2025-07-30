@@ -3,6 +3,7 @@ import { AuthGuard } from '@nestjs/passport';
 
 import { BannerService } from './banner.service';
 import { GetBannersQueryDto } from './dto/get-all.dto';
+import { GetBannerQueryDto } from './dto/get-one.dto';
 
 @Controller('/api/v1/banner')
 export class BannerController {
@@ -10,7 +11,7 @@ export class BannerController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get('all')
-  async getBanners(@Query() query: GetBannersQueryDto, @Request() req: any) {
+  async getAll(@Query() query: GetBannersQueryDto, @Request() req: any) {
     const { lang, limit, lastId, search, startDate, endDate } = query;
     const { user } = req;
 
@@ -22,5 +23,12 @@ export class BannerController {
       startDate,
       endDate,
     });
+  }
+
+  @Get('active')
+  async getActiveOne(@Query() query: GetBannerQueryDto) {
+    const { lang } = query;
+
+    return this.bannerService.getActiveOne(lang);
   }
 }

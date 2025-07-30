@@ -86,5 +86,7 @@
   "logo_logoRetrievedSuccessfully": "Logo retrieved successfully",
   "logo_noActiveLogoFound": "No active logo found",
   "logo_activeLogoRetrievedSuccessfully": "Active logo retrieved successfully",
-  "banner_bannersRetrievedSuccessfully": "Banners retrieved successfully"
+  "banner_bannersRetrievedSuccessfully": "Banners retrieved successfully",
+  "banner_noActiveBannerFound": "No active banner found",
+  "banner_activeBannerRetrievedSuccessfully": "Active banner retrieved successfully"
 }

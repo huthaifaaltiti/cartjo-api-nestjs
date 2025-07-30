@@ -83,7 +83,9 @@
   "logo_logosRetrievedSuccessfully": "تم استرداد الشعارات بنجاح",
   "logo_invalidLogoId": "معرّف الشعار غير صحيح",
   "logo_logoRetrievedSuccessfully": "تم استرداد الشعار بنجاح",
-  "logo_noActiveLogoFound": "لم يام العثور على الشعار الفعال",
+  "logo_noActiveLogoFound": "لم يتم العثور على الشعار الفعال",
   "logo_activeLogoRetrievedSuccessfully": "تم استرداد الشعار الفعال بنجاح",
-  "banner_bannersRetrievedSuccessfully": "تم استرداد اللافتات بنجاح"
+  "banner_bannersRetrievedSuccessfully": "تم استرداد اللافتات بنجاح",
+  "banner_noActiveBannerFound": "لم يتم العثور على اللافتة الفعالة",
+  "banner_activeBannerRetrievedSuccessfully": "تم استرداد اللافتة الفعالة بنجاح"
 }

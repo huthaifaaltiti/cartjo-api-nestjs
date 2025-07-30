@@ -1,11 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 
 import { MediaService } from '../media/media.service';
 
 import { Banner, BannerDocument } from 'src/schemas/banner.schema';
-import { DataListResponse } from 'src/types/service-response.type';
+import {
+  DataListResponse,
+  DataResponse,
+} from 'src/types/service-response.type';
 import { Locale } from 'src/types/Locale';
 
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
@@ -90,6 +93,25 @@ export class BannerService {
       message: getMessage('banner_bannersRetrievedSuccessfully', lang),
       dataCount: banners.length,
       data: banners,
+    };
+  }
+
+  async getActiveOne(lang?: Locale): Promise<DataResponse<Banner>> {
+    const banner = await this.bannerModel
+      .findOne({ isActive: true, isDeleted: false })
+      .populate('deletedBy', 'firstName lastName email _id')
+      .populate('unDeletedBy', 'firstName lastName email _id')
+      .populate('createdBy', 'firstName lastName email _id')
+      .lean();
+
+    if (!banner) {
+      throw new NotFoundException(getMessage('banner_noActiveBannerFound', lang));
+    }
+
+    return {
+      isSuccess: true,
+      message: getMessage('banner_activeBannerRetrievedSuccessfully', lang),
+      data: banner,
     };
   }
 }
