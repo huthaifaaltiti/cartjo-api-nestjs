@@ -88,5 +88,8 @@
   "logo_activeLogoRetrievedSuccessfully": "Active logo retrieved successfully",
   "banner_bannersRetrievedSuccessfully": "Banners retrieved successfully",
   "banner_noActiveBannerFound": "No active banner found",
-  "banner_activeBannerRetrievedSuccessfully": "Active banner retrieved successfully"
+  "banner_activeBannerRetrievedSuccessfully": "Active banner retrieved successfully",
+  "banner_invalidBannerId": "Invalid banner Id",
+  "banner_bannerNotFound": "Banner not found",
+  "banner_bannerRetrievedSuccessfully": "Banner retrieved successfully"
 }

@@ -87,5 +87,8 @@
   "logo_activeLogoRetrievedSuccessfully": "تم استرداد الشعار الفعال بنجاح",
   "banner_bannersRetrievedSuccessfully": "تم استرداد اللافتات بنجاح",
   "banner_noActiveBannerFound": "لم يتم العثور على اللافتة الفعالة",
-  "banner_activeBannerRetrievedSuccessfully": "تم استرداد اللافتة الفعالة بنجاح"
+  "banner_activeBannerRetrievedSuccessfully": "تم استرداد اللافتة الفعالة بنجاح",
+  "banner_invalidBannerId": "معرّف اللافتة غير صحيح",
+  "banner_bannerNotFound": "لم يتم العثور على اللافتة",
+  "banner_bannerRetrievedSuccessfully": "تم استرداد اللافتة بنجاح"
 }

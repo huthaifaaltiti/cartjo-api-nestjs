@@ -96,6 +96,29 @@ export class BannerService {
     };
   }
 
+  async getOne(id: string, lang?: Locale): Promise<DataResponse<Banner>> {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new NotFoundException(getMessage('banner_invalidBannerId', lang));
+    }
+
+    const banner = await this.bannerModel
+      .findById(id)
+      .populate('deletedBy', 'firstName lastName email _id')
+      .populate('unDeletedBy', 'firstName lastName email _id')
+      .populate('createdBy', 'firstName lastName email _id')
+      .lean();
+
+    if (!banner) {
+      throw new NotFoundException(getMessage('banner_bannerNotFound', lang));
+    }
+
+    return {
+      isSuccess: true,
+      message: getMessage('banner_bannerRetrievedSuccessfully', lang),
+      data: banner,
+    };
+  }
+
   async getActiveOne(lang?: Locale): Promise<DataResponse<Banner>> {
     const banner = await this.bannerModel
       .findOne({ isActive: true, isDeleted: false })
@@ -105,7 +128,9 @@ export class BannerService {
       .lean();
 
     if (!banner) {
-      throw new NotFoundException(getMessage('banner_noActiveBannerFound', lang));
+      throw new NotFoundException(
+        getMessage('banner_noActiveBannerFound', lang),
+      );
     }
 
     return {

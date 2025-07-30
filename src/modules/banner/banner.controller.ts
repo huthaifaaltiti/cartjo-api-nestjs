@@ -1,9 +1,9 @@
-import { Controller, Get, Query, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
 import { BannerService } from './banner.service';
 import { GetBannersQueryDto } from './dto/get-all.dto';
-import { GetBannerQueryDto } from './dto/get-one.dto';
+import { GetBannerParamDto, GetBannerQueryDto } from './dto/get-one.dto';
 
 @Controller('/api/v1/banner')
 export class BannerController {
@@ -30,5 +30,16 @@ export class BannerController {
     const { lang } = query;
 
     return this.bannerService.getActiveOne(lang);
+  }
+
+  @Get('/:id')
+  async getOne(
+    @Param() param: GetBannerParamDto,
+    @Query() query: GetBannerQueryDto,
+  ) {
+    const { id } = param;
+    const { lang } = query;
+
+    return this.bannerService.getOne(id, lang);
   }
 }
