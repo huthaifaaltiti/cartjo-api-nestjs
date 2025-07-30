@@ -7,4 +7,5 @@ export enum Modules {
   AUTHENTICATION = 'Authentication',
   LOCATION = 'Location',
   LOGO = 'Logo',
+  BANNER = 'Banner',
 }

@@ -1,5 +1,6 @@
 {
   "general_cantPerformThisTask": "لا يمكن تنفيذ هذه العملية",
+  "general_allowedTypes": "الامتدادات المناسبة",
   "authentication_termsAndConditionsRequired": "يجب عليك قبول الشروط والأحكام",
   "authentication_emailAlreadyInUse": "البريد الإلكتروني مستخدم بالفعل",
   "authentication_phoneNumberAlreadyInUse": "رقم الهاتف مستخدم بالفعل",
@@ -18,6 +19,7 @@
   "media_sheetUploadedSuccessfully": "تم رفع الجدول بنجاح",
   "media_sheetUploadedFailed": "فشل في رفع الجدول",
   "media_fileSizeExceedsLimit": "حجم الملف يتجاوز الحد الأقصى المسموح به وهو",
+  "media_invalidFileType": "امتداد الملف غير مناسب",
   "location_locationNotFound": "الموقع غير موجود",
   "location_locationDeletedSuccessfully": "تم حذف الموقع بنجاح",
   "location_locationRetrievedSuccessfully": "تم استرجاع المواقع بنجاح",
@@ -90,5 +92,6 @@
   "banner_activeBannerRetrievedSuccessfully": "تم استرداد اللافتة الفعالة بنجاح",
   "banner_invalidBannerId": "معرّف اللافتة غير صحيح",
   "banner_bannerNotFound": "لم يتم العثور على اللافتة",
-  "banner_bannerRetrievedSuccessfully": "تم استرداد اللافتة بنجاح"
+  "banner_bannerRetrievedSuccessfully": "تم استرداد اللافتة بنجاح",
+  "banner_bannerCreatedSuccessfully": "تم إنشاء اللافتة بنجاح"
 }

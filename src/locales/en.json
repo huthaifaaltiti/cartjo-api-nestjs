@@ -1,5 +1,6 @@
 {
   "general_cantPerformThisTask": "Can not perform this task",
+  "general_allowedTypes": "Allowed types",
   "authentication_termsAndConditionsRequired": "You must accept the terms and conditions",
   "authentication_emailAlreadyInUse": "Email is already in use",
   "authentication_phoneNumberAlreadyInUse": "Phone number is already in use",
@@ -18,6 +19,7 @@
   "media_sheetUploadedSuccessfully": "Sheet uploaded successfully",
   "media_sheetUploadedFailed": "Sheet uploading failed",
   "media_fileSizeExceedsLimit": "File size exceeds the maximum allowed size of",
+  "media_invalidFileType": "Invalid file type",
   "location_locationNotFound": "Location not found",
   "location_locationDeletedSuccessfully": "Location deleted successfully",
   "location_locationRetrievedSuccessfully": "Locations retrieved successfully",
@@ -91,5 +93,6 @@
   "banner_activeBannerRetrievedSuccessfully": "Active banner retrieved successfully",
   "banner_invalidBannerId": "Invalid banner Id",
   "banner_bannerNotFound": "Banner not found",
-  "banner_bannerRetrievedSuccessfully": "Banner retrieved successfully"
+  "banner_bannerRetrievedSuccessfully": "Banner retrieved successfully",
+  "banner_bannerCreatedSuccessfully": "Banner created successfully"
 }

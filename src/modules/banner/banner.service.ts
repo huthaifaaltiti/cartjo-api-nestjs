@@ -10,9 +10,14 @@ import {
   DataResponse,
 } from 'src/types/service-response.type';
 import { Locale } from 'src/types/Locale';
+import { CreateBannerDto } from './dto/create.dto';
+import { Modules } from 'src/enums/appModules.enum';
 
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
+import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
+import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
+import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
 
 @Injectable()
 export class BannerService {
@@ -137,6 +142,73 @@ export class BannerService {
       isSuccess: true,
       message: getMessage('banner_activeBannerRetrievedSuccessfully', lang),
       data: banner,
+    };
+  }
+
+  async create(
+    requestingUser: any,
+    dto: CreateBannerDto,
+    image?: Express.Multer.File,
+  ): Promise<DataResponse<Banner>> {
+    const {
+      lang,
+      label_ar,
+      label_en,
+      title_ar,
+      title_en,
+      subTitle_ar,
+      subTitle_en,
+      ctaBtn_text,
+      ctaBtn_link,
+      offerDetails_preSalePrice,
+      offerDetails_afterSalePrice,
+      offerDetails_desc,
+    } = dto;
+
+    validateUserRoleAccess(requestingUser, lang);
+
+    let mediaUrl: string | undefined = undefined;
+    let mediaId: string | undefined = undefined;
+
+    if (image && Object.keys(image).length > 0) {
+      fileSizeValidator(image, MAX_FILE_SIZES.BANNER_IMAGE, lang);
+      fileTypeValidator(image, ['webp', 'gif'], lang);
+
+      const result = await this.mediaService.handleFileUpload(
+        image,
+        { userId: requestingUser?.userId },
+        lang,
+        Modules.BANNER,
+      );
+
+      if (result?.isSuccess) {
+        mediaUrl = result.fileUrl;
+        mediaId = result.mediaId;
+      }
+    }
+
+    const banner = new this.bannerModel({
+      label: { ar: label_ar, en: label_en },
+      title: { ar: title_ar, en: title_en },
+      subTitle: { ar: subTitle_ar, en: subTitle_en },
+      ctaBtn: { text: ctaBtn_text, link: ctaBtn_link },
+      offerDetails: {
+        preSalePrice: offerDetails_preSalePrice,
+        afterSalePrice: offerDetails_afterSalePrice,
+        desc: offerDetails_desc,
+      },
+      media: mediaId && mediaUrl ? { id: mediaId, url: mediaUrl } : undefined,
+      createdBy: requestingUser?.userId,
+      isActive: true,
+      isDeleted: false,
+    });
+
+    await banner.save();
+
+    return {
+      isSuccess: true,
+      message: getMessage('banner_bannerCreatedSuccessfully', lang),
+      data: banner.toObject(),
     };
   }
 }

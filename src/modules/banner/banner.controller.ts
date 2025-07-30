@@ -1,9 +1,22 @@
-import { Controller, Get, Param, Query, Request, UseGuards } from '@nestjs/common';
+import {
+    Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  Request,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 import { BannerService } from './banner.service';
 import { GetBannersQueryDto } from './dto/get-all.dto';
 import { GetBannerParamDto, GetBannerQueryDto } from './dto/get-one.dto';
+import { CreateBannerDto } from './dto/create.dto';
 
 @Controller('/api/v1/banner')
 export class BannerController {
@@ -41,5 +54,18 @@ export class BannerController {
     const { lang } = query;
 
     return this.bannerService.getOne(id, lang);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('create')
+  @UseInterceptors(FileInterceptor('image'))
+  async create(
+    @UploadedFile() image: Express.Multer.File,
+    @Request() req: any,
+    @Body() body: CreateBannerDto,
+  ) {
+    const { user } = req;
+
+    return this.bannerService.create(user, body, image);
   }
 }
