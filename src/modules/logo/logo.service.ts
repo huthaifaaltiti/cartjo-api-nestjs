@@ -4,9 +4,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { Model, Types } from 'mongoose';
 
 import { MediaService } from '../media/media.service';
-import { activateDefaultLogoIfAllInactive } from 'src/common/functions/helpers/activateDefaultLogoIfAllInactive.helper';
 
 import {
   BaseResponse,
@@ -17,11 +17,12 @@ import { Logo, LogoDocument } from 'src/schemas/logo.schema';
 import { Modules } from 'src/enums/appModules.enum';
 
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
+import { activateDefaultIfAllInactive } from 'src/common/functions/helpers/activateDefaultIfAllInactive.helper';
 import { getMessage } from 'src/common/utils/translator';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
 import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
+
 import { CreateLogoDto } from './dto/create-logo.dto';
-import { Model, Types } from 'mongoose';
 import { UpdateLogoDto } from './dto/update-logo.dto';
 import { DeleteLogoDto } from './dto/delete-logo.dto';
 import { UnDeleteLogoBodyDto } from './dto/unDelete-logo.dto';
@@ -286,7 +287,7 @@ export class LogoService {
 
     await logo.save();
 
-    await activateDefaultLogoIfAllInactive(this.logoModel, this.defaultLogoId);
+    await activateDefaultIfAllInactive(this.logoModel, this.defaultLogoId);
 
     return {
       isSuccess: true,
@@ -323,7 +324,7 @@ export class LogoService {
 
     await logo.save();
 
-    await activateDefaultLogoIfAllInactive(this.logoModel, this.defaultLogoId);
+    await activateDefaultIfAllInactive(this.logoModel, this.defaultLogoId);
 
     return {
       isSuccess: true,
@@ -370,7 +371,7 @@ export class LogoService {
     await logo.save();
 
     // Activate default logo if all are inactive
-    await activateDefaultLogoIfAllInactive(this.logoModel, this.defaultLogoId);
+    await activateDefaultIfAllInactive(this.logoModel, this.defaultLogoId);
 
     return {
       isSuccess: true,
