@@ -94,5 +94,8 @@
   "banner_invalidBannerId": "Invalid banner Id",
   "banner_bannerNotFound": "Banner not found",
   "banner_bannerRetrievedSuccessfully": "Banner retrieved successfully",
-  "banner_bannerCreatedSuccessfully": "Banner created successfully"
+  "banner_bannerCreatedSuccessfully": "Banner created successfully",
+  "banner_bannerUpdatedSuccessfully": "Banner updated successfully",
+  "banner_cannotDeleteDefaultBanner": "Cannot delete default banner",
+  "banner_bannerDeletedSuccessfully": "Banner deleted successfully"
 }

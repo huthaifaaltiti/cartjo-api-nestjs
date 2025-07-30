@@ -1,6 +1,7 @@
 import {
   IsMongoId,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   MaxLength,
@@ -10,36 +11,97 @@ import {
 import { validationConfig } from 'src/configs/validationConfig';
 import { Locale } from 'src/types/Locale';
 
-const { nameMinChars, nameMaxChars } = validationConfig.category;
+const {
+  labelMinChars,
+  labelMaxChars,
+  titleMinChars,
+  titleMaxChars,
+  subTitleMinChars,
+  subTitleMaxChars,
+  ctaTextMinChars,
+  ctaTextMaxChars,
+  ctaLinkMinChars,
+  ctaLinkMaxChars,
+  offerDescMinChars,
+  offerDescMaxChars,
+} = validationConfig.banner;
 
-export class UpdateCategoryDto {
-  @IsOptional()
+export class UpdateBannerDto {
+  // ---------------- Label ----------------
   @IsString()
-  @MinLength(nameMinChars, {
-    message: `Category ar name cannot be less than (${nameMinChars}) characters`,
-  })
-  @MaxLength(nameMaxChars, {
-    message: `Category ar name cannot be more than (${nameMaxChars}) characters`,
-  })
-  name_ar?: string;
-
   @IsOptional()
-  @IsString()
-  @MinLength(nameMinChars, {
-    message: `Category en name cannot be less than (${nameMinChars}) characters`,
-  })
-  @MaxLength(nameMaxChars, {
-    message: `Category en name cannot be more than (${nameMaxChars}) characters`,
-  })
-  name_en?: string;
+  @MinLength(labelMinChars)
+  @MaxLength(labelMaxChars)
+  label_ar: string;
 
+  @IsString()
+  @IsOptional()
+  @MinLength(labelMinChars)
+  @MaxLength(labelMaxChars)
+  label_en: string;
+
+  // ---------------- Title ----------------
+  @IsString()
+  @IsOptional()
+  @MinLength(titleMinChars)
+  @MaxLength(titleMaxChars)
+  title_ar: string;
+
+  @IsString()
+  @IsOptional()
+  @MinLength(titleMinChars)
+  @MaxLength(titleMaxChars)
+  title_en: string;
+
+  // ---------------- SubTitle ----------------
+  @IsString()
+  @IsOptional()
+  @MinLength(subTitleMinChars)
+  @MaxLength(subTitleMaxChars)
+  subTitle_ar: string;
+
+  @IsString()
+  @IsOptional()
+  @MinLength(subTitleMinChars)
+  @MaxLength(subTitleMaxChars)
+  subTitle_en: string;
+
+  // ---------------- CTA Button ----------------
+  @IsString()
+  @IsOptional()
+  @MinLength(ctaTextMinChars)
+  @MaxLength(ctaTextMaxChars)
+  ctaBtn_text: string;
+
+  @IsString()
+  @IsOptional()
+  @MinLength(ctaLinkMinChars)
+  @MaxLength(ctaLinkMaxChars)
+  ctaBtn_link: string;
+
+  // ---------------- Offer Details ----------------
+  @IsNumber()
+  @IsOptional()
+  offerDetails_preSalePrice: number;
+
+  @IsNumber()
+  @IsOptional()
+  offerDetails_afterSalePrice: number;
+
+  @IsString()
+  @IsOptional()
+  @MinLength(offerDescMinChars)
+  @MaxLength(offerDescMaxChars)
+  offerDetails_desc: string;
+
+  // ---------------- Misc ----------------
   @IsOptional()
   @IsString()
   lang?: Locale = 'en';
 }
 
-export class UpdateCategoryParamsDto {
-  @IsMongoId({ message: 'Invalid category ID format' })
-  @IsNotEmpty({ message: 'Category ID is required' })
+export class UpdateBannerParamsDto {
+  @IsMongoId({ message: 'Invalid banner ID format' })
+  @IsNotEmpty({ message: 'Banner ID is required' })
   id: string;
 }

@@ -59,8 +59,14 @@ export class Banner {
   @Prop({ type: Date, default: null })
   deletedAt?: Date;
 
+  @Prop({ type: Date, default: null })
+  updatedAt?: Date;
+
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', default: null })
   deletedBy?: mongoose.Types.ObjectId;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', default: null })
+  unDeletedBy?: mongoose.Types.ObjectId;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', default: null })
   createdBy?: mongoose.Types.ObjectId;

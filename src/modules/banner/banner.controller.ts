@@ -1,9 +1,11 @@
 import {
-    Body,
+  Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
+  Put,
   Query,
   Request,
   UploadedFile,
@@ -17,6 +19,8 @@ import { BannerService } from './banner.service';
 import { GetBannersQueryDto } from './dto/get-all.dto';
 import { GetBannerParamDto, GetBannerQueryDto } from './dto/get-one.dto';
 import { CreateBannerDto } from './dto/create.dto';
+import { UpdateBannerDto, UpdateBannerParamsDto } from './dto/update.dto';
+import { DeleteDto, DeleteParamsDto } from './dto/delete.dto';
 
 @Controller('/api/v1/banner')
 export class BannerController {
@@ -67,5 +71,33 @@ export class BannerController {
     const { user } = req;
 
     return this.bannerService.create(user, body, image);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Put('update/:id')
+  @UseInterceptors(FileInterceptor('image'))
+  async update(
+    @UploadedFile() image: Express.Multer.File,
+    @Request() req: any,
+    @Body() body: UpdateBannerDto,
+    @Param() param: UpdateBannerParamsDto,
+  ) {
+    const { user } = req;
+    const { id } = param;
+
+    return this.bannerService.update(user, body, image, id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('delete/:id')
+  async delete(
+    @Request() req: any,
+    @Body() body: DeleteDto,
+    @Param() param: DeleteParamsDto,
+  ) {
+    const { user } = req;
+    const { id } = param;
+
+    return this.bannerService.delete(user, body, id);
   }
 }

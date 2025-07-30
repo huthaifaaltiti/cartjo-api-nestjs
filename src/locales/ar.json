@@ -93,5 +93,8 @@
   "banner_invalidBannerId": "معرّف اللافتة غير صحيح",
   "banner_bannerNotFound": "لم يتم العثور على اللافتة",
   "banner_bannerRetrievedSuccessfully": "تم استرداد اللافتة بنجاح",
-  "banner_bannerCreatedSuccessfully": "تم إنشاء اللافتة بنجاح"
+  "banner_bannerCreatedSuccessfully": "تم إنشاء اللافتة بنجاح",
+  "banner_bannerUpdatedSuccessfully": "تم تحديث اللافتة بنجاح",
+  "banner_cannotDeleteDefaultBanner": "لا يمكن حذف اللافتة الأساسية",
+  "banner_bannerDeletedSuccessfully": "تم حذف اللافتة بنجاح"
 }

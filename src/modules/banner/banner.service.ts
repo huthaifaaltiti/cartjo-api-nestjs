@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 
@@ -6,18 +10,22 @@ import { MediaService } from '../media/media.service';
 
 import { Banner, BannerDocument } from 'src/schemas/banner.schema';
 import {
+  BaseResponse,
   DataListResponse,
   DataResponse,
 } from 'src/types/service-response.type';
 import { Locale } from 'src/types/Locale';
 import { CreateBannerDto } from './dto/create.dto';
 import { Modules } from 'src/enums/appModules.enum';
+import { activateDefaultIfAllInactive } from 'src/common/functions/helpers/activateDefaultIfAllInactive.helper';
 
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
 import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
 import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
+import { UpdateBannerDto } from './dto/update.dto';
+import { DeleteDto } from './dto/delete.dto';
 
 @Injectable()
 export class BannerService {
@@ -209,6 +217,160 @@ export class BannerService {
       isSuccess: true,
       message: getMessage('banner_bannerCreatedSuccessfully', lang),
       data: banner.toObject(),
+    };
+  }
+
+  async update(
+    requestingUser: any,
+    dto: UpdateBannerDto,
+    image: Express.Multer.File,
+    id: string,
+  ): Promise<DataResponse<Banner>> {
+    const {
+      lang,
+      label_ar,
+      label_en,
+      title_ar,
+      title_en,
+      subTitle_ar,
+      subTitle_en,
+      ctaBtn_text,
+      ctaBtn_link,
+      offerDetails_preSalePrice,
+      offerDetails_afterSalePrice,
+      offerDetails_desc,
+    } = dto;
+
+    validateUserRoleAccess(requestingUser, lang);
+
+    const bannerToUpdate = await this.bannerModel.findById(id);
+
+    if (!bannerToUpdate) {
+      throw new NotFoundException(getMessage('banner_bannerNotFound', lang));
+    }
+
+    let mediaUrl: string | undefined = bannerToUpdate.media?.url;
+    let mediaId: string | undefined = bannerToUpdate.media?.id?.toString();
+
+    if (image && Object.keys(image).length > 0) {
+      fileSizeValidator(image, MAX_FILE_SIZES.BANNER_IMAGE, lang);
+      fileTypeValidator(image, ['webp', 'gif'], lang);
+
+      const result = await this.mediaService.handleFileUpload(
+        image,
+        { userId: requestingUser?.userId },
+        lang,
+        Modules.BANNER,
+      );
+
+      if (result?.isSuccess) {
+        mediaUrl = result.fileUrl;
+        mediaId = result.mediaId;
+      }
+    }
+
+    const updateData: Partial<Banner> = {
+      updatedBy: requestingUser?.userId,
+      updatedAt: new Date(),
+    };
+
+    if (label_ar || label_en) {
+      updateData.label = {
+        ar: label_ar ?? bannerToUpdate.label.ar,
+        en: label_en ?? bannerToUpdate.label.en,
+      };
+    }
+
+    if (title_ar || title_en) {
+      updateData.title = {
+        ar: title_ar ?? bannerToUpdate.title.ar,
+        en: title_en ?? bannerToUpdate.title.en,
+      };
+    }
+
+    if (subTitle_ar || subTitle_en) {
+      updateData.subTitle = {
+        ar: subTitle_ar ?? bannerToUpdate.subTitle.ar,
+        en: subTitle_en ?? bannerToUpdate.subTitle.en,
+      };
+    }
+
+    if (ctaBtn_text || ctaBtn_link) {
+      updateData.ctaBtn = {
+        text: ctaBtn_text ?? bannerToUpdate.ctaBtn.text,
+        link: ctaBtn_link ?? bannerToUpdate.ctaBtn.link,
+      };
+    }
+
+    if (
+      offerDetails_preSalePrice !== undefined ||
+      offerDetails_afterSalePrice !== undefined ||
+      offerDetails_desc
+    ) {
+      updateData.offerDetails = {
+        preSalePrice:
+          offerDetails_preSalePrice ?? bannerToUpdate.offerDetails.preSalePrice,
+        afterSalePrice:
+          offerDetails_afterSalePrice ??
+          bannerToUpdate.offerDetails.afterSalePrice,
+        desc: offerDetails_desc ?? bannerToUpdate.offerDetails.desc,
+      };
+    }
+
+    if (mediaUrl && mediaId && mediaUrl !== bannerToUpdate.media?.url) {
+      updateData.media = {
+        id: new Types.ObjectId(mediaId),
+        url: mediaUrl,
+      };
+    }
+
+    const updatedBanner = await this.bannerModel.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true },
+    );
+
+    return {
+      isSuccess: true,
+      message: getMessage('banner_bannerUpdatedSuccessfully', lang),
+      data: updatedBanner.toObject(),
+    };
+  }
+
+  async delete(
+    requestingUser: any,
+    body: DeleteDto,
+    id: string,
+  ): Promise<BaseResponse> {
+    const { lang } = body;
+
+    validateUserRoleAccess(requestingUser, lang);
+
+    if (id === this.defaultBannerId) {
+      throw new ForbiddenException(
+        getMessage('banner_cannotDeleteDefaultBanner', lang),
+      );
+    }
+
+    const banner = await this.bannerModel.findById(id);
+
+    if (!banner) {
+      throw new NotFoundException(getMessage('banner_bannerNotFound', lang));
+    }
+
+    banner.isDeleted = true;
+    banner.isActive = false;
+    banner.deletedAt = new Date();
+    banner.deletedBy = requestingUser.userId;
+    banner.unDeletedBy = null;
+
+    await banner.save();
+
+    await activateDefaultIfAllInactive(this.bannerModel, this.defaultBannerId);
+
+    return {
+      isSuccess: true,
+      message: getMessage('banner_bannerDeletedSuccessfully', lang),
     };
   }
 }
