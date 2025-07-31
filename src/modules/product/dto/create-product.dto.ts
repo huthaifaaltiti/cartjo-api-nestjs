@@ -56,7 +56,6 @@ export class CreateProductDto {
   @IsOptional()
   @Type(() => Number)
   @Transform(({ value }) => {
-    console.log('discountRate',{ value });
     if (value === null || value === undefined || value === '') return undefined;
     const num = Number(value);
     return isNaN(num) ? value : num;

@@ -1,14 +1,16 @@
-import { 
-  IsNotEmpty, 
-  IsString, 
-  MaxLength, 
-  MinLength, 
-  IsNumber, 
-  IsOptional, 
+import {
+  IsNotEmpty,
+  IsString,
+  MaxLength,
+  MinLength,
+  IsNumber,
+  IsOptional,
+  IsDateString,
 } from 'class-validator';
 
 import { Locale } from 'src/types/Locale';
 import { validationConfig } from 'src/configs/validationConfig';
+import { Transform } from 'class-transformer';
 
 const {
   labelMinChars,
@@ -81,10 +83,20 @@ export class CreateBannerDto {
   // ---------------- Offer Details ----------------
   @IsNumber()
   @IsNotEmpty({ message: 'Offer pre-sale price is required' })
+  @Transform(({ value }) => {
+    if (value === null || value === undefined || value === '') return undefined;
+    const num = Number(value);
+    return isNaN(num) ? value : num;
+  })
   offerDetails_preSalePrice: number;
 
   @IsNumber()
   @IsNotEmpty({ message: 'Offer after-sale price is required' })
+  @Transform(({ value }) => {
+    if (value === null || value === undefined || value === '') return undefined;
+    const num = Number(value);
+    return isNaN(num) ? value : num;
+  })
   offerDetails_afterSalePrice: number;
 
   @IsString()
@@ -92,6 +104,15 @@ export class CreateBannerDto {
   @MinLength(offerDescMinChars)
   @MaxLength(offerDescMaxChars)
   offerDetails_desc: string;
+
+  // ---------------- Active Duration ----------------
+  @IsOptional()
+  @IsDateString({}, { message: 'Start date must be a valid date string' })
+  startDate?: string;
+
+  @IsOptional()
+  @IsDateString({}, { message: 'End date must be a valid date string' })
+  endDate?: string;
 
   // ---------------- Misc ----------------
   @IsOptional()

@@ -1,4 +1,6 @@
+import { Transform } from 'class-transformer';
 import {
+  IsDateString,
   IsMongoId,
   IsNotEmpty,
   IsNumber,
@@ -82,10 +84,20 @@ export class UpdateBannerDto {
   // ---------------- Offer Details ----------------
   @IsNumber()
   @IsOptional()
+  @Transform(({ value }) => {
+    if (value === null || value === undefined || value === '') return undefined;
+    const num = Number(value);
+    return isNaN(num) ? value : num;
+  })
   offerDetails_preSalePrice: number;
 
   @IsNumber()
   @IsOptional()
+  @Transform(({ value }) => {
+    if (value === null || value === undefined || value === '') return undefined;
+    const num = Number(value);
+    return isNaN(num) ? value : num;
+  })
   offerDetails_afterSalePrice: number;
 
   @IsString()
@@ -98,6 +110,15 @@ export class UpdateBannerDto {
   @IsOptional()
   @IsString()
   lang?: Locale = 'en';
+
+  // ---------------- Active Duration ----------------
+  @IsOptional()
+  @IsDateString({}, { message: 'Start date must be a valid date string' })
+  startDate?: string;
+
+  @IsOptional()
+  @IsDateString({}, { message: 'End date must be a valid date string' })
+  endDate?: string;
 }
 
 export class UpdateBannerParamsDto {

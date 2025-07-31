@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -133,15 +134,15 @@ export class BannerService {
     };
   }
 
-  async getActiveOne(lang?: Locale): Promise<DataResponse<Banner>> {
-    const banner = await this.bannerModel
-      .findOne({ isActive: true, isDeleted: false })
+  async getActiveOnes(lang?: Locale): Promise<DataListResponse<Banner>> {
+    const banners = await this.bannerModel
+      .find({ isActive: true, isDeleted: false })
       .populate('deletedBy', 'firstName lastName email _id')
       .populate('unDeletedBy', 'firstName lastName email _id')
       .populate('createdBy', 'firstName lastName email _id')
       .lean();
 
-    if (!banner) {
+    if (banners.length === 0) {
       throw new NotFoundException(
         getMessage('banner_noActiveBannerFound', lang),
       );
@@ -150,7 +151,8 @@ export class BannerService {
     return {
       isSuccess: true,
       message: getMessage('banner_activeBannerRetrievedSuccessfully', lang),
-      data: banner,
+      dataCount: banners.length,
+      data: banners,
     };
   }
 
@@ -172,9 +174,30 @@ export class BannerService {
       offerDetails_preSalePrice,
       offerDetails_afterSalePrice,
       offerDetails_desc,
+      startDate,
+      endDate,
     } = dto;
 
     validateUserRoleAccess(requestingUser, lang);
+
+    const existing = await this.bannerModel.findOne({
+      $or: [
+        { 'label.ar': label_ar },
+        { 'label.en': label_en },
+        { 'title.ar': title_ar },
+        { 'title.en': title_en },
+        { 'subTitle.ar': subTitle_ar },
+        { 'subTitle.en': subTitle_en },
+        { 'ctaBtn.text': ctaBtn_text },
+        { 'offerDetails.desc': offerDetails_desc },
+      ],
+    });
+
+    if (existing) {
+      throw new BadRequestException(
+        getMessage('banner_bannerWithThisDetailsAlreadyExist', lang),
+      );
+    }
 
     let mediaUrl: string | undefined = undefined;
     let mediaId: string | undefined = undefined;
@@ -207,6 +230,8 @@ export class BannerService {
         desc: offerDetails_desc,
       },
       media: mediaId && mediaUrl ? { id: mediaId, url: mediaUrl } : undefined,
+      startDate: startDate ? new Date(startDate) : undefined,
+      endDate: endDate ? new Date(endDate) : undefined,
       createdBy: requestingUser?.userId,
       isActive: true,
       isDeleted: false,
@@ -240,16 +265,54 @@ export class BannerService {
       offerDetails_preSalePrice,
       offerDetails_afterSalePrice,
       offerDetails_desc,
+      startDate,
+      endDate,
     } = dto;
 
     validateUserRoleAccess(requestingUser, lang);
 
     const bannerToUpdate = await this.bannerModel.findById(id);
-
     if (!bannerToUpdate) {
       throw new NotFoundException(getMessage('banner_bannerNotFound', lang));
     }
 
+    // ---------------- Check for Conflicts in Other Documents ----------------
+    const conflictQuery: any = {
+      _id: { $ne: id }, // Exclude the current document
+      $or: [],
+    };
+
+    // Only check fields that are changing
+    if (label_ar && label_ar !== bannerToUpdate.label.ar)
+      conflictQuery.$or.push({ 'label.ar': label_ar });
+    if (label_en && label_en !== bannerToUpdate.label.en)
+      conflictQuery.$or.push({ 'label.en': label_en });
+    if (title_ar && title_ar !== bannerToUpdate.title.ar)
+      conflictQuery.$or.push({ 'title.ar': title_ar });
+    if (title_en && title_en !== bannerToUpdate.title.en)
+      conflictQuery.$or.push({ 'title.en': title_en });
+    if (subTitle_ar && subTitle_ar !== bannerToUpdate.subTitle.ar)
+      conflictQuery.$or.push({ 'subTitle.ar': subTitle_ar });
+    if (subTitle_en && subTitle_en !== bannerToUpdate.subTitle.en)
+      conflictQuery.$or.push({ 'subTitle.en': subTitle_en });
+    if (ctaBtn_text && ctaBtn_text !== bannerToUpdate.ctaBtn.text)
+      conflictQuery.$or.push({ 'ctaBtn.text': ctaBtn_text });
+    if (
+      offerDetails_desc &&
+      offerDetails_desc !== bannerToUpdate.offerDetails.desc
+    )
+      conflictQuery.$or.push({ 'offerDetails.desc': offerDetails_desc });
+
+    if (conflictQuery.$or.length > 0) {
+      const existing = await this.bannerModel.findOne(conflictQuery);
+      if (existing) {
+        throw new BadRequestException(
+          getMessage('banner_bannerWithThisDetailsAlreadyExist', lang),
+        );
+      }
+    }
+
+    // ---------------- Handle Media Upload ----------------
     let mediaUrl: string | undefined = bannerToUpdate.media?.url;
     let mediaId: string | undefined = bannerToUpdate.media?.id?.toString();
 
@@ -270,6 +333,7 @@ export class BannerService {
       }
     }
 
+    // ---------------- Prepare Update Data ----------------
     const updateData: Partial<Banner> = {
       updatedBy: requestingUser?.userId,
       updatedAt: new Date(),
@@ -318,7 +382,14 @@ export class BannerService {
       };
     }
 
-    if (mediaUrl && mediaId && mediaUrl !== bannerToUpdate.media?.url) {
+    if (startDate || endDate) {
+      updateData.startDate = startDate
+        ? new Date(startDate)
+        : bannerToUpdate.startDate;
+      updateData.endDate = endDate ? new Date(endDate) : bannerToUpdate.endDate;
+    }
+
+    if (mediaUrl && mediaId) {
       updateData.media = {
         id: new Types.ObjectId(mediaId),
         url: mediaUrl,
@@ -452,7 +523,6 @@ export class BannerService {
 
     await banner.save();
 
-    // Activate default banner if all are inactive
     await activateDefaultIfAllInactive(this.bannerModel, this.defaultBannerId);
 
     return {
@@ -460,7 +530,7 @@ export class BannerService {
       message: getMessage(
         isActive
           ? 'banner_bannerActivatedSuccessfully'
-          : 'banner_bannerDeactivatedSuccessfully',
+          : 'banner_bannerDeActivatedSuccessfully',
         lang,
       ),
     };

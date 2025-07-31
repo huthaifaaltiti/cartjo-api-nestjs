@@ -101,5 +101,6 @@
   "banner_cannotUnDeleteDefaultBanner": "Cannot un-delete default banner",
   "banner_bannerUnDeletedSuccessfully": "Banner un-deleted successfully",
   "banner_bannerActivatedSuccessfully": "Banner activated successfully",
-  "banner_bannerDeActivatedSuccessfully": "Banner de-activated successfully"
+  "banner_bannerDeActivatedSuccessfully": "Banner de-activated successfully",
+  "banner_bannerWithThisDetailsAlreadyExist": "Banner with this details already exist"
 }

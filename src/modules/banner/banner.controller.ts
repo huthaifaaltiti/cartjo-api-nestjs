@@ -45,10 +45,10 @@ export class BannerController {
   }
 
   @Get('active')
-  async getActiveOne(@Query() query: GetBannerQueryDto) {
+  async getActiveOnes(@Query() query: GetBannerQueryDto) {
     const { lang } = query;
 
-    return this.bannerService.getActiveOne(lang);
+    return this.bannerService.getActiveOnes(lang);
   }
 
   @Get('/:id')
