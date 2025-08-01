@@ -1,9 +1,9 @@
 import { Transform } from 'class-transformer';
 import {
+  IsBoolean,
   IsDateString,
   IsMongoId,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
   MaxLength,
@@ -14,35 +14,17 @@ import { validationConfig } from 'src/configs/validationConfig';
 import { Locale } from 'src/types/Locale';
 
 const {
-  labelMinChars,
-  labelMaxChars,
-  titleMinChars,
-  titleMaxChars,
-  subTitleMinChars,
-  subTitleMaxChars,
-  ctaTextMinChars,
-  ctaTextMaxChars,
+  ctaLabelMinChars,
+  ctaLabelMaxChars,
   ctaLinkMinChars,
   ctaLinkMaxChars,
-  offerDescMinChars,
-  offerDescMaxChars,
+  ctaColorMinChars,
+  ctaColorMaxChars,
+  titleMinChars,
+  titleMaxChars,
 } = validationConfig.banner;
 
 export class UpdateBannerDto {
-  // ---------------- Label ----------------
-  @IsString()
-  @IsOptional()
-  @MinLength(labelMinChars)
-  @MaxLength(labelMaxChars)
-  label_ar: string;
-
-  @IsString()
-  @IsOptional()
-  @MinLength(labelMinChars)
-  @MaxLength(labelMaxChars)
-  label_en: string;
-
-  // ---------------- Title ----------------
   @IsString()
   @IsOptional()
   @MinLength(titleMinChars)
@@ -55,25 +37,22 @@ export class UpdateBannerDto {
   @MaxLength(titleMaxChars)
   title_en: string;
 
-  // ---------------- SubTitle ----------------
-  @IsString()
+  @IsBoolean()
   @IsOptional()
-  @MinLength(subTitleMinChars)
-  @MaxLength(subTitleMaxChars)
-  subTitle_ar: string;
+  @Transform(({ value }) => value === 'true')
+  withAction: boolean;
 
   @IsString()
   @IsOptional()
-  @MinLength(subTitleMinChars)
-  @MaxLength(subTitleMaxChars)
-  subTitle_en: string;
+  @MinLength(ctaLabelMinChars)
+  @MaxLength(ctaLabelMaxChars)
+  ctaBtn_labelEn: string;
 
-  // ---------------- CTA Button ----------------
   @IsString()
   @IsOptional()
-  @MinLength(ctaTextMinChars)
-  @MaxLength(ctaTextMaxChars)
-  ctaBtn_text: string;
+  @MinLength(ctaLabelMinChars)
+  @MaxLength(ctaLabelMaxChars)
+  ctaBtn_labelAr: string;
 
   @IsString()
   @IsOptional()
@@ -81,37 +60,18 @@ export class UpdateBannerDto {
   @MaxLength(ctaLinkMaxChars)
   ctaBtn_link: string;
 
-  // ---------------- Offer Details ----------------
-  @IsNumber()
+  @IsString()
   @IsOptional()
-  @Transform(({ value }) => {
-    if (value === null || value === undefined || value === '') return undefined;
-    const num = Number(value);
-    return isNaN(num) ? value : num;
-  })
-  offerDetails_preSalePrice: number;
-
-  @IsNumber()
-  @IsOptional()
-  @Transform(({ value }) => {
-    if (value === null || value === undefined || value === '') return undefined;
-    const num = Number(value);
-    return isNaN(num) ? value : num;
-  })
-  offerDetails_afterSalePrice: number;
+  @MinLength(ctaColorMinChars)
+  @MaxLength(ctaColorMaxChars)
+  ctaBtn_labelClr: string;
 
   @IsString()
   @IsOptional()
-  @MinLength(offerDescMinChars)
-  @MaxLength(offerDescMaxChars)
-  offerDetails_desc: string;
+  @MinLength(ctaColorMinChars)
+  @MaxLength(ctaColorMaxChars)
+  ctaBtn_bgClr: string;
 
-  // ---------------- Misc ----------------
-  @IsOptional()
-  @IsString()
-  lang?: Locale = 'en';
-
-  // ---------------- Active Duration ----------------
   @IsOptional()
   @IsDateString({}, { message: 'Start date must be a valid date string' })
   startDate?: string;
@@ -119,6 +79,10 @@ export class UpdateBannerDto {
   @IsOptional()
   @IsDateString({}, { message: 'End date must be a valid date string' })
   endDate?: string;
+
+  @IsOptional()
+  @IsString()
+  lang?: Locale = 'en';
 }
 
 export class UpdateBannerParamsDto {

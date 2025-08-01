@@ -3,9 +3,9 @@ import {
   IsString,
   MaxLength,
   MinLength,
-  IsNumber,
   IsOptional,
   IsDateString,
+  IsBoolean,
 } from 'class-validator';
 
 import { Locale } from 'src/types/Locale';
@@ -13,66 +13,57 @@ import { validationConfig } from 'src/configs/validationConfig';
 import { Transform } from 'class-transformer';
 
 const {
-  labelMinChars,
-  labelMaxChars,
   titleMinChars,
   titleMaxChars,
-  subTitleMinChars,
-  subTitleMaxChars,
-  ctaTextMinChars,
-  ctaTextMaxChars,
+  ctaLabelMinChars,
+  ctaLabelMaxChars,
   ctaLinkMinChars,
   ctaLinkMaxChars,
-  offerDescMinChars,
-  offerDescMaxChars,
+  ctaColorMinChars,
+  ctaColorMaxChars,
 } = validationConfig.banner;
 
 export class CreateBannerDto {
-  // ---------------- Label ----------------
   @IsString()
-  @IsNotEmpty({ message: 'Banner label (AR) is required' })
-  @MinLength(labelMinChars)
-  @MaxLength(labelMaxChars)
-  label_ar: string;
-
-  @IsString()
-  @IsNotEmpty({ message: 'Banner label (EN) is required' })
-  @MinLength(labelMinChars)
-  @MaxLength(labelMaxChars)
-  label_en: string;
-
-  // ---------------- Title ----------------
-  @IsString()
-  @IsNotEmpty({ message: 'Banner title (AR) is required' })
+  @IsNotEmpty({ message: 'Ar title is required' })
   @MinLength(titleMinChars)
   @MaxLength(titleMaxChars)
   title_ar: string;
 
   @IsString()
-  @IsNotEmpty({ message: 'Banner title (EN) is required' })
+  @IsNotEmpty({ message: 'En title is required' })
   @MinLength(titleMinChars)
   @MaxLength(titleMaxChars)
   title_en: string;
 
-  // ---------------- SubTitle ----------------
-  @IsString()
-  @IsNotEmpty({ message: 'Banner sub-title (AR) is required' })
-  @MinLength(subTitleMinChars)
-  @MaxLength(subTitleMaxChars)
-  subTitle_ar: string;
+  @IsBoolean()
+  @IsNotEmpty({ message: 'withAction flag is required' })
+  @Transform(({ value }) => value === 'true')
+  withAction: boolean;
 
   @IsString()
-  @IsNotEmpty({ message: 'Banner sub-title (EN) is required' })
-  @MinLength(subTitleMinChars)
-  @MaxLength(subTitleMaxChars)
-  subTitle_en: string;
+  @IsNotEmpty({ message: 'CTA button Ar label text is required' })
+  @MinLength(ctaLabelMinChars)
+  @MaxLength(ctaLabelMaxChars)
+  ctaBtn_labelEn: string;
 
-  // ---------------- CTA Button ----------------
   @IsString()
-  @IsNotEmpty({ message: 'CTA button text is required' })
-  @MinLength(ctaTextMinChars)
-  @MaxLength(ctaTextMaxChars)
-  ctaBtn_text: string;
+  @IsNotEmpty({ message: 'CTA button En label text is required' })
+  @MinLength(ctaLabelMinChars)
+  @MaxLength(ctaLabelMaxChars)
+  ctaBtn_labelAr: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'CTA button label color is required' })
+  @MinLength(ctaColorMinChars)
+  @MaxLength(ctaColorMaxChars)
+  ctaBtn_labelClr: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'CTA button text color is required' })
+  @MinLength(ctaColorMinChars)
+  @MaxLength(ctaColorMaxChars)
+  ctaBtn_bgClr: string;
 
   @IsString()
   @IsNotEmpty({ message: 'CTA button link is required' })
@@ -80,32 +71,6 @@ export class CreateBannerDto {
   @MaxLength(ctaLinkMaxChars)
   ctaBtn_link: string;
 
-  // ---------------- Offer Details ----------------
-  @IsNumber()
-  @IsNotEmpty({ message: 'Offer pre-sale price is required' })
-  @Transform(({ value }) => {
-    if (value === null || value === undefined || value === '') return undefined;
-    const num = Number(value);
-    return isNaN(num) ? value : num;
-  })
-  offerDetails_preSalePrice: number;
-
-  @IsNumber()
-  @IsNotEmpty({ message: 'Offer after-sale price is required' })
-  @Transform(({ value }) => {
-    if (value === null || value === undefined || value === '') return undefined;
-    const num = Number(value);
-    return isNaN(num) ? value : num;
-  })
-  offerDetails_afterSalePrice: number;
-
-  @IsString()
-  @IsNotEmpty({ message: 'Offer description is required' })
-  @MinLength(offerDescMinChars)
-  @MaxLength(offerDescMaxChars)
-  offerDetails_desc: string;
-
-  // ---------------- Active Duration ----------------
   @IsOptional()
   @IsDateString({}, { message: 'Start date must be a valid date string' })
   startDate?: string;
@@ -114,7 +79,6 @@ export class CreateBannerDto {
   @IsDateString({}, { message: 'End date must be a valid date string' })
   endDate?: string;
 
-  // ---------------- Misc ----------------
   @IsOptional()
   @IsString()
   lang?: Locale = 'en';

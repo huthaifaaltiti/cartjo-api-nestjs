@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
 
-import { MultiLangText } from './common.schema';
+import { TranslatedText } from 'src/types/TranslatedText.type';
 
 export type BannerDocument = Banner & Document;
 
@@ -14,34 +14,24 @@ class MediaPreview {
 }
 
 class CtaButton {
+  @Prop({ required: true }) label: TranslatedText;
   @Prop({ required: true }) link: string;
-  @Prop({ required: true }) text: string;
-}
-
-class OfferDetails {
-  @Prop({ required: true }) preSalePrice: number;
-  @Prop({ required: true }) afterSalePrice: number;
-  @Prop({ required: true }) desc: string;
+  @Prop({ required: true }) labelClr: string;
+  @Prop({ required: true }) bgClr: string;
 }
 
 @Schema({ collection: 'banners', timestamps: true }) // auto adds createdAt & updatedAt
 export class Banner {
-  @Prop({ type: MultiLangText, required: true })
-  label: MultiLangText;
+  @Prop({ required: true })
+  title: TranslatedText;
 
-  @Prop({ type: MultiLangText, required: true })
-  title: MultiLangText;
+  @Prop({ required: true })
+  withAction: boolean;
 
-  @Prop({ type: MultiLangText, required: true })
-  subTitle: MultiLangText;
+  @Prop({ type: CtaButton, required: false })
+  ctaBtn: CtaButton | null;
 
-  @Prop({ type: CtaButton, required: true })
-  ctaBtn: CtaButton;
-
-  @Prop({ type: OfferDetails, required: true })
-  offerDetails: OfferDetails;
-
-  @Prop({ type: MediaPreview, required: false })
+  @Prop({ type: MediaPreview, required: true })
   media?: MediaPreview;
 
   @Prop({ type: Date, default: null })

@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import mongoose, { Model, Types } from 'mongoose';
 
 import { MediaService } from '../media/media.service';
 
@@ -162,18 +162,15 @@ export class BannerService {
     image?: Express.Multer.File,
   ): Promise<DataResponse<Banner>> {
     const {
-      lang,
-      label_ar,
-      label_en,
       title_ar,
       title_en,
-      subTitle_ar,
-      subTitle_en,
-      ctaBtn_text,
+      lang,
+      withAction,
+      ctaBtn_labelEn,
+      ctaBtn_labelAr,
       ctaBtn_link,
-      offerDetails_preSalePrice,
-      offerDetails_afterSalePrice,
-      offerDetails_desc,
+      ctaBtn_labelClr,
+      ctaBtn_bgClr,
       startDate,
       endDate,
     } = dto;
@@ -181,16 +178,7 @@ export class BannerService {
     validateUserRoleAccess(requestingUser, lang);
 
     const existing = await this.bannerModel.findOne({
-      $or: [
-        { 'label.ar': label_ar },
-        { 'label.en': label_en },
-        { 'title.ar': title_ar },
-        { 'title.en': title_en },
-        { 'subTitle.ar': subTitle_ar },
-        { 'subTitle.en': subTitle_en },
-        { 'ctaBtn.text': ctaBtn_text },
-        { 'offerDetails.desc': offerDetails_desc },
-      ],
+      $or: [{ 'title.ar': title_ar }, { 'title.en': title_en }],
     });
 
     if (existing) {
@@ -217,18 +205,21 @@ export class BannerService {
         mediaUrl = result.fileUrl;
         mediaId = result.mediaId;
       }
+    } else {
+      throw new ForbiddenException(getMessage('banner_shouldHasImage', lang));
     }
 
     const banner = new this.bannerModel({
-      label: { ar: label_ar, en: label_en },
       title: { ar: title_ar, en: title_en },
-      subTitle: { ar: subTitle_ar, en: subTitle_en },
-      ctaBtn: { text: ctaBtn_text, link: ctaBtn_link },
-      offerDetails: {
-        preSalePrice: offerDetails_preSalePrice,
-        afterSalePrice: offerDetails_afterSalePrice,
-        desc: offerDetails_desc,
-      },
+      withAction,
+      ctaBtn: withAction
+        ? {
+            label: { ar: ctaBtn_labelAr, en: ctaBtn_labelEn },
+            link: ctaBtn_link,
+            labelClr: ctaBtn_labelClr,
+            bgClr: ctaBtn_bgClr,
+          }
+        : null,
       media: mediaId && mediaUrl ? { id: mediaId, url: mediaUrl } : undefined,
       startDate: startDate ? new Date(startDate) : undefined,
       endDate: endDate ? new Date(endDate) : undefined,
@@ -253,18 +244,15 @@ export class BannerService {
     id: string,
   ): Promise<DataResponse<Banner>> {
     const {
-      lang,
-      label_ar,
-      label_en,
       title_ar,
       title_en,
-      subTitle_ar,
-      subTitle_en,
-      ctaBtn_text,
+      lang,
+      withAction,
+      ctaBtn_labelEn,
+      ctaBtn_labelAr,
       ctaBtn_link,
-      offerDetails_preSalePrice,
-      offerDetails_afterSalePrice,
-      offerDetails_desc,
+      ctaBtn_labelClr,
+      ctaBtn_bgClr,
       startDate,
       endDate,
     } = dto;
@@ -276,32 +264,15 @@ export class BannerService {
       throw new NotFoundException(getMessage('banner_bannerNotFound', lang));
     }
 
-    // ---------------- Check for Conflicts in Other Documents ----------------
-    const conflictQuery: any = {
-      _id: { $ne: id }, // Exclude the current document
-      $or: [],
-    };
+    // ---------------- Conflict Check ----------------
+    const conflictQuery: any = { _id: { $ne: id }, $or: [] };
 
-    // Only check fields that are changing
-    if (label_ar && label_ar !== bannerToUpdate.label.ar)
-      conflictQuery.$or.push({ 'label.ar': label_ar });
-    if (label_en && label_en !== bannerToUpdate.label.en)
-      conflictQuery.$or.push({ 'label.en': label_en });
-    if (title_ar && title_ar !== bannerToUpdate.title.ar)
+    if (title_ar && title_ar !== bannerToUpdate?.title?.ar) {
       conflictQuery.$or.push({ 'title.ar': title_ar });
-    if (title_en && title_en !== bannerToUpdate.title.en)
+    }
+    if (title_en && title_en !== bannerToUpdate?.title?.en) {
       conflictQuery.$or.push({ 'title.en': title_en });
-    if (subTitle_ar && subTitle_ar !== bannerToUpdate.subTitle.ar)
-      conflictQuery.$or.push({ 'subTitle.ar': subTitle_ar });
-    if (subTitle_en && subTitle_en !== bannerToUpdate.subTitle.en)
-      conflictQuery.$or.push({ 'subTitle.en': subTitle_en });
-    if (ctaBtn_text && ctaBtn_text !== bannerToUpdate.ctaBtn.text)
-      conflictQuery.$or.push({ 'ctaBtn.text': ctaBtn_text });
-    if (
-      offerDetails_desc &&
-      offerDetails_desc !== bannerToUpdate.offerDetails.desc
-    )
-      conflictQuery.$or.push({ 'offerDetails.desc': offerDetails_desc });
+    }
 
     if (conflictQuery.$or.length > 0) {
       const existing = await this.bannerModel.findOne(conflictQuery);
@@ -339,47 +310,29 @@ export class BannerService {
       updatedAt: new Date(),
     };
 
-    if (label_ar || label_en) {
-      updateData.label = {
-        ar: label_ar ?? bannerToUpdate.label.ar,
-        en: label_en ?? bannerToUpdate.label.en,
-      };
-    }
-
     if (title_ar || title_en) {
       updateData.title = {
-        ar: title_ar ?? bannerToUpdate.title.ar,
-        en: title_en ?? bannerToUpdate.title.en,
+        ar: title_ar ?? bannerToUpdate?.title?.ar,
+        en: title_en ?? bannerToUpdate?.title?.en,
       };
     }
 
-    if (subTitle_ar || subTitle_en) {
-      updateData.subTitle = {
-        ar: subTitle_ar ?? bannerToUpdate.subTitle.ar,
-        en: subTitle_en ?? bannerToUpdate.subTitle.en,
-      };
+    if (typeof withAction === 'boolean') {
+      updateData.withAction = withAction;
     }
 
-    if (ctaBtn_text || ctaBtn_link) {
+    if (withAction) {
       updateData.ctaBtn = {
-        text: ctaBtn_text ?? bannerToUpdate.ctaBtn.text,
-        link: ctaBtn_link ?? bannerToUpdate.ctaBtn.link,
+        label: {
+          ar: ctaBtn_labelAr ?? (bannerToUpdate.ctaBtn as any)?.label?.ar,
+          en: ctaBtn_labelEn ?? (bannerToUpdate.ctaBtn as any)?.label?.en,
+        },
+        link: ctaBtn_link ?? (bannerToUpdate.ctaBtn as any)?.link,
+        labelClr: ctaBtn_labelClr ?? (bannerToUpdate.ctaBtn as any)?.labelClr,
+        bgClr: ctaBtn_bgClr ?? (bannerToUpdate.ctaBtn as any)?.bgClr,
       };
-    }
-
-    if (
-      offerDetails_preSalePrice !== undefined ||
-      offerDetails_afterSalePrice !== undefined ||
-      offerDetails_desc
-    ) {
-      updateData.offerDetails = {
-        preSalePrice:
-          offerDetails_preSalePrice ?? bannerToUpdate.offerDetails.preSalePrice,
-        afterSalePrice:
-          offerDetails_afterSalePrice ??
-          bannerToUpdate.offerDetails.afterSalePrice,
-        desc: offerDetails_desc ?? bannerToUpdate.offerDetails.desc,
-      };
+    } else {
+      updateData.ctaBtn = null;
     }
 
     if (startDate || endDate) {
@@ -389,10 +342,13 @@ export class BannerService {
       updateData.endDate = endDate ? new Date(endDate) : bannerToUpdate.endDate;
     }
 
-    if (mediaUrl && mediaId) {
+    if (
+      (mediaUrl && mediaUrl !== bannerToUpdate.media?.url) ||
+      mediaId !== bannerToUpdate.media?.id?.toString()
+    ) {
       updateData.media = {
-        id: new Types.ObjectId(mediaId),
-        url: mediaUrl,
+        id: mediaId ? new mongoose.Types.ObjectId(mediaId) : undefined,
+        url: mediaUrl!,
       };
     }
 
@@ -401,6 +357,10 @@ export class BannerService {
       updateData,
       { new: true },
     );
+
+    if (!updatedBanner) {
+      throw new NotFoundException(getMessage('banner_bannerNotFound', lang));
+    }
 
     return {
       isSuccess: true,
@@ -496,28 +456,6 @@ export class BannerService {
     if (!banner) {
       throw new NotFoundException(getMessage('banner_bannerNotFound', lang));
     }
-
-    // if (isActive) {
-    //   // Deactivate all other banners
-    //   await this.bannerModel.updateMany(
-    //     { _id: { $ne: id } },
-    //     {
-    //       $set: {
-    //         isActive: false,
-    //         isDeleted: false,
-    //         deletedAt: null,
-    //       },
-    //     },
-    //   );
-
-    //   // Activate current banner
-    //   banner.isActive = true;
-    //   banner.isDeleted = false;
-    //   banner.deletedAt = null;
-    // } else {
-    //   // Deactivate current banner
-    //   banner.isActive = false;
-    // }
 
     banner.isActive = isActive;
 

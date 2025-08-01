@@ -101,5 +101,6 @@
   "banner_bannerUnDeletedSuccessfully": "تم استرداد اللافتة بنجاح",
   "banner_bannerActivatedSuccessfully": "تم تفعيل اللافتة بنجاح",
   "banner_bannerDeActivatedSuccessfully": "تم إلغاء تفعيل اللافتة بنجاح",
-  "banner_bannerWithThisDetailsAlreadyExist": "اللافتة مع هذه البيانات موجودة بالفعل"
+  "banner_bannerWithThisDetailsAlreadyExist": "اللافتة مع هذه البيانات موجودة بالفعل",
+  "banner_shouldHasImage": "لا يمكن إنشاء لافتة بلا صورة"
 }
