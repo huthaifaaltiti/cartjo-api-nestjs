@@ -13,13 +13,6 @@ class MediaPreview {
   url: string;
 }
 
-class CtaButton {
-  @Prop({ required: true }) label: TranslatedText;
-  @Prop({ required: true }) link: string;
-  @Prop({ required: true }) labelClr: string;
-  @Prop({ required: true }) bgClr: string;
-}
-
 @Schema({ collection: 'banners', timestamps: true }) // auto adds createdAt & updatedAt
 export class Banner {
   @Prop({ required: true })
