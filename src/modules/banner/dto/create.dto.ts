@@ -34,9 +34,7 @@ export class CreateBannerDto {
   withAction: boolean;
 
   @IsString()
-  @IsNotEmpty({ message: 'CTA button link is required' })
-  @MinLength(bannerLinkMinChars)
-  @MaxLength(bannerLinkMaxChars)
+  @IsOptional()
   link: string;
 
   @IsOptional()
