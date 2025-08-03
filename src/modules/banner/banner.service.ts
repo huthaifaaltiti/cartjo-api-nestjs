@@ -161,19 +161,8 @@ export class BannerService {
     dto: CreateBannerDto,
     image?: Express.Multer.File,
   ): Promise<DataResponse<Banner>> {
-    const {
-      title_ar,
-      title_en,
-      lang,
-      withAction,
-      ctaBtn_labelEn,
-      ctaBtn_labelAr,
-      ctaBtn_link,
-      ctaBtn_labelClr,
-      ctaBtn_bgClr,
-      startDate,
-      endDate,
-    } = dto;
+    const { title_ar, title_en, lang, withAction, link, startDate, endDate } =
+      dto;
 
     validateUserRoleAccess(requestingUser, lang);
 
@@ -212,14 +201,7 @@ export class BannerService {
     const banner = new this.bannerModel({
       title: { ar: title_ar, en: title_en },
       withAction,
-      ctaBtn: withAction
-        ? {
-            label: { ar: ctaBtn_labelAr, en: ctaBtn_labelEn },
-            link: ctaBtn_link,
-            labelClr: ctaBtn_labelClr,
-            bgClr: ctaBtn_bgClr,
-          }
-        : null,
+      link: withAction ? link : null,
       media: mediaId && mediaUrl ? { id: mediaId, url: mediaUrl } : undefined,
       startDate: startDate ? new Date(startDate) : undefined,
       endDate: endDate ? new Date(endDate) : undefined,
@@ -243,19 +225,8 @@ export class BannerService {
     image: Express.Multer.File,
     id: string,
   ): Promise<DataResponse<Banner>> {
-    const {
-      title_ar,
-      title_en,
-      lang,
-      withAction,
-      ctaBtn_labelEn,
-      ctaBtn_labelAr,
-      ctaBtn_link,
-      ctaBtn_labelClr,
-      ctaBtn_bgClr,
-      startDate,
-      endDate,
-    } = dto;
+    const { title_ar, title_en, lang, withAction, link, startDate, endDate } =
+      dto;
 
     validateUserRoleAccess(requestingUser, lang);
 
@@ -270,12 +241,14 @@ export class BannerService {
     if (title_ar && title_ar !== bannerToUpdate?.title?.ar) {
       conflictQuery.$or.push({ 'title.ar': title_ar });
     }
+
     if (title_en && title_en !== bannerToUpdate?.title?.en) {
       conflictQuery.$or.push({ 'title.en': title_en });
     }
 
     if (conflictQuery.$or.length > 0) {
       const existing = await this.bannerModel.findOne(conflictQuery);
+
       if (existing) {
         throw new BadRequestException(
           getMessage('banner_bannerWithThisDetailsAlreadyExist', lang),
@@ -322,17 +295,9 @@ export class BannerService {
     }
 
     if (withAction) {
-      updateData.ctaBtn = {
-        label: {
-          ar: ctaBtn_labelAr ?? (bannerToUpdate.ctaBtn as any)?.label?.ar,
-          en: ctaBtn_labelEn ?? (bannerToUpdate.ctaBtn as any)?.label?.en,
-        },
-        link: ctaBtn_link ?? (bannerToUpdate.ctaBtn as any)?.link,
-        labelClr: ctaBtn_labelClr ?? (bannerToUpdate.ctaBtn as any)?.labelClr,
-        bgClr: ctaBtn_bgClr ?? (bannerToUpdate.ctaBtn as any)?.bgClr,
-      };
+      updateData.link = link;
     } else {
-      updateData.ctaBtn = null;
+      updateData.link = null;
     }
 
     if (startDate || endDate) {

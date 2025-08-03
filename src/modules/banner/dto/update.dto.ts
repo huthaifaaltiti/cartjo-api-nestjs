@@ -13,16 +13,8 @@ import {
 import { validationConfig } from 'src/configs/validationConfig';
 import { Locale } from 'src/types/Locale';
 
-const {
-  ctaLabelMinChars,
-  ctaLabelMaxChars,
-  ctaLinkMinChars,
-  ctaLinkMaxChars,
-  ctaColorMinChars,
-  ctaColorMaxChars,
-  titleMinChars,
-  titleMaxChars,
-} = validationConfig.banner;
+const { bannerLinkMinChars, bannerLinkMaxChars, titleMinChars, titleMaxChars } =
+  validationConfig.banner;
 
 export class UpdateBannerDto {
   @IsString()
@@ -44,33 +36,9 @@ export class UpdateBannerDto {
 
   @IsString()
   @IsOptional()
-  @MinLength(ctaLabelMinChars)
-  @MaxLength(ctaLabelMaxChars)
-  ctaBtn_labelEn: string;
-
-  @IsString()
-  @IsOptional()
-  @MinLength(ctaLabelMinChars)
-  @MaxLength(ctaLabelMaxChars)
-  ctaBtn_labelAr: string;
-
-  @IsString()
-  @IsOptional()
-  @MinLength(ctaLinkMinChars)
-  @MaxLength(ctaLinkMaxChars)
-  ctaBtn_link: string;
-
-  @IsString()
-  @IsOptional()
-  @MinLength(ctaColorMinChars)
-  @MaxLength(ctaColorMaxChars)
-  ctaBtn_labelClr: string;
-
-  @IsString()
-  @IsOptional()
-  @MinLength(ctaColorMinChars)
-  @MaxLength(ctaColorMaxChars)
-  ctaBtn_bgClr: string;
+  @MinLength(bannerLinkMinChars)
+  @MaxLength(bannerLinkMaxChars)
+  link: string;
 
   @IsOptional()
   @IsDateString({}, { message: 'Start date must be a valid date string' })

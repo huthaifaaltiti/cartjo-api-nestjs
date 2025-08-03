@@ -16,11 +16,7 @@ export const validationConfig = {
   banner: {
     titleMinChars: 3,
     titleMaxChars: 50,
-    ctaLabelMinChars: 2,
-    ctaLabelMaxChars: 50,
-    ctaLinkMinChars: 5,
-    ctaLinkMaxChars: 255,
-    ctaColorMinChars: 3,
-    ctaColorMaxChars: 8,
+    bannerLinkMinChars: 5,
+    bannerLinkMaxChars: 255,
   },
 };

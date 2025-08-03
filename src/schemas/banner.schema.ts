@@ -28,8 +28,8 @@ export class Banner {
   @Prop({ required: true })
   withAction: boolean;
 
-  @Prop({ type: CtaButton, required: false })
-  ctaBtn: CtaButton | null;
+  @Prop({ required: false })
+  link: string | null;
 
   @Prop({ type: MediaPreview, required: true })
   media?: MediaPreview;
