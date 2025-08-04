@@ -103,5 +103,7 @@
   "banner_bannerActivatedSuccessfully": "Banner activated successfully",
   "banner_bannerDeActivatedSuccessfully": "Banner de-activated successfully",
   "banner_bannerWithThisDetailsAlreadyExist": "Banner with this details already exist",
-  "banner_shouldHasImage": "Banner should has image"
+  "banner_shouldHasArImage": "Banner should has Ar image",
+  "banner_shouldHasEnImage": "Banner should has En image",
+  "banner_bannerWithActionShouldHasLink": "Banner with an action should has a link"
 }

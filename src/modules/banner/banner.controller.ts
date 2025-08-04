@@ -8,12 +8,15 @@ import {
   Put,
   Query,
   Request,
-  UploadedFile,
+  UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  FileFieldsInterceptor,
+  FilesInterceptor,
+} from '@nestjs/platform-express';
 
 import { BannerService } from './banner.service';
 import { GetBannersQueryDto } from './dto/get-all.dto';
@@ -22,7 +25,10 @@ import { CreateBannerDto } from './dto/create.dto';
 import { UpdateBannerDto, UpdateBannerParamsDto } from './dto/update.dto';
 import { DeleteDto, DeleteParamsDto } from './dto/delete.dto';
 import { UnDeleteDto, UnDeleteParamsDto } from './dto/unDelete.dto';
-import { UpdateStatusBodyDto, UpdateStatusParamsDto } from './dto/update-active-status.dto';
+import {
+  UpdateStatusBodyDto,
+  UpdateStatusParamsDto,
+} from './dto/update-active-status.dto';
 
 @Controller('/api/v1/banner')
 export class BannerController {
@@ -64,30 +70,44 @@ export class BannerController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('create')
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(FilesInterceptor('images', 2))
   async create(
-    @UploadedFile() image: Express.Multer.File,
+    @UploadedFiles() files: Express.Multer.File[],
     @Request() req: any,
     @Body() body: CreateBannerDto,
   ) {
-    const { user } = req;
-
-    return this.bannerService.create(user, body, image);
+    const [image_ar, image_en] = files || [];
+    return this.bannerService.create(req.user, body, image_ar, image_en);
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Put('update/:id')
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'image_ar', maxCount: 1 },
+      { name: 'image_en', maxCount: 1 },
+    ]),
+  )
   async update(
-    @UploadedFile() image: Express.Multer.File,
+    @UploadedFiles()
+    files: {
+      image_ar?: Express.Multer.File[];
+      image_en?: Express.Multer.File[];
+    },
     @Request() req: any,
     @Body() body: UpdateBannerDto,
     @Param() param: UpdateBannerParamsDto,
   ) {
-    const { user } = req;
-    const { id } = param;
+    const image_ar = files.image_ar?.[0];
+    const image_en = files.image_en?.[0];
 
-    return this.bannerService.update(user, body, image, id);
+    return this.bannerService.update(
+      req.user,
+      body,
+      param.id,
+      image_ar,
+      image_en,
+    );
   }
 
   @UseGuards(AuthGuard('jwt'))

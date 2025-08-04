@@ -24,8 +24,14 @@ export class Banner {
   @Prop({ required: false })
   link: string | null;
 
-  @Prop({ type: MediaPreview, required: true })
-  media?: MediaPreview;
+  @Prop({
+    type: Object,
+    required: true,
+  })
+  media?: {
+    ar: MediaPreview;
+    en: MediaPreview;
+  };
 
   @Prop({ type: Date, default: null })
   startDate?: Date;

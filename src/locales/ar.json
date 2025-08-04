@@ -102,5 +102,7 @@
   "banner_bannerActivatedSuccessfully": "تم تفعيل اللافتة بنجاح",
   "banner_bannerDeActivatedSuccessfully": "تم إلغاء تفعيل اللافتة بنجاح",
   "banner_bannerWithThisDetailsAlreadyExist": "اللافتة مع هذه البيانات موجودة بالفعل",
-  "banner_shouldHasImage": "لا يمكن إنشاء لافتة بلا صورة"
+  "banner_shouldHasArImage": "لا يمكن إنشاء لافتة بلا صورة عربية",
+  "banner_shouldHasEnImage": "لا يمكن إنشاء لافتة بلا صورة إنجليزية",
+  "banner_bannerWithActionShouldHasLink": "يجب أن تحتوي اللافتة التي تحتوي على إجراء على رابط"
 }

@@ -28,6 +28,7 @@ import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValid
 import { UpdateBannerDto } from './dto/update.dto';
 import { DeleteDto } from './dto/delete.dto';
 import { UnDeleteDto } from './dto/unDelete.dto';
+import { MediaPreview } from 'src/schemas/common.schema';
 
 @Injectable()
 export class BannerService {
@@ -159,7 +160,8 @@ export class BannerService {
   async create(
     requestingUser: any,
     dto: CreateBannerDto,
-    image?: Express.Multer.File,
+    image_ar?: Express.Multer.File,
+    image_en?: Express.Multer.File,
   ): Promise<DataResponse<Banner>> {
     const { title_ar, title_en, lang, withAction, link, startDate, endDate } =
       dto;
@@ -169,48 +171,51 @@ export class BannerService {
     const existing = await this.bannerModel.findOne({
       $or: [{ 'title.ar': title_ar }, { 'title.en': title_en }],
     });
-
     if (existing) {
       throw new BadRequestException(
         getMessage('banner_bannerWithThisDetailsAlreadyExist', lang),
       );
     }
 
-    let mediaUrl: string | undefined = undefined;
-    let mediaId: string | undefined = undefined;
+    const uploadMedia = async (
+      file: Express.Multer.File,
+      requiredMsg: string,
+    ): Promise<{ id: string; url: string }> => {
+      if (!file || Object.keys(file).length === 0) {
+        throw new ForbiddenException(getMessage(requiredMsg, lang));
+      }
 
-    if (image && Object.keys(image).length > 0) {
-      fileSizeValidator(image, MAX_FILE_SIZES.BANNER_IMAGE, lang);
-      fileTypeValidator(image, ['webp', 'gif'], lang);
+      fileSizeValidator(file, MAX_FILE_SIZES.BANNER_IMAGE, lang);
+      fileTypeValidator(file, ['webp', 'gif'], lang);
 
       const result = await this.mediaService.handleFileUpload(
-        image,
+        file,
         { userId: requestingUser?.userId },
         lang,
         Modules.BANNER,
       );
 
-      if (result?.isSuccess) {
-        mediaUrl = result.fileUrl;
-        mediaId = result.mediaId;
+      if (!result?.isSuccess) {
+        throw new BadRequestException(getMessage('banner_uploadFailed', lang));
       }
-    } else {
-      throw new ForbiddenException(getMessage('banner_shouldHasImage', lang));
-    }
 
-    const banner = new this.bannerModel({
+      return { id: result.mediaId, url: result.fileUrl };
+    };
+
+    const media_ar = await uploadMedia(image_ar, 'banner_shouldHasArImage');
+    const media_en = await uploadMedia(image_en, 'banner_shouldHasEnImage');
+
+    const banner = await this.bannerModel.create({
       title: { ar: title_ar, en: title_en },
       withAction,
       link: withAction ? link : null,
-      media: mediaId && mediaUrl ? { id: mediaId, url: mediaUrl } : undefined,
+      media: { ar: media_ar, en: media_en },
       startDate: startDate ? new Date(startDate) : undefined,
       endDate: endDate ? new Date(endDate) : undefined,
       createdBy: requestingUser?.userId,
       isActive: true,
       isDeleted: false,
     });
-
-    await banner.save();
 
     return {
       isSuccess: true,
@@ -222,8 +227,9 @@ export class BannerService {
   async update(
     requestingUser: any,
     dto: UpdateBannerDto,
-    image: Express.Multer.File,
     id: string,
+    image_ar: Express.Multer.File,
+    image_en: Express.Multer.File,
   ): Promise<DataResponse<Banner>> {
     const { title_ar, title_en, lang, withAction, link, startDate, endDate } =
       dto;
@@ -231,6 +237,7 @@ export class BannerService {
     validateUserRoleAccess(requestingUser, lang);
 
     const bannerToUpdate = await this.bannerModel.findById(id);
+
     if (!bannerToUpdate) {
       throw new NotFoundException(getMessage('banner_bannerNotFound', lang));
     }
@@ -248,7 +255,6 @@ export class BannerService {
 
     if (conflictQuery.$or.length > 0) {
       const existing = await this.bannerModel.findOne(conflictQuery);
-
       if (existing) {
         throw new BadRequestException(
           getMessage('banner_bannerWithThisDetailsAlreadyExist', lang),
@@ -256,71 +262,172 @@ export class BannerService {
       }
     }
 
-    // ---------------- Handle Media Upload ----------------
-    let mediaUrl: string | undefined = bannerToUpdate.media?.url;
-    let mediaId: string | undefined = bannerToUpdate.media?.id?.toString();
+    // // ---------------- Conflict Check ----------------
+    // const checkConflict = async () => {
+    //   const $or: any[] = [];
+    //   if (title_ar && title_ar !== bannerToUpdate.title?.ar)
+    //     $or.push({ 'title.ar': title_ar });
+    //   if (title_en && title_en !== bannerToUpdate.title?.en)
+    //     $or.push({ 'title.en': title_en });
 
-    if (image && Object.keys(image).length > 0) {
-      fileSizeValidator(image, MAX_FILE_SIZES.BANNER_IMAGE, lang);
-      fileTypeValidator(image, ['webp', 'gif'], lang);
+    //   if (
+    //     $or.length &&
+    //     (await this.bannerModel.findOne({ _id: { $ne: id }, $or }))
+    //   ) {
+    //     throw new BadRequestException(
+    //       getMessage('banner_bannerWithThisDetailsAlreadyExist', lang),
+    //     );
+    //   }
+    // };
+    // await checkConflict();
+
+    // ---------------- Helper for Upload ----------------
+    const uploadMedia = async (
+      file: Express.Multer.File,
+      requiredMsg: string,
+    ): Promise<MediaPreview | undefined> => {
+      if (!file || Object.keys(file).length === 0) {
+        throw new ForbiddenException(getMessage(requiredMsg, lang));
+      }
+
+      fileSizeValidator(file, MAX_FILE_SIZES.BANNER_IMAGE, lang);
+      fileTypeValidator(file, ['webp', 'gif'], lang);
 
       const result = await this.mediaService.handleFileUpload(
-        image,
+        file,
         { userId: requestingUser?.userId },
         lang,
         Modules.BANNER,
       );
 
-      if (result?.isSuccess) {
-        mediaUrl = result.fileUrl;
-        mediaId = result.mediaId;
+      if (!result?.isSuccess) {
+        throw new BadRequestException(getMessage('banner_uploadFailed', lang));
       }
+
+      return { id: result.mediaId, url: result.fileUrl };
+    };
+
+    // const uploadMedia = async (
+    //   file: Express.Multer.File,
+    //   requiredMsg: string,
+    // ): Promise<MediaPreview | undefined> => {
+    //   if (!file) return undefined;
+
+    //   fileSizeValidator(file, MAX_FILE_SIZES.BANNER_IMAGE, lang);
+    //   fileTypeValidator(file, ['webp', 'gif'], lang);
+
+    //   const result = await this.mediaService.handleFileUpload(
+    //     file,
+    //     { userId: requestingUser?.userId },
+    //     lang,
+    //     Modules.BANNER,
+    //   );
+
+    //   if (!result?.isSuccess) {
+    //     throw new BadRequestException(getMessage('banner_uploadFailed', lang));
+    //   }
+
+    //   return {
+    //     id: new mongoose.Types.ObjectId(result.mediaId),
+    //     url: result.fileUrl,
+    //   };
+    // };
+
+    if (image_ar || image_en) {
+      let media_ar: MediaPreview, media_en: MediaPreview;
+
+      if (image_ar) {
+        media_ar = await uploadMedia(image_ar, 'banner_shouldHasArImage');
+      }
+
+      if (image_en) {
+        media_en = await uploadMedia(image_en, 'banner_shouldHasEnImage');
+      }
+
+      bannerToUpdate.media = {
+        ar: media_ar
+          ? { ...media_ar, id: new mongoose.Types.ObjectId(media_ar.id) }
+          : bannerToUpdate?.media?.ar,
+        en: media_en
+          ? { ...media_en, id: new mongoose.Types.ObjectId(media_en.id) }
+          : bannerToUpdate?.media?.en,
+      };
     }
 
-    // ---------------- Prepare Update Data ----------------
+    // // ---------------- Media Update ----------------
+    // if (image_ar || image_en) {
+    //   const [media_ar, media_en] = await Promise.all([
+    //     uploadMedia(image_ar, 'banner_shouldHasArImage'),
+    //     uploadMedia(image_en, 'banner_shouldHasEnImage'),
+    //   ]);
+
+    //   bannerToUpdate.media = {
+    //     ar: media_ar ?? bannerToUpdate.media?.ar,
+    //     en: media_en ?? bannerToUpdate.media?.en,
+    //   };
+    // }
+
+    if (title_ar || title_en) {
+      bannerToUpdate.title = {
+        ar: title_ar || bannerToUpdate?.title?.ar,
+        en: title_en || bannerToUpdate?.title?.en,
+      };
+    }
+
+    if (withAction && typeof withAction === 'boolean') {
+      bannerToUpdate.withAction = true;
+
+      if (link) {
+        bannerToUpdate.link = link || bannerToUpdate?.link;
+      } else {
+        throw new BadRequestException(
+          getMessage('banner_bannerWithActionShouldHasLink', lang),
+        );
+      }
+    } else {
+      bannerToUpdate.withAction = false;
+      bannerToUpdate.link = null;
+    }
+
+    // bannerToUpdate.withAction = !!withAction;
+    // if (bannerToUpdate.withAction) {
+    //   if (!link) {
+    //     throw new BadRequestException(
+    //       getMessage('banner_bannerWithActionShouldHasLink', lang),
+    //     );
+    //   }
+    //   bannerToUpdate.link = link;
+    // } else {
+    //   bannerToUpdate.link = null;
+    // }
+
+    if (startDate || endDate) {
+      bannerToUpdate.startDate =
+        new Date(startDate) || bannerToUpdate?.startDate;
+
+      bannerToUpdate.endDate = new Date(endDate) || bannerToUpdate?.endDate;
+    }
+
+    // // ---------------- Dates ----------------
+    // if (startDate) bannerToUpdate.startDate = new Date(startDate);
+    // if (endDate) bannerToUpdate.endDate = new Date(endDate);
+
+    // // ---------------- Update in DB ----------------
+    // bannerToUpdate.updatedBy = requestingUser?.userId;
+    // bannerToUpdate.updatedAt = new Date();
+
     const updateData: Partial<Banner> = {
+      ...bannerToUpdate,
       updatedBy: requestingUser?.userId,
       updatedAt: new Date(),
     };
 
-    if (title_ar || title_en) {
-      updateData.title = {
-        ar: title_ar ?? bannerToUpdate?.title?.ar,
-        en: title_en ?? bannerToUpdate?.title?.en,
-      };
-    }
-
-    if (typeof withAction === 'boolean') {
-      updateData.withAction = withAction;
-    }
-
-    if (withAction) {
-      updateData.link = link;
-    } else {
-      updateData.link = null;
-    }
-
-    if (startDate || endDate) {
-      updateData.startDate = startDate
-        ? new Date(startDate)
-        : bannerToUpdate.startDate;
-      updateData.endDate = endDate ? new Date(endDate) : bannerToUpdate.endDate;
-    }
-
-    if (
-      (mediaUrl && mediaUrl !== bannerToUpdate.media?.url) ||
-      mediaId !== bannerToUpdate.media?.id?.toString()
-    ) {
-      updateData.media = {
-        id: mediaId ? new mongoose.Types.ObjectId(mediaId) : undefined,
-        url: mediaUrl!,
-      };
-    }
-
     const updatedBanner = await this.bannerModel.findByIdAndUpdate(
       id,
       updateData,
-      { new: true },
+      {
+        new: true,
+      },
     );
 
     if (!updatedBanner) {
