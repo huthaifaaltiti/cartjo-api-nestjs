@@ -64,7 +64,7 @@ export class BannerService {
 
     validateUserRoleAccess(requestingUser, lang);
 
-    const query: any = { isDeleted: false };
+    const query: any = {};
 
     // Pagination
     if (lastId) {
