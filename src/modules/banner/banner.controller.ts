@@ -70,13 +70,24 @@ export class BannerController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('create')
-  @UseInterceptors(FilesInterceptor('images', 2))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'image_ar', maxCount: 1 },
+      { name: 'image_en', maxCount: 1 },
+    ]),
+  )
   async create(
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles()
+    files: {
+      image_ar?: Express.Multer.File[];
+      image_en?: Express.Multer.File[];
+    },
     @Request() req: any,
     @Body() body: CreateBannerDto,
   ) {
-    const [image_ar, image_en] = files || [];
+    const image_ar = files.image_ar?.[0];
+    const image_en = files.image_en?.[0];
+
     return this.bannerService.create(req.user, body, image_ar, image_en);
   }
 
