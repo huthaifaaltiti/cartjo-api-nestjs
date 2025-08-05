@@ -531,6 +531,10 @@ export class BannerService {
 
     banner.isActive = isActive;
 
+    if (banner?.isDeleted && isActive) {
+      await this.unDelete(requestingUser, { lang }, id);
+    }
+
     await banner.save();
 
     await activateDefaultIfAllInactive(this.bannerModel, this.defaultBannerId);
