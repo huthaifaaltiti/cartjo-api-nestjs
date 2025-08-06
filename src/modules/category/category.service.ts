@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import slugify from 'slugify';
 
 import { MediaService } from '../media/media.service';
 
@@ -43,8 +44,10 @@ export class CategoryService {
 
     validateUserRoleAccess(requestingUser, lang);
 
+    const slug = name_en ? slugify(name_en, { lower: true }) : undefined;
+
     const existingCategory = await this.categoryModel.findOne({
-      $or: [{ 'name.ar': name_ar }, { 'name.en': name_en }],
+      $or: [{ 'name.ar': name_ar }, { 'name.en': name_en }, { slug }],
     });
 
     if (existingCategory) {
@@ -75,6 +78,7 @@ export class CategoryService {
     const category = new this.categoryModel({
       media: { id: mediaId, url: mediaUrl },
       name: { ar: name_ar, en: name_en },
+      slug,
       createdBy: requestingUser?.userId,
       isActive: true,
       isDeleted: false,
@@ -107,20 +111,24 @@ export class CategoryService {
       );
     }
 
-    // Check if new names conflict with existing categories (excluding current category)
-    if (name_ar || name_en) {
-      const conflictQuery: any = {
-        _id: { $ne: id }, // Exclude current category
-        $or: [],
-      };
+    let slug = categoryToUpdate.slug;
+    if (name_en) {
+      slug = slugify(name_en, { lower: true });
+    }
 
-      if (name_ar) {
-        conflictQuery.$or.push({ 'name.ar': name_ar });
-      }
-      if (name_en) {
-        conflictQuery.$or.push({ 'name.en': name_en });
-      }
+    const conflictQuery: Record<string, any> = {
+      _id: { $ne: id }, // Exclude current category
+      $or: [],
+    };
 
+    if (name_ar) conflictQuery.$or.push({ 'name.ar': name_ar });
+
+    if (name_en) {
+      conflictQuery.$or.push({ 'name.en': name_en });
+      conflictQuery.$or.push({ slug }); // Check slug conflicts
+    }
+
+    if (conflictQuery.$or.length > 0) {
       const existingCategory = await this.categoryModel.findOne(conflictQuery);
 
       if (existingCategory) {
@@ -167,6 +175,8 @@ export class CategoryService {
         en: name_en || categoryToUpdate.name.en,
       };
     }
+
+    updateData.slug = slug; // Always keep slug consistent
 
     const updatedCategory = await this.categoryModel.findByIdAndUpdate(
       id,

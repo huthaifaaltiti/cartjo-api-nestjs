@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
 
-import { MediaPreview, NameRef} from './common.schema';
+import { MediaPreview, NameRef } from './common.schema';
 
 export type CategoryDocument = Category & Document;
 
@@ -19,6 +19,9 @@ export class Category extends Document {
     default: [],
   })
   subCategories: mongoose.Types.ObjectId[];
+
+  @Prop({ unique: true })
+  slug: string | undefined;
 
   @Prop({ default: true })
   isActive: boolean;
