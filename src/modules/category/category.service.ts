@@ -1,10 +1,11 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import mongoose, { Model, Types } from 'mongoose';
 import slugify from 'slugify';
 
 import { MediaService } from '../media/media.service';
@@ -26,6 +27,8 @@ import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess'
 import { getMessage } from 'src/common/utils/translator';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
 import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
+import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
+import { MediaPreview } from 'src/schemas/common.schema';
 
 @Injectable()
 export class CategoryService {
@@ -38,7 +41,8 @@ export class CategoryService {
   async create(
     requestingUser: any,
     dto: CreateCategoryDto,
-    image: Express.Multer.File,
+    image_ar: Express.Multer.File,
+    image_en: Express.Multer.File,
   ): Promise<DataResponse<Category>> {
     const { lang, name_ar, name_en } = dto;
 
@@ -56,27 +60,63 @@ export class CategoryService {
       );
     }
 
-    let mediaUrl: string | undefined = undefined;
-    let mediaId: string | undefined = undefined;
+    const uploadMedia = async (
+      file: Express.Multer.File,
+      requiredMsg: string,
+    ): Promise<MediaPreview | undefined> => {
+      if (!file || Object.keys(file).length === 0) {
+        throw new ForbiddenException(getMessage(requiredMsg, lang));
+      }
 
-    if (image && Object.keys(image).length > 0) {
-      fileSizeValidator(image, MAX_FILE_SIZES.CATEGORY_IMAGE, lang);
+      fileSizeValidator(file, MAX_FILE_SIZES.BANNER_IMAGE, lang);
+      fileTypeValidator(file, ['png', 'jpeg', 'webp', 'avif'], lang);
 
       const result = await this.mediaService.handleFileUpload(
-        image,
+        file,
         { userId: requestingUser?.userId },
         lang,
-        Modules.CATEGORY,
+        Modules.BANNER,
       );
 
-      if (result?.isSuccess) {
-        mediaUrl = result.fileUrl;
-        mediaId = result.mediaId;
+      if (!result?.isSuccess) {
+        throw new BadRequestException(
+          getMessage('categories_categoryImageUploadFailed', lang),
+        );
       }
-    }
+
+      return { id: result.mediaId, url: result.fileUrl };
+    };
+
+    const media_ar = await uploadMedia(
+      image_ar,
+      'categories_categoryShouldHasArImage',
+    );
+    const media_en = await uploadMedia(
+      image_en,
+      'categories_categoryShouldHasEnImage',
+    );
+
+    // let mediaUrl: string | undefined = undefined;
+    // let mediaId: string | undefined = undefined;
+
+    // if (image && Object.keys(image).length > 0) {
+    //   fileSizeValidator(image, MAX_FILE_SIZES.CATEGORY_IMAGE, lang);
+
+    //   const result = await this.mediaService.handleFileUpload(
+    //     image,
+    //     { userId: requestingUser?.userId },
+    //     lang,
+    //     Modules.CATEGORY,
+    //   );
+
+    //   if (result?.isSuccess) {
+    //     mediaUrl = result.fileUrl;
+    //     mediaId = result.mediaId;
+    //   }
+    // }
 
     const category = new this.categoryModel({
-      media: { id: mediaId, url: mediaUrl },
+      media: { ar: media_ar, en: media_en },
       name: { ar: name_ar, en: name_en },
       slug,
       createdBy: requestingUser?.userId,
@@ -96,7 +136,8 @@ export class CategoryService {
   async update(
     requestingUser: any,
     dto: UpdateCategoryDto,
-    image: Express.Multer.File,
+    image_ar: Express.Multer.File,
+    image_en: Express.Multer.File,
     id: string,
   ): Promise<DataResponse<Category>> {
     const { lang, name_ar, name_en } = dto;
@@ -138,36 +179,88 @@ export class CategoryService {
       }
     }
 
-    let mediaUrl: string | undefined = categoryToUpdate.media.url;
-    let mediaId: string | undefined = categoryToUpdate.media.id;
+    const uploadMedia = async (
+      file: Express.Multer.File,
+      requiredMsg: string,
+    ): Promise<MediaPreview | undefined> => {
+      if (!file || Object.keys(file).length === 0) {
+        throw new ForbiddenException(getMessage(requiredMsg, lang));
+      }
 
-    if (image && Object.keys(image).length > 0) {
-      fileSizeValidator(image, MAX_FILE_SIZES.CATEGORY_IMAGE, lang);
+      fileSizeValidator(file, MAX_FILE_SIZES.BANNER_IMAGE, lang);
+      fileTypeValidator(file, ['webp', 'gif', 'avif'], lang);
 
       const result = await this.mediaService.handleFileUpload(
-        image,
+        file,
         { userId: requestingUser?.userId },
         lang,
-        Modules.CATEGORY,
+        Modules.BANNER,
       );
 
-      if (result?.isSuccess) {
-        mediaUrl = result.fileUrl;
-        mediaId = result.mediaId;
+      if (!result?.isSuccess) {
+        throw new BadRequestException(getMessage('banner_uploadFailed', lang));
       }
-    }
+
+      return { id: result.mediaId, url: result.fileUrl };
+    };
+
+    // let mediaUrl: string | undefined = categoryToUpdate.media.url;
+    // let mediaId: string | undefined = categoryToUpdate.media.id;
+
+    // if (image && Object.keys(image).length > 0) {
+    //   fileSizeValidator(image, MAX_FILE_SIZES.CATEGORY_IMAGE, lang);
+
+    //   const result = await this.mediaService.handleFileUpload(
+    //     image,
+    //     { userId: requestingUser?.userId },
+    //     lang,
+    //     Modules.CATEGORY,
+    //   );
+
+    //   if (result?.isSuccess) {
+    //     mediaUrl = result.fileUrl;
+    //     mediaId = result.mediaId;
+    //   }
+    // }
 
     const updateData: any = {
       updatedBy: requestingUser?.userId,
       updatedAt: new Date(),
     };
 
-    if (mediaUrl !== categoryToUpdate.media?.url) {
+    if (image_ar || image_en) {
+      let media_ar: MediaPreview, media_en: MediaPreview;
+
+      if (image_ar) {
+        media_ar = await uploadMedia(
+          image_ar,
+          'categories_categoryShouldHasArImage',
+        );
+      }
+
+      if (image_en) {
+        media_en = await uploadMedia(
+          image_en,
+          'categories_categoryShouldHasEnImage',
+        );
+      }
+
       updateData.media = {
-        id: mediaId,
-        url: mediaUrl,
+        ar: media_ar
+          ? { ...media_ar, id: new mongoose.Types.ObjectId(media_ar.id) }
+          : updateData?.media?.ar,
+        en: media_en
+          ? { ...media_en, id: new mongoose.Types.ObjectId(media_en.id) }
+          : updateData?.media?.en,
       };
     }
+
+    // if (mediaUrl !== categoryToUpdate.media?.url) {
+    //   updateData.media = {
+    //     id: mediaId,
+    //     url: mediaUrl,
+    //   };
+    // }
 
     if (name_ar || name_en) {
       updateData.name = {

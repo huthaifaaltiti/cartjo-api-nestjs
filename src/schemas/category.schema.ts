@@ -1,17 +1,28 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
 
-import { MediaPreview, NameRef } from './common.schema';
+import { NameRef } from './common.schema';
 
 export type CategoryDocument = Category & Document;
+
+class MediaPreview {
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Media', required: true })
+  id: mongoose.Types.ObjectId;
+
+  @Prop({ required: true })
+  url: string;
+}
 
 @Schema({ collection: 'categories', timestamps: true })
 export class Category extends Document {
   @Prop({ required: false })
   name?: NameRef;
 
-  @Prop({ required: false, default: {} })
-  media?: MediaPreview;
+  @Prop({ type: Object, required: false, default: {} })
+  media?: {
+    ar: MediaPreview;
+    en: MediaPreview;
+  };
 
   @Prop({
     type: [mongoose.Schema.Types.ObjectId],

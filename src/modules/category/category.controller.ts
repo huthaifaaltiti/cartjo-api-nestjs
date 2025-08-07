@@ -2,7 +2,6 @@ import {
   Controller,
   Post,
   Body,
-  UploadedFile,
   UseInterceptors,
   UseGuards,
   Request,
@@ -11,8 +10,9 @@ import {
   Get,
   Query,
   Delete,
+  UploadedFiles,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 
 import { CreateCategoryDto } from './dto/create-category.dto';
@@ -46,30 +46,52 @@ export class CategoryController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('create')
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'image_ar', maxCount: 1 },
+      { name: 'image_en', maxCount: 1 },
+    ]),
+  )
   async create(
-    @UploadedFile() image: Express.Multer.File,
+    @UploadedFiles()
+    files: {
+      image_ar?: Express.Multer.File[];
+      image_en?: Express.Multer.File[];
+    },
     @Request() req: any,
     @Body() body: CreateCategoryDto,
   ) {
     const { user } = req;
+    const image_ar = files.image_ar?.[0];
+    const image_en = files.image_en?.[0];
 
-    return this.categoryService.create(user, body, image);
+    return this.categoryService.create(user, body, image_ar, image_en);
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Put('update/:id')
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'image_ar', maxCount: 1 },
+      { name: 'image_en', maxCount: 1 },
+    ]),
+  )
   async update(
-    @UploadedFile() image: Express.Multer.File,
+    @UploadedFiles()
+    files: {
+      image_ar?: Express.Multer.File[];
+      image_en?: Express.Multer.File[];
+    },
     @Request() req: any,
     @Body() body: UpdateCategoryDto,
     @Param() param: UpdateCategoryParamsDto,
   ) {
     const { user } = req;
     const { id } = param;
+    const image_ar = files.image_ar?.[0];
+    const image_en = files.image_en?.[0];
 
-    return this.categoryService.update(user, body, image, id);
+    return this.categoryService.update(user, body, image_ar, image_en, id);
   }
 
   @UseGuards(AuthGuard('jwt'))
