@@ -1,7 +1,7 @@
 import { IsMongoId, IsOptional, IsString, IsDateString } from 'class-validator';
 import { Locale } from 'src/types/Locale';
 
-export class GetBannersQueryDto {
+export class GetQueryDto {
   @IsOptional()
   @IsString()
   limit?: string;

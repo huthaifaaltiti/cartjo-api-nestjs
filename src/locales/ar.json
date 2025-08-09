@@ -109,5 +109,16 @@
   "banner_shouldHasEnImage": "لا يمكن إنشاء لافتة بلا صورة إنجليزية",
   "banner_bannerWithActionShouldHasLink": "يجب أن تحتوي اللافتة التي تحتوي على إجراء على رابط",
   "banner_cannotActivateExpired": "لا يمكن تفعيل لافتة منتهية الفعالية",
-  "banner_cannotActivateBeforeStartDate": "لا يمكن تفعيل اللافتة في وقت المستقبل"
+  "banner_cannotActivateBeforeStartDate": "لا يمكن تفعيل اللافتة في وقت المستقبل",
+  "showcase_showcasesRetrievedSuccessfully": "تم استرجاع العروض بنجاح",
+  "showcase_showcaseRetrievedSuccessfully": "تم استرجاع العرض بنجاح",
+  "showcase_invalidShowcaseId": "معرَف العرض غير صحيح",
+  "showcase_showcaseNotFound": "العرض غير متوفر",
+  "showcase_showcaseWithThisDetailsAlreadyExist": "العرض بهذه التفاصل موجود بالفعل",
+  "showcase_showcaseCreatedSuccessfully": "تم إنشاء العرض بنجاح",
+  "showcase_activeShowcasesRetrievedSuccessfully": "تم استرداد عروض العرائس النشطة بنجاح",
+  "showcase_noActiveShowcasesFound": "لم يتم العثور على عروض عرائس نشطة",
+  "showcase_cannotDeleteDefaultShowcase": "لا يمكن حذف العرض الرئيسي",
+  "showcase_showcaseDeletedSuccessfully": "تم حذف العرض بنجاح",
+  "showcase_cannotUnDeleteDefaultShowcase": "لا يمكن استرداد العرض الرئيسي"
 }

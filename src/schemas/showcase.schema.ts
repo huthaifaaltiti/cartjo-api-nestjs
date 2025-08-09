@@ -1,9 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
+import mongoose, { Document, Schema as MongooseSchema, Types } from 'mongoose';
 
 import { NameRef } from './common.schema';
+import { TypeHint } from 'src/enums/typeHint.enums';
 
-export type showCaseDocument = ShowCase & Document;
+export type ShowCaseDocument = ShowCase & Document;
 
 @Schema()
 export class ShowCase {
@@ -29,11 +30,21 @@ export class ShowCase {
   })
   showAllButtonLink: string;
 
-  @Prop({ type: Date, default: null })
-  startDate?: Date;
+  @Prop({
+    type: String,
+    enum: Object.values(TypeHint),
+    required: true,
+  })
+  type: TypeHint;
 
-  @Prop({ type: Date, default: null })
-  endDate?: Date;
+  @Prop({ type: [Types.ObjectId], ref: 'Product', default: [] })
+  itemIds: Types.ObjectId[];
+
+  @Prop({ type: Date, default: undefined })
+  startDate?: Date | undefined;
+
+  @Prop({ type: Date, default: undefined })
+  endDate?: Date | undefined;
 
   @Prop({ default: true })
   isActive: boolean;

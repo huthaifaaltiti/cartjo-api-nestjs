@@ -18,6 +18,7 @@ import { SubCategoryModule } from './modules/subCategory/subCategory.module';
 import { ProductModule } from './modules/product/product.module';
 import { LogoModule } from './modules/logo/logo.module';
 import { BannerModule } from './modules/banner/banner.module';
+import { ShowcaseModule } from './modules/showcase/showcase.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { BannerModule } from './modules/banner/banner.module';
     ProductModule,
     LogoModule,
     BannerModule,
+    ShowcaseModule,
   ],
   controllers: [AppController],
   providers: [AppService],

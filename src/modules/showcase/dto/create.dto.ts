@@ -5,47 +5,79 @@ import {
   MinLength,
   IsOptional,
   IsDateString,
-  IsBoolean,
+  IsEnum,
 } from 'class-validator';
 
-import { Locale } from 'src/types/Locale';
 import { validationConfig } from 'src/configs/validationConfig';
-import { Transform } from 'class-transformer';
 
-const { titleMinChars, titleMaxChars, bannerLinkMinChars, bannerLinkMaxChars } =
-  validationConfig.banner;
+import { Locale } from 'src/types/Locale';
+import { TypeHint } from 'src/enums/typeHint.enums';
 
-export class CreateBannerDto {
+const {
+  titleMinChars,
+  titleMaxChars,
+  descriptionMinChars,
+  descriptionMaxChars,
+  showAllButtonTextMinChars,
+  showAllButtonTextMaxChars,
+  showAllButtonLinkMinChars,
+  showAllButtonLinkMaxChars,
+} = validationConfig.showcase;
+
+export class CreateDto {
   @IsString()
-  @IsNotEmpty({ message: 'Ar title is required' })
+  @IsNotEmpty()
   @MinLength(titleMinChars)
   @MaxLength(titleMaxChars)
   title_ar: string;
 
   @IsString()
-  @IsNotEmpty({ message: 'En title is required' })
+  @IsNotEmpty()
   @MinLength(titleMinChars)
   @MaxLength(titleMaxChars)
   title_en: string;
 
-  @IsBoolean()
-  @IsNotEmpty({ message: 'withAction flag is required' })
-  @Transform(({ value }) => value === 'true')
-  withAction: boolean;
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(descriptionMinChars)
+  @MaxLength(descriptionMaxChars)
+  description_ar: string;
 
   @IsString()
-  @IsOptional()
-  link: string;
+  @IsNotEmpty()
+  @MinLength(descriptionMinChars)
+  @MaxLength(descriptionMaxChars)
+  description_en: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(showAllButtonTextMinChars)
+  @MaxLength(showAllButtonTextMaxChars)
+  showAllButtonText_ar: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(showAllButtonTextMinChars)
+  @MaxLength(showAllButtonTextMaxChars)
+  showAllButtonText_en: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(showAllButtonLinkMinChars)
+  @MaxLength(showAllButtonLinkMaxChars)
+  showAllButtonLink: string;
+
+  @IsEnum(TypeHint)
+  type: TypeHint;
 
   @IsOptional()
-  @IsDateString({}, { message: 'Start date must be a valid date string' })
+  @IsDateString()
   startDate?: string;
 
   @IsOptional()
-  @IsDateString({}, { message: 'End date must be a valid date string' })
+  @IsDateString()
   endDate?: string;
 
   @IsOptional()
-  @IsString()
   lang?: Locale = 'en';
 }

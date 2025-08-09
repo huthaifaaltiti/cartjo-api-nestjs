@@ -110,5 +110,21 @@
   "banner_shouldHasEnImage": "Banner should has En image",
   "banner_bannerWithActionShouldHasLink": "Banner with an action should has a link",
   "banner_cannotActivateExpired": "Can not activate expired banner",
-  "banner_cannotActivateBeforeStartDate":"Cannot activate banner before start date"
+  "banner_cannotActivateBeforeStartDate": "Cannot activate banner before start date",
+  "showcase_showcasesRetrievedSuccessfully": "Showcases retrieved successfully",
+  "showcase_showcaseRetrievedSuccessfully": "Showcase retrieved successfully",
+  "showcase_invalidShowcaseId": "Invalid showcase Id",
+  "showcase_showcaseNotFound": "Showcase not found",
+  "showcase_showcaseWithThisDetailsAlreadyExist": "Showcase with this details already exist",
+  "showcase_showcaseCreatedSuccessfully": "Showcase created successfully",
+  "showcase_activeShowcasesRetrievedSuccessfully": "Active showcases retrieved successfully",
+  "showcase_noActiveShowcasesFound": "No active showcases found",
+  "showcase_cannotDeleteDefaultShowcase": "Cannot delete default showcase",
+  "showcase_showcaseDeletedSuccessfully": "Showcase deleted successfully",
+  "showcase_cannotUnDeleteDefaultShowcase": "Cannot un-delete default showcase",
+  "showcase_showcaseUnDeletedSuccessfully": "Showcase un-deleted successfully",
+  "showcase_cannotActivateExpired": "لا يمكن تفعيل العرض منتهي الصلاحية",
+  "showcase_cannotActivateBeforeStartDate": "لا يمكن تفعيل العرض قبل تاريخ البدء",
+  "showcase_showcaseActivatedSuccessfully": "تم تفعيل العرض بنجاح",
+  "showcase_showcaseDeActivatedSuccessfully": "تم إلغاء تفعيل العرض بنجاح"
 }

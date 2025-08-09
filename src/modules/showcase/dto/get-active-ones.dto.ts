@@ -8,7 +8,7 @@ import {
 } from 'class-validator';
 import { Locale } from 'src/types/Locale';
 
-export class GetQueryDto {
+export class GetActiveOnesQueryDto {
   @IsOptional()
   @IsNumber()
   @Transform(({ value }) => {
