@@ -108,5 +108,7 @@
   "banner_bannerWithThisDetailsAlreadyExist": "Banner with this details already exist",
   "banner_shouldHasArImage": "Banner should has Ar image",
   "banner_shouldHasEnImage": "Banner should has En image",
-  "banner_bannerWithActionShouldHasLink": "Banner with an action should has a link"
+  "banner_bannerWithActionShouldHasLink": "Banner with an action should has a link",
+  "banner_cannotActivateExpired": "Can not activate expired banner",
+  "banner_cannotActivateBeforeStartDate":"Cannot activate banner before start date"
 }

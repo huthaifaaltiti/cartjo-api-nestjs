@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { MediaService } from '../media/media.service';
 
@@ -41,6 +42,29 @@ export class BannerService {
   ) {
     this.defaultBannerId = process.env.DEFAULT_BANNER_ID;
   }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async deactivateExpiredBanners() {
+    const now = new Date();
+
+    const result = await this.bannerModel.updateMany(
+      { isActive: true, endDate: { $lt: now } },
+      { $set: { isActive: false } },
+    );
+    
+    if (result.modifiedCount > 0) {
+      console.log(`Deactivated ${result.modifiedCount} expired banners`);
+    }
+  }
+
+  // async markExpiredBannersInactive() {
+  //   const now = new Date();
+
+  //   await this.bannerModel.updateMany(
+  //     { isActive: true, endDate: { $lt: now } },
+  //     { $set: { isActive: false } },
+  //   );
+  // }
 
   async getAll(
     requestingUser: any,
@@ -136,8 +160,22 @@ export class BannerService {
   }
 
   async getActiveOnes(lang?: Locale): Promise<DataListResponse<Banner>> {
+    // await this.markExpiredBannersInactive();
+
+    const now = new Date();
+
+    const findQuery = {
+      isActive: true,
+      isDeleted: false,
+      $or: [
+        { startDate: { $lte: now }, endDate: { $gte: now } }, // Banner started before or at the current moment  startDate <= now, banner ends after or at the current moment endDate >= now
+        { startDate: { $lte: now }, endDate: { $exists: false } }, // Banner already started (startDate <= now) but it has no end date
+        { startDate: { $exists: false }, endDate: { $exists: false } }, //No start date and no end date were set,his means the banner is considered always active, as there are no time restrictions at all.
+      ],
+    };
+
     const banners = await this.bannerModel
-      .find({ isActive: true, isDeleted: false })
+      .find(findQuery)
       .populate('deletedBy', 'firstName lastName email _id')
       .populate('unDeletedBy', 'firstName lastName email _id')
       .populate('createdBy', 'firstName lastName email _id')
@@ -171,6 +209,7 @@ export class BannerService {
     const existing = await this.bannerModel.findOne({
       $or: [{ 'title.ar': title_ar }, { 'title.en': title_en }],
     });
+
     if (existing) {
       throw new BadRequestException(
         getMessage('banner_bannerWithThisDetailsAlreadyExist', lang),
@@ -186,7 +225,7 @@ export class BannerService {
       }
 
       fileSizeValidator(file, MAX_FILE_SIZES.BANNER_IMAGE, lang);
-      fileTypeValidator(file, ['webp', 'gif'], lang);
+      fileTypeValidator(file, ['webp', 'gif', 'avif'], lang);
 
       const result = await this.mediaService.handleFileUpload(
         file,
@@ -210,7 +249,7 @@ export class BannerService {
       withAction,
       link: withAction ? link : null,
       media: { ar: media_ar, en: media_en },
-      startDate: startDate ? new Date(startDate) : undefined,
+      startDate: startDate ? new Date(startDate) : new Date(),
       endDate: endDate ? new Date(endDate) : undefined,
       createdBy: requestingUser?.userId,
       isActive: true,
@@ -291,7 +330,7 @@ export class BannerService {
       }
 
       fileSizeValidator(file, MAX_FILE_SIZES.BANNER_IMAGE, lang);
-      fileTypeValidator(file, ['webp', 'gif'], lang);
+      fileTypeValidator(file, ['webp', 'gif', 'avif'], lang);
 
       const result = await this.mediaService.handleFileUpload(
         file,
@@ -527,6 +566,23 @@ export class BannerService {
 
     if (!banner) {
       throw new NotFoundException(getMessage('banner_bannerNotFound', lang));
+    }
+
+    const now = new Date();
+
+    if (isActive) {
+      if (banner.endDate && banner.endDate < now) {
+        throw new BadRequestException(
+          getMessage('banner_cannotActivateExpired', lang),
+        );
+      }
+
+      // Optional: Prevent activation if start date is in the future
+      if (banner.startDate && banner.startDate > now) {
+        throw new BadRequestException(
+          getMessage('banner_cannotActivateBeforeStartDate', lang),
+        );
+      }
     }
 
     banner.isActive = isActive;

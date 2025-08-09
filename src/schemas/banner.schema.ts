@@ -34,10 +34,10 @@ export class Banner {
   };
 
   @Prop({ type: Date, default: null })
-  startDate?: Date;
+  startDate?: Date | undefined;
 
   @Prop({ type: Date, default: null })
-  endDate?: Date;
+  endDate?: Date | undefined;
 
   @Prop({ default: true })
   isActive: boolean;

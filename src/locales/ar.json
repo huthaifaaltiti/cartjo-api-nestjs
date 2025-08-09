@@ -107,5 +107,7 @@
   "banner_bannerWithThisDetailsAlreadyExist": "اللافتة مع هذه البيانات موجودة بالفعل",
   "banner_shouldHasArImage": "لا يمكن إنشاء لافتة بلا صورة عربية",
   "banner_shouldHasEnImage": "لا يمكن إنشاء لافتة بلا صورة إنجليزية",
-  "banner_bannerWithActionShouldHasLink": "يجب أن تحتوي اللافتة التي تحتوي على إجراء على رابط"
+  "banner_bannerWithActionShouldHasLink": "يجب أن تحتوي اللافتة التي تحتوي على إجراء على رابط",
+  "banner_cannotActivateExpired": "لا يمكن تفعيل لافتة منتهية الفعالية",
+  "banner_cannotActivateBeforeStartDate": "لا يمكن تفعيل اللافتة في وقت المستقبل"
 }

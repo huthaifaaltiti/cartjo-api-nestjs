@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { ScheduleModule } from '@nestjs/schedule';
 import * as path from 'path';
 
 import { AppController } from './app.controller';
@@ -20,6 +21,7 @@ import { BannerModule } from './modules/banner/banner.module';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,
@@ -39,7 +41,7 @@ import { BannerModule } from './modules/banner/banner.module';
     SubCategoryModule,
     ProductModule,
     LogoModule,
-    BannerModule
+    BannerModule,
   ],
   controllers: [AppController],
   providers: [AppService],

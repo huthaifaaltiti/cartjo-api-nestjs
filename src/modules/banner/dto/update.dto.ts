@@ -8,6 +8,7 @@ import {
   IsString,
   MaxLength,
   MinLength,
+  ValidateIf,
 } from 'class-validator';
 
 import { validationConfig } from 'src/configs/validationConfig';
@@ -34,6 +35,7 @@ export class UpdateBannerDto {
   @Transform(({ value }) => value === 'true')
   withAction: boolean;
 
+  @ValidateIf(o => o.withAction === true)
   @IsString()
   @IsOptional()
   @MinLength(bannerLinkMinChars)

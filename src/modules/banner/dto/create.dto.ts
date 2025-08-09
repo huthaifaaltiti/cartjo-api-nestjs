@@ -37,7 +37,7 @@ export class CreateBannerDto {
   @IsOptional()
   link: string;
 
-  @IsOptional()
+  @IsNotEmpty({ message: 'Start date is required' })
   @IsDateString({}, { message: 'Start date must be a valid date string' })
   startDate?: string;
 
