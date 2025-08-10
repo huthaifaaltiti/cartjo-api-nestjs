@@ -120,5 +120,10 @@
   "showcase_noActiveShowcasesFound": "لم يتم العثور على عروض عرائس نشطة",
   "showcase_cannotDeleteDefaultShowcase": "لا يمكن حذف العرض الرئيسي",
   "showcase_showcaseDeletedSuccessfully": "تم حذف العرض بنجاح",
-  "showcase_cannotUnDeleteDefaultShowcase": "لا يمكن استرداد العرض الرئيسي"
+  "showcase_cannotUnDeleteDefaultShowcase": "لا يمكن استرداد العرض الرئيسي",
+  "showcase_showcaseUpdatedSuccessfully": "تم تعديل العرض بنجاح",
+  "showcase_cannotActivateExpired": "لا يمكن تفعيل العرض منتهي الصلاحية",
+  "showcase_cannotActivateBeforeStartDate": "لا يمكن تفعيل العرض قبل تاريخ البدء",
+  "showcase_showcaseActivatedSuccessfully": "تم تفعيل العرض بنجاح",
+  "showcase_showcaseDeActivatedSuccessfully": "تم إلغاء تفعيل العرض بنجاح"
 }

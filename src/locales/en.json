@@ -123,8 +123,9 @@
   "showcase_showcaseDeletedSuccessfully": "Showcase deleted successfully",
   "showcase_cannotUnDeleteDefaultShowcase": "Cannot un-delete default showcase",
   "showcase_showcaseUnDeletedSuccessfully": "Showcase un-deleted successfully",
-  "showcase_cannotActivateExpired": "لا يمكن تفعيل العرض منتهي الصلاحية",
-  "showcase_cannotActivateBeforeStartDate": "لا يمكن تفعيل العرض قبل تاريخ البدء",
-  "showcase_showcaseActivatedSuccessfully": "تم تفعيل العرض بنجاح",
-  "showcase_showcaseDeActivatedSuccessfully": "تم إلغاء تفعيل العرض بنجاح"
+  "showcase_showcaseUpdatedSuccessfully": "Showcase updated successfully",
+  "showcase_cannotActivateExpired": "Cannot activate an expired showcase",
+  "showcase_cannotActivateBeforeStartDate": "Cannot activate the showcase before the start date",
+  "showcase_showcaseActivatedSuccessfully": "Showcase activated successfully",
+  "showcase_showcaseDeActivatedSuccessfully": "Showcase deactivated successfully"
 }
