@@ -10,8 +10,14 @@ export class SubCategory extends Document {
   @Prop({ required: true, default: {} })
   name: NameRef;
 
-  @Prop({ required: true, default: {} })
-  media?: MediaPreview;
+  @Prop({ type: Object, required: false, default: {} })
+  media?: {
+    ar: MediaPreview;
+    en: MediaPreview;
+  };
+
+  @Prop({ unique: true })
+  slug: string | undefined;
 
   @Prop({ default: true })
   isActive: boolean;

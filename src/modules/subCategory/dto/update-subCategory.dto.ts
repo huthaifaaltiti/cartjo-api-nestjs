@@ -1,46 +1,9 @@
-import {
-  IsMongoId,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MaxLength,
-  MinLength,
-} from 'class-validator';
+import { IsMongoId, IsNotEmpty } from 'class-validator';
+import { PartialType } from '@nestjs/mapped-types';
 
-import { validationConfig } from 'src/configs/validationConfig';
-import { Locale } from 'src/types/Locale';
+import { CreateSubCategoryDto } from './create-subCategory.dto';
 
-const { nameMinChars, nameMaxChars } = validationConfig.subCategory;
-
-export class UpdateSubCategoryDto {
-  @IsOptional()
-  @IsString()
-  @MinLength(nameMinChars, {
-    message: `Sub-Category ar name cannot be less than (${nameMinChars}) characters`,
-  })
-  @MaxLength(nameMaxChars, {
-    message: `Sub-Category ar name cannot be more than (${nameMaxChars}) characters`,
-  })
-  name_ar?: string;
-
-  @IsOptional()
-  @IsString()
-  @MinLength(nameMinChars, {
-    message: `Sub-Category en name cannot be less than (${nameMinChars}) characters`,
-  })
-  @MaxLength(nameMaxChars, {
-    message: `Sub-Category en name cannot be more than (${nameMaxChars}) characters`,
-  })
-  name_en?: string;
-
-  @IsMongoId({ message: 'Invalid Category ID format' })
-  @IsOptional()
-  categoryId: string;
-
-  @IsOptional()
-  @IsString()
-  lang?: Locale = 'en';
-}
+export class UpdateSubCategoryDto extends PartialType(CreateSubCategoryDto) {}
 
 export class UpdateSubCategoryParamsDto {
   @IsMongoId({ message: 'Invalid sub-category ID format' })

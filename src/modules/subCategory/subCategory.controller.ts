@@ -8,12 +8,15 @@ import {
   Put,
   Query,
   Request,
-  UploadedFile,
+  UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+} from '@nestjs/platform-express';
 
 import { SubCategoryService } from './subCategory.service';
 
@@ -45,30 +48,56 @@ export class SubCategoryController {
   constructor(private readonly subCategoryService: SubCategoryService) {}
 
   @UseGuards(AuthGuard('jwt'))
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'image_ar', maxCount: 1 },
+      { name: 'image_en', maxCount: 1 },
+    ]),
+  )
   @Post('create')
   async create(
-    @UploadedFile() image: Express.Multer.File,
+    @UploadedFiles()
+    files: {
+      image_ar?: Express.Multer.File[];
+      image_en?: Express.Multer.File[];
+    },
     @Request() req: any,
     @Body() body: CreateSubCategoryDto,
   ) {
+    console.log({files})
     const { user } = req;
-    return this.subCategoryService.create(user, body, image);
+    const image_ar = files.image_ar?.[0];
+    const image_en = files.image_en?.[0];
+
+    console.log({ image_ar });
+
+    return this.subCategoryService.create(user, body, image_ar, image_en);
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Put('update/:id')
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'image_ar', maxCount: 1 },
+      { name: 'image_en', maxCount: 1 },
+    ]),
+  )
   async update(
-    @UploadedFile() image: Express.Multer.File,
+    @UploadedFiles()
+    files: {
+      image_ar?: Express.Multer.File[];
+      image_en?: Express.Multer.File[];
+    },
     @Request() req: any,
     @Body() body: UpdateSubCategoryDto,
     @Param() param: UpdateSubCategoryParamsDto,
   ) {
     const { user } = req;
     const { id } = param;
+    const image_ar = files.image_ar?.[0];
+    const image_en = files.image_en?.[0];
 
-    return this.subCategoryService.update(user, body, image, id);
+    return this.subCategoryService.update(user, body, image_ar, image_en, id);
   }
 
   @UseGuards(AuthGuard('jwt'))
