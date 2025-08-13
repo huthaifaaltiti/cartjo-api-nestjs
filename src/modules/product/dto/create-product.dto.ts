@@ -61,7 +61,7 @@ export class CreateProductDto {
     return isNaN(num) ? value : num;
   })
   @IsNumber({}, { message: 'discountRate must be a number' })
-  @Min(1, { message: 'Price discount rate cant be less than 1' })
+  @Min(0, { message: 'Price discount rate cant be less than 0' })
   @Max(100, { message: 'Price discount rate cant be more than 100' })
   discountRate?: number;
 

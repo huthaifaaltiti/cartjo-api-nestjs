@@ -40,8 +40,11 @@ export class Product {
   @Prop({ required: true, enum: Currency, default: Currency.JOD })
   currency: string;
 
-  @Prop({ default: 0 })
+  @Prop({ default: 0, min: 0, max: 100 })
   discountRate: number;
+
+  @Prop({ default: 1, min: 1, max: 5 })
+  ratings: number;
 
   @Prop({ default: 0 })
   totalAmountCount: number;
