@@ -2,7 +2,6 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Schema as MongooseSchema, Types } from 'mongoose';
 
 import { NameRef } from './common.schema';
-import { TypeHint } from 'src/enums/typeHint.enums';
 
 export type ShowCaseDocument = ShowCase & Document;
 

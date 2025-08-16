@@ -12,7 +12,6 @@ import {
 } from 'class-validator';
 
 import { Currency } from 'src/enums/currency.enum';
-import { TypeHint } from 'src/enums/typeHint.enums';
 import { Locale } from 'src/types/Locale';
 
 export class CreateProductDto {
@@ -68,7 +67,6 @@ export class CreateProductDto {
   @IsOptional()
   @Type(() => Number)
   @Transform(({ value }) => {
-    console.log('availableCount',{ value });
     if (value === null || value === undefined || value === '') return undefined;
     const num = Number(value);
     return isNaN(num) ? value : num;
@@ -83,10 +81,8 @@ export class CreateProductDto {
   totalAmountCount?: string;
 
   @IsNotEmpty()
-  @IsEnum(TypeHint, {
-    message: `typeHint must be one of: ${Object.values(TypeHint).join(', ')}`,
-  })
-  typeHint: TypeHint;
+  @IsString()
+  typeHint: string;
 
   @IsNotEmpty()
   @IsMongoId()

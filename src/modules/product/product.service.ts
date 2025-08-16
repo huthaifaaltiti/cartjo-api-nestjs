@@ -12,7 +12,7 @@ import {
   DataListResponse,
   DataResponse,
 } from 'src/types/service-response.type';
-import { TypeHint } from 'src/enums/typeHint.enums';
+
 import { Product, ProductDocument } from 'src/schemas/product.schema';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductBodyDto } from './dto/update-product.dto';
@@ -23,6 +23,7 @@ import { UnDeleteProductBodyDto } from './dto/unDelete-product.dto';
 import { Modules } from 'src/enums/appModules.enum';
 
 import { MediaService } from '../media/media.service';
+import { TypeHintConfigService } from '../typeHint/typeHintConfig.service';
 
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
@@ -38,6 +39,8 @@ export class ProductService {
 
     @InjectModel(Category.name)
     private categoryModel: Model<CategoryDocument>,
+
+    private typeHintConfigService: TypeHintConfigService,
   ) {}
 
   async getAll(params: {
@@ -208,6 +211,16 @@ export class ProductService {
       }
     }
 
+    const typeHintKeys = await this.typeHintConfigService.getList(user, {
+      lang: dto.lang,
+    });
+
+    if (!typeHintKeys.data.includes(typeHint)) {
+      throw new BadRequestException(
+        getMessage('products_invalidTypeHint', dto.lang),
+      );
+    }
+
     const product = new this.productModel({
       name: { ar: name_ar, en: name_en },
       description: { ar: description_ar, en: description_en },
@@ -218,7 +231,7 @@ export class ProductService {
       availableCount: totalAmountCount,
       sellCount: 0,
       favoriteCount: 0,
-      typeHint: typeHint || TypeHint.IMPORTED,
+      typeHint,
       slug,
       tags,
       categoryId,
@@ -323,7 +336,19 @@ export class ProductService {
       product.totalAmountCount = Number(totalAmountCount);
       product.availableCount = Number(totalAmountCount);
     }
-    if (typeHint) product.typeHint = typeHint;
+    if (typeHint) {
+      const typeHintKeys = await this.typeHintConfigService.getList(user, {
+        lang,
+      });
+
+      if (!typeHintKeys.data.includes(typeHint)) {
+        throw new BadRequestException(
+          getMessage('products_invalidTypeHint', lang),
+        );
+      }
+
+      product.typeHint = typeHint;
+    }
 
     // Handle ObjectId assignments - use direct assignment, Mongoose will handle conversion
     if (categoryId) product.categoryId = categoryId as any;

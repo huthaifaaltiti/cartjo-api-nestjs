@@ -2,7 +2,6 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 
 import { Currency } from 'src/enums/currency.enum';
-import { TypeHint } from 'src/enums/typeHint.enums';
 
 export type ProductDocument = Product & Document;
 
@@ -59,9 +58,7 @@ export class Product {
   favoriteCount: number;
 
   @Prop({
-    enum: TypeHint,
     required: true,
-    default: TypeHint.IMPORTED,
   })
   typeHint: string;
 

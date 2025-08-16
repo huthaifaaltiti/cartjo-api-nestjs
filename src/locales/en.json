@@ -79,6 +79,7 @@
   "products_productActivatedSuccessfully": "Product activated successfully",
   "products_productDeletedSuccessfully": "Product deleted successfully",
   "products_productUnDeletedSuccessfully": "Product undeleted successfully",
+  "products_invalidTypeHint": "Invalid product's type-hint",
   "logo_logoAlreadyExists": "Logo already exists",
   "logo_logoCreatedSuccessfully": "Logo created successfully",
   "logo_logoNotFound": "Logo not found",
