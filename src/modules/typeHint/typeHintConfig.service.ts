@@ -37,8 +37,6 @@ export class TypeHintConfigService {
     'best_sellers',
     'most_viewed',
     'editor_pick',
-    'new_arrival',
-    'trending',
     'recommended_for_you',
   ];
 
