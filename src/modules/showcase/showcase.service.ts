@@ -8,8 +8,13 @@ import { Model, Types } from 'mongoose';
 
 import { getMessage } from 'src/common/utils/translator';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
+import { activateDefaultIfAllInactive } from 'src/common/functions/helpers/activateDefaultIfAllInactive.helper';
+
+import { TypeHintConfigService } from '../typeHint/typeHintConfig.service';
 
 import { ShowCase, ShowCaseDocument } from 'src/schemas/showcase.schema';
+import { Product, ProductDocument } from 'src/schemas/product.schema';
+
 import { Locale } from 'src/types/Locale';
 import {
   BaseResponse,
@@ -17,11 +22,9 @@ import {
   DataResponse,
 } from 'src/types/service-response.type';
 
-import { Product, ProductDocument } from 'src/schemas/product.schema';
 import { CreateDto } from './dto/create.dto';
 import { UpdateDto } from './dto/update.dto';
 import { DeleteDto } from './dto/delete.dto';
-import { activateDefaultIfAllInactive } from 'src/common/functions/helpers/activateDefaultIfAllInactive.helper';
 import { UnDeleteDto } from './dto/unDelete.dto';
 
 export class ShowcaseService {
@@ -33,6 +36,8 @@ export class ShowcaseService {
 
     @InjectModel(Product.name)
     private productModel: Model<ProductDocument>,
+
+    private typeHintConfigService: TypeHintConfigService,
   ) {
     this.defaultShowcaseId = process.env.DEFAULT_SHOWCASE_ID;
   }
@@ -242,6 +247,19 @@ export class ShowcaseService {
       );
     }
 
+    const typeHintKeys = await this.typeHintConfigService.getList(
+      requestingUser,
+      {
+        lang: dto.lang,
+      },
+    );
+
+    if (!typeHintKeys.data.includes(dto.type)) {
+      throw new BadRequestException(
+        getMessage('showcase_invalidTypeHint', dto.lang),
+      );
+    }
+
     const showcase = await this.showcaseModel.create({
       title: { ar: dto.title_ar, en: dto.title_en },
       description: { ar: dto.description_ar, en: dto.description_en },
@@ -326,9 +344,24 @@ export class ShowcaseService {
     if (dto.showAllButtonLink) {
       showcase.showAllButtonLink = dto.showAllButtonLink;
     }
+
     if (dto.type) {
+      const typeHintKeys = await this.typeHintConfigService.getList(
+        requestingUser,
+        {
+          lang: dto.lang,
+        },
+      );
+
+      if (!typeHintKeys.data.includes(dto.type)) {
+        throw new BadRequestException(
+          getMessage('showcase_invalidTypeHint', dto.lang),
+        );
+      }
+
       showcase.type = dto.type;
     }
+
     if (dto.startDate) {
       showcase.startDate = new Date(dto.startDate);
     }
@@ -443,7 +476,9 @@ export class ShowcaseService {
     const showcase = await this.showcaseModel.findById(id);
 
     if (!showcase) {
-      throw new NotFoundException(getMessage('showcase_showcaseNotFound', lang));
+      throw new NotFoundException(
+        getMessage('showcase_showcaseNotFound', lang),
+      );
     }
 
     const now = new Date();

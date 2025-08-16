@@ -131,6 +131,7 @@
   "showcase_cannotActivateBeforeStartDate": "Cannot activate the showcase before the start date",
   "showcase_showcaseActivatedSuccessfully": "Showcase activated successfully",
   "showcase_showcaseDeActivatedSuccessfully": "Showcase deactivated successfully",
+  "showcase_invalidTypeHint": "Invalid type-hint",
   "typeHintConfig_typeHintConfigWithThisDetailsAlreadyExist": "Type hint config with this details already exist",
   "typeHintConfig_endDateMustBeAfterStartDate": "Type hint end date must be after start date",
   "typeHintConfig_typeHintConfigCreatedSuccessfully": "Type hint config created successfully",

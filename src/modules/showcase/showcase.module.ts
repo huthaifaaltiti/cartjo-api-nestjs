@@ -8,6 +8,7 @@ import { ShowcaseService } from './showcase.service';
 import { ShowcaseController } from './showcase.controller';
 import { ProductModule } from '../product/product.module';
 import { Product, ProductSchema } from 'src/schemas/product.schema';
+import { TypeHintConfigModule } from '../typeHint/typeHintConfig.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { Product, ProductSchema } from 'src/schemas/product.schema';
     ]),
     JwtModule,
     ProductModule,
+    TypeHintConfigModule,
   ],
   providers: [ShowcaseService],
   controllers: [ShowcaseController],

@@ -32,10 +32,9 @@ export class ShowCase {
 
   @Prop({
     type: String,
-    enum: Object.values(TypeHint),
     required: true,
   })
-  type: TypeHint;
+  type: string;
 
   @Prop({ type: [Types.ObjectId], ref: 'Product', default: [] })
   itemIds: Types.ObjectId[];

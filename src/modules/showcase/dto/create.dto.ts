@@ -5,13 +5,11 @@ import {
   MinLength,
   IsOptional,
   IsDateString,
-  IsEnum,
 } from 'class-validator';
 
 import { validationConfig } from 'src/configs/validationConfig';
 
 import { Locale } from 'src/types/Locale';
-import { TypeHint } from 'src/enums/typeHint.enums';
 
 const {
   titleMinChars,
@@ -67,8 +65,9 @@ export class CreateDto {
   @MaxLength(showAllButtonLinkMaxChars)
   showAllButtonLink: string;
 
-  @IsEnum(TypeHint)
-  type: TypeHint;
+  @IsString()
+  @IsNotEmpty()
+  type: string;
 
   @IsOptional()
   @IsDateString()
