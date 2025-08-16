@@ -7,6 +7,7 @@ import * as path from 'path';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+
 import { AuthModule } from './modules/authentication/authentication.module';
 import { JwtModule } from './modules/jwt/jwt.module';
 import { AuthorizationModule } from './modules/authorization/authorization.module';
@@ -19,6 +20,7 @@ import { ProductModule } from './modules/product/product.module';
 import { LogoModule } from './modules/logo/logo.module';
 import { BannerModule } from './modules/banner/banner.module';
 import { ShowcaseModule } from './modules/showcase/showcase.module';
+import { TypeHintConfigModule } from './modules/typeHint/typeHintConfig.module';
 
 @Module({
   imports: [
@@ -44,6 +46,7 @@ import { ShowcaseModule } from './modules/showcase/showcase.module';
     LogoModule,
     BannerModule,
     ShowcaseModule,
+    TypeHintConfigModule,
   ],
   controllers: [AppController],
   providers: [AppService],

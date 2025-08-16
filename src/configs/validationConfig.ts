@@ -29,4 +29,16 @@ export const validationConfig = {
     showAllButtonLinkMinChars: 3,
     showAllButtonLinkMaxChars: 200,
   },
+  typeHint: {
+    keyMinChars: 3,
+    keyMaxChars: 50,
+    labelMinChars: 3,
+    labelMaxChars: 50,
+    iconMinChars: 3,
+    iconMaxChars: 30,
+    clrMinChars: 3,
+    clrMaxChars: 12,
+    priorityMinNum: 1,
+    priorityMaxNum: 10,
+  },
 };
