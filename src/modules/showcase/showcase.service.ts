@@ -10,7 +10,7 @@ import { getMessage } from 'src/common/utils/translator';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { activateDefaultIfAllInactive } from 'src/common/functions/helpers/activateDefaultIfAllInactive.helper';
 
-import { TypeHintConfigService } from '../typeHint/typeHintConfig.service';
+import { TypeHintConfigService } from '../typeHintConfig/typeHintConfig.service';
 
 import { ShowCase, ShowCaseDocument } from 'src/schemas/showcase.schema';
 import { Product, ProductDocument } from 'src/schemas/product.schema';

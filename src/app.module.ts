@@ -20,7 +20,7 @@ import { ProductModule } from './modules/product/product.module';
 import { LogoModule } from './modules/logo/logo.module';
 import { BannerModule } from './modules/banner/banner.module';
 import { ShowcaseModule } from './modules/showcase/showcase.module';
-import { TypeHintConfigModule } from './modules/typeHint/typeHintConfig.module';
+import { TypeHintConfigModule } from './modules/typeHintConfig/typeHintConfig.module';
 
 @Module({
   imports: [

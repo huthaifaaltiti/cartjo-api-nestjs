@@ -9,7 +9,7 @@ import { JwtModule } from '../jwt/jwt.module';
 import { ProductService } from './product.service';
 import { ProductController } from './product.controller';
 import { CategoryModule } from '../category/category.module';
-import { TypeHintConfigModule } from '../typeHint/typeHintConfig.module';
+import { TypeHintConfigModule } from '../typeHintConfig/typeHintConfig.module';
 
 @Module({
   imports: [

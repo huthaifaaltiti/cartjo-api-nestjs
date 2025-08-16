@@ -23,7 +23,7 @@ import { UnDeleteProductBodyDto } from './dto/unDelete-product.dto';
 import { Modules } from 'src/enums/appModules.enum';
 
 import { MediaService } from '../media/media.service';
-import { TypeHintConfigService } from '../typeHint/typeHintConfig.service';
+import { TypeHintConfigService } from '../typeHintConfig/typeHintConfig.service';
 
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
