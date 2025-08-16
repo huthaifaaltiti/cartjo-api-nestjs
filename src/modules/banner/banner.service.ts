@@ -43,7 +43,7 @@ export class BannerService {
     this.defaultBannerId = process.env.DEFAULT_BANNER_ID;
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron(CronExpression.EVERY_2_HOURS)
   async deactivateExpiredBanners() {
     const now = new Date();
 
@@ -51,7 +51,9 @@ export class BannerService {
       { isActive: true, endDate: { $lt: now } },
       { $set: { isActive: false } },
     );
-    
+
+    await activateDefaultIfAllInactive(this.bannerModel, this.defaultBannerId);
+
     if (result.modifiedCount > 0) {
       console.log(`Deactivated ${result.modifiedCount} expired banners`);
     }
@@ -171,6 +173,7 @@ export class BannerService {
         { startDate: { $lte: now }, endDate: { $gte: now } }, // Banner started before or at the current moment  startDate <= now, banner ends after or at the current moment endDate >= now
         { startDate: { $lte: now }, endDate: { $exists: false } }, // Banner already started (startDate <= now) but it has no end date
         { startDate: { $exists: false }, endDate: { $exists: false } }, //No start date and no end date were set,his means the banner is considered always active, as there are no time restrictions at all.
+        { startDate: { $exists: true }, endDate: null },
       ],
     };
 
