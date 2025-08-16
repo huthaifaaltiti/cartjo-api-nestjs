@@ -130,6 +130,7 @@
   "showcase_showcaseActivatedSuccessfully": "تم تفعيل العرض بنجاح",
   "showcase_showcaseDeActivatedSuccessfully": "تم إلغاء تفعيل العرض بنجاح",
   "showcase_invalidTypeHint": "دليل عرض غير صحيح",
+  "showcase_cannotActivateUnActiveDefaultShowcase": "لا يمكن تفعيل أو إلغاء تفعيل أدلة العرض الرئيسية",
   "typeHintConfig_typeHintConfigWithThisDetailsAlreadyExist": "دليل النوع بهذه التفاصيل موجودة بالفعل",
   "typeHintConfig_typeHintConfigCreatedSuccessfully": "تم إنشاء دليل النوع بنجاح",
   "typeHintConfig_typeHintConfigsRetrievedSuccessfully": "تم استرداد أدلة النوع بنجاح",
@@ -148,5 +149,6 @@
   "typeHintConfig_cannotChangeStatusDefaultTypeHintConfig": "لا يمكن تغيير حالة دليل النوع الرئيسي",
   "typeHintConfig_typeHintConfigActivatedSuccessfully": "تم تفعيل دليل النوع بنجاح",
   "typeHintConfig_typeHintConfigDeActivatedSuccessfully": "تم إلغاء تفعيل دليل النوع بنجاح",
-  "typeHintConfig_typeHintConfigsListRetrievedSuccessfully": "تم استرداد أدلة النوع بنجاح"
+  "typeHintConfig_typeHintConfigsListRetrievedSuccessfully": "تم استرداد أدلة النوع بنجاح",
+  "typeHintConfig_cannotUpdateDefaultKeys": "لا يمكن تعديل رموز أدلة النوع الأساسية"
 }

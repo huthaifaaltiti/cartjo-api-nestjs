@@ -132,6 +132,7 @@
   "showcase_showcaseActivatedSuccessfully": "Showcase activated successfully",
   "showcase_showcaseDeActivatedSuccessfully": "Showcase deactivated successfully",
   "showcase_invalidTypeHint": "Invalid type-hint",
+  "showcase_cannotActivateUnActiveDefaultShowcase": "Cannot activate or de-Activate default showcase",
   "typeHintConfig_typeHintConfigWithThisDetailsAlreadyExist": "Type hint config with this details already exist",
   "typeHintConfig_endDateMustBeAfterStartDate": "Type hint end date must be after start date",
   "typeHintConfig_typeHintConfigCreatedSuccessfully": "Type hint config created successfully",
@@ -151,5 +152,6 @@
   "typeHintConfig_cannotChangeStatusDefaultTypeHintConfig": "Cannot change status for default type-hint config",
   "typeHintConfig_typeHintConfigActivatedSuccessfully": "Type-hint config activated successfully",
   "typeHintConfig_typeHintConfigDeActivatedSuccessfully": "Type-hint config de-activated successfully",
-  "typeHintConfig_typeHintConfigsListRetrievedSuccessfully": "Type-hint configs list retrieved successfully"
+  "typeHintConfig_typeHintConfigsListRetrievedSuccessfully": "Type-hint configs list retrieved successfully",
+  "typeHintConfig_cannotUpdateDefaultKeys": "Cannot update default type-hint keys"
 }

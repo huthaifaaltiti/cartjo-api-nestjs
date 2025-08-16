@@ -28,7 +28,7 @@ import { DeleteDto } from './dto/delete.dto';
 import { UnDeleteDto } from './dto/unDelete.dto';
 
 export class ShowcaseService {
-  private readonly defaultShowcaseId: string;
+  // private readonly defaultShowcaseId: string;
 
   constructor(
     @InjectModel(ShowCase.name)
@@ -39,7 +39,7 @@ export class ShowcaseService {
 
     private typeHintConfigService: TypeHintConfigService,
   ) {
-    this.defaultShowcaseId = process.env.DEFAULT_SHOWCASE_ID;
+    // this.defaultShowcaseId = process.env.DEFAULT_SHOWCASE_ID;
   }
 
   async getAll(
@@ -390,13 +390,17 @@ export class ShowcaseService {
 
     validateUserRoleAccess(requestingUser, lang);
 
-    if (id === this.defaultShowcaseId) {
+    const defaultTypeHints = [
+      ...this.typeHintConfigService.getStaticTypeHints(),
+    ];
+
+    const showcase = await this.showcaseModel.findById(id);
+
+    if (defaultTypeHints.includes(showcase.type)) {
       throw new ForbiddenException(
         getMessage('showcase_cannotDeleteDefaultShowcase', lang),
       );
     }
-
-    const showcase = await this.showcaseModel.findById(id);
 
     if (!showcase) {
       throw new NotFoundException(
@@ -412,10 +416,10 @@ export class ShowcaseService {
 
     await showcase.save();
 
-    await activateDefaultIfAllInactive(
-      this.showcaseModel,
-      this.defaultShowcaseId,
-    );
+    // await activateDefaultIfAllInactive(
+    //   this.showcaseModel,
+    //   this.defaultShowcaseId,
+    // );
 
     return {
       isSuccess: true,
@@ -440,7 +444,11 @@ export class ShowcaseService {
       );
     }
 
-    if (id === this.defaultShowcaseId) {
+    const defaultTypeHints = [
+      ...this.typeHintConfigService.getStaticTypeHints(),
+    ];
+
+    if (defaultTypeHints.includes(showcase.type)) {
       throw new ForbiddenException(
         getMessage('showcase_cannotUnDeleteDefaultShowcase', lang),
       );
@@ -454,10 +462,10 @@ export class ShowcaseService {
 
     await showcase.save();
 
-    await activateDefaultIfAllInactive(
-      this.showcaseModel,
-      this.defaultShowcaseId,
-    );
+    // await activateDefaultIfAllInactive(
+    //   this.showcaseModel,
+    //   this.defaultShowcaseId,
+    // );
 
     return {
       isSuccess: true,
@@ -478,6 +486,16 @@ export class ShowcaseService {
     if (!showcase) {
       throw new NotFoundException(
         getMessage('showcase_showcaseNotFound', lang),
+      );
+    }
+
+    const defaultTypeHints = [
+      ...this.typeHintConfigService.getStaticTypeHints(),
+    ];
+
+    if (defaultTypeHints.includes(showcase.type)) {
+      throw new ForbiddenException(
+        getMessage('showcase_cannotActivateUnActiveDefaultShowcase', lang),
       );
     }
 
@@ -506,10 +524,10 @@ export class ShowcaseService {
 
     await showcase.save();
 
-    await activateDefaultIfAllInactive(
-      this.showcaseModel,
-      this.defaultShowcaseId,
-    );
+    // await activateDefaultIfAllInactive(
+    //   this.showcaseModel,
+    //   this.defaultShowcaseId,
+    // );
 
     return {
       isSuccess: true,

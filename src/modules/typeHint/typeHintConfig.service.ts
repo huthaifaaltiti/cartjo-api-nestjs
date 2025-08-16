@@ -51,6 +51,10 @@ export class TypeHintConfigService {
     await deactivateExpiredDocs(this.typeHintConfigModel);
   }
 
+  getStaticTypeHints(): string[] {
+    return this.staticTypeHintConfigs;
+  }
+
   async getAll(
     reqUser: any,
     queryData: GetAllQueryDto,
@@ -322,6 +326,12 @@ export class TypeHintConfigService {
     }
 
     if (dto.key) {
+      if (this.staticTypeHintConfigs.includes(typeHintConfig.key)) {
+        throw new BadRequestException(
+          getMessage('typeHintConfig_cannotUpdateDefaultKeys', dto.lang),
+        );
+      }
+
       typeHintConfig.key = dto?.key || typeHintConfig?.key;
     }
 
