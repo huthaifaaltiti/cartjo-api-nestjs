@@ -146,5 +146,6 @@
   "typeHintConfig_cannotActivateBeforeStartDate": "لا يمكن تفعيل دليل النوع قبل تاريخ البدء",
   "typeHintConfig_cannotChangeStatusDefaultTypeHintConfig": "لا يمكن تغيير حالة دليل النوع الرئيسي",
   "typeHintConfig_typeHintConfigActivatedSuccessfully": "تم تفعيل دليل النوع بنجاح",
-  "typeHintConfig_typeHintConfigDeActivatedSuccessfully": "تم إلغاء تفعيل دليل النوع بنجاح"
+  "typeHintConfig_typeHintConfigDeActivatedSuccessfully": "تم إلغاء تفعيل دليل النوع بنجاح",
+  "typeHintConfig_typeHintConfigsListRetrievedSuccessfully": "تم استرداد أدلة النوع بنجاح"
 }

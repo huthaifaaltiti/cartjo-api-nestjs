@@ -25,6 +25,7 @@ import {
   UpdateStatusBodyDto,
   UpdateStatusParamsDto,
 } from './dto/update-active-status.dto';
+import { GetListQueryDto } from './dto/get-list.dto';
 
 @Controller('/api/v1/type-hint-config')
 export class TypeHintConfigController {
@@ -34,6 +35,12 @@ export class TypeHintConfigController {
   @Get('all')
   async getAll(@Query() query: GetAllQueryDto, @Request() req: any) {
     return this.typeHintConfigService.getAll(req?.user, query);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('list')
+  async getList(@Query() query: GetListQueryDto, @Request() req: any) {
+    return this.typeHintConfigService.getList(req?.user, query);
   }
 
   @Get('active')

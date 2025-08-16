@@ -30,6 +30,7 @@ import { UpdateDto } from './dto/update.dto';
 import { DeleteDto } from './dto/delete.dto';
 import { UpdateStatusBodyDto } from './dto/update-active-status.dto';
 import { UnDeleteDto } from './dto/unDelete.dto';
+import { GetListQueryDto } from './dto/get-list.dto';
 
 export class TypeHintConfigService {
   private readonly staticTypeHintConfigs: string[] = [
@@ -110,6 +111,26 @@ export class TypeHintConfigService {
       ),
       dataCount: typeHintConfigs.length,
       data: typeHintConfigs,
+    };
+  }
+
+  async getList(
+    reqUser: any,
+    dto: GetListQueryDto,
+  ): Promise<DataListResponse<string>> {
+    const typeHintConfigs = await this.getAll(reqUser, dto);
+    const typeHintConfigsKeysList = typeHintConfigs?.data?.map(
+      typeHintConfig => typeHintConfig?.key,
+    );
+
+    return {
+      isSuccess: true,
+      message: getMessage(
+        'typeHintConfig_typeHintConfigsListRetrievedSuccessfully',
+        dto?.lang,
+      ),
+      dataCount: typeHintConfigsKeysList?.length || 0,
+      data: typeHintConfigsKeysList || [],
     };
   }
 

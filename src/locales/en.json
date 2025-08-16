@@ -149,5 +149,6 @@
   "typeHintConfig_cannotActivateBeforeStartDate": "Cannot activate type-hint config before the start date",
   "typeHintConfig_cannotChangeStatusDefaultTypeHintConfig": "Cannot change status for default type-hint config",
   "typeHintConfig_typeHintConfigActivatedSuccessfully": "Type-hint config activated successfully",
-  "typeHintConfig_typeHintConfigDeActivatedSuccessfully": "Type-hint config de-activated successfully"
+  "typeHintConfig_typeHintConfigDeActivatedSuccessfully": "Type-hint config de-activated successfully",
+  "typeHintConfig_typeHintConfigsListRetrievedSuccessfully": "Type-hint configs list retrieved successfully"
 }
