@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { getMessage } from 'src/common/utils/translator';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
@@ -43,6 +44,37 @@ export class ShowcaseService {
     private typeHintConfigModel: Model<TypeHintConfigDocument>,
     private typeHintConfigService: TypeHintConfigService,
   ) {}
+
+  @Cron(CronExpression.EVERY_2_HOURS)
+  async checkInactiveTypeHints(): Promise<void> {
+    const inactiveHints = await this.typeHintConfigModel
+      .find({ isActive: false })
+      .lean();
+
+    if (!inactiveHints.length) return;
+
+    for (const hint of inactiveHints) {
+      const showcases = await this.showcaseModel
+        .find({ type: hint.key, isDeleted: false })
+        .lean();
+
+      if (!showcases.length) continue;
+
+      await this.showcaseModel.updateMany(
+        { type: hint.key },
+        {
+          $set: {
+            isActive: false,
+            reason: getMessage('showcase_typeHintNotActive'),
+          },
+        },
+      );
+
+      console.log(
+        `Deactivated ${showcases.length} showcase(s) because type "${hint.key}" is inactive`,
+      );
+    }
+  }
 
   async getAll(
     requestingUser: any,
