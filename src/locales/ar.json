@@ -131,6 +131,7 @@
   "showcase_showcaseActivatedSuccessfully": "تم تفعيل العرض بنجاح",
   "showcase_showcaseDeActivatedSuccessfully": "تم إلغاء تفعيل العرض بنجاح",
   "showcase_invalidTypeHint": "دليل عرض غير صحيح",
+  "showcase_typeHintNotActive": "فعّل دليل العرض لتتمكن من إنشاء العرض",
   "showcase_cannotActivateUnActiveDefaultShowcase": "لا يمكن تفعيل أو إلغاء تفعيل أدلة العرض الرئيسية",
   "typeHintConfig_typeHintConfigWithThisDetailsAlreadyExist": "دليل النوع بهذه التفاصيل موجودة بالفعل",
   "typeHintConfig_typeHintConfigCreatedSuccessfully": "تم إنشاء دليل النوع بنجاح",

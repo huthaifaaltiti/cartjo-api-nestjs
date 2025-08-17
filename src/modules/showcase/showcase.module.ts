@@ -9,12 +9,17 @@ import { ShowcaseController } from './showcase.controller';
 import { ProductModule } from '../product/product.module';
 import { Product, ProductSchema } from 'src/schemas/product.schema';
 import { TypeHintConfigModule } from '../typeHintConfig/typeHintConfig.module';
+import {
+  TypeHintConfig,
+  TypeHintConfigSchema,
+} from 'src/schemas/typeHintConfig.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: ShowCase.name, schema: ShowCaseSchema },
       { name: Product.name, schema: ProductSchema },
+      { name: TypeHintConfig.name, schema: TypeHintConfigSchema },
     ]),
     JwtModule,
     ProductModule,

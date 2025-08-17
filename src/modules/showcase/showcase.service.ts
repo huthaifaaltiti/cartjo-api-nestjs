@@ -26,10 +26,12 @@ import { CreateDto } from './dto/create.dto';
 import { UpdateDto } from './dto/update.dto';
 import { DeleteDto } from './dto/delete.dto';
 import { UnDeleteDto } from './dto/unDelete.dto';
+import {
+  TypeHintConfig,
+  TypeHintConfigDocument,
+} from 'src/schemas/typeHintConfig.schema';
 
 export class ShowcaseService {
-  // private readonly defaultShowcaseId: string;
-
   constructor(
     @InjectModel(ShowCase.name)
     private showcaseModel: Model<ShowCaseDocument>,
@@ -37,10 +39,10 @@ export class ShowcaseService {
     @InjectModel(Product.name)
     private productModel: Model<ProductDocument>,
 
+    @InjectModel(TypeHintConfig.name)
+    private typeHintConfigModel: Model<TypeHintConfigDocument>,
     private typeHintConfigService: TypeHintConfigService,
-  ) {
-    // this.defaultShowcaseId = process.env.DEFAULT_SHOWCASE_ID;
-  }
+  ) {}
 
   async getAll(
     requestingUser: any,
@@ -247,6 +249,7 @@ export class ShowcaseService {
       );
     }
 
+    // Get type hint config by key
     const typeHintKeys = await this.typeHintConfigService.getList(
       requestingUser,
       {
@@ -257,6 +260,17 @@ export class ShowcaseService {
     if (!typeHintKeys.data.includes(dto.type)) {
       throw new BadRequestException(
         getMessage('showcase_invalidTypeHint', dto.lang),
+      );
+    }
+
+    // Check if type hint is active
+    const typeHintConfig = await this.typeHintConfigModel.findOne({
+      key: dto.type,
+    });
+
+    if (!typeHintConfig.isActive) {
+      throw new BadRequestException(
+        getMessage('showcase_typeHintNotActive', dto.lang),
       );
     }
 
@@ -320,6 +334,17 @@ export class ShowcaseService {
           getMessage('showcase_showcaseWithThisDetailsAlreadyExist', dto.lang),
         );
       }
+    }
+
+    // Check if type hint is active
+    const typeHintConfig = await this.typeHintConfigModel.findOne({
+      key: dto.type,
+    });
+
+    if (!typeHintConfig.isActive) {
+      throw new BadRequestException(
+        getMessage('showcase_typeHintNotActive', dto.lang),
+      );
     }
 
     // Update fields
@@ -416,11 +441,6 @@ export class ShowcaseService {
 
     await showcase.save();
 
-    // await activateDefaultIfAllInactive(
-    //   this.showcaseModel,
-    //   this.defaultShowcaseId,
-    // );
-
     return {
       isSuccess: true,
       message: getMessage('showcase_showcaseDeletedSuccessfully', lang),
@@ -461,11 +481,6 @@ export class ShowcaseService {
     showcase.unDeletedAt = new Date();
 
     await showcase.save();
-
-    // await activateDefaultIfAllInactive(
-    //   this.showcaseModel,
-    //   this.defaultShowcaseId,
-    // );
 
     return {
       isSuccess: true,
@@ -523,11 +538,6 @@ export class ShowcaseService {
     }
 
     await showcase.save();
-
-    // await activateDefaultIfAllInactive(
-    //   this.showcaseModel,
-    //   this.defaultShowcaseId,
-    // );
 
     return {
       isSuccess: true,
