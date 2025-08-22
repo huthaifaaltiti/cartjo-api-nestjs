@@ -21,6 +21,7 @@ import { LogoModule } from './modules/logo/logo.module';
 import { BannerModule } from './modules/banner/banner.module';
 import { ShowcaseModule } from './modules/showcase/showcase.module';
 import { TypeHintConfigModule } from './modules/typeHintConfig/typeHintConfig.module';
+import { WishListModule } from './modules/wishList/wishList.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { TypeHintConfigModule } from './modules/typeHintConfig/typeHintConfig.mo
     BannerModule,
     ShowcaseModule,
     TypeHintConfigModule,
+    WishListModule,
   ],
   controllers: [AppController],
   providers: [AppService],
