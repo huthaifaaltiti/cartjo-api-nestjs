@@ -51,6 +51,8 @@
   "categories_categoryShouldHasArImage": "يجب أن تحتوي الفئة على صورة عربية",
   "categories_categoryShouldHasEnImage": "يجب أن تحتوي الفئة على صورة إنجليزية",
   "categories_categoryImageUploadFailed": "فشل تحميل صورة الفئة",
+  "categories_noActiveCategoriesFound": "لم يتم العثور على فئات نشطة",
+  "categories_activeCategoriesRetrievedSuccessfully": "تم استرداد الفئات النشطة بنجاح",
   "subcategories_subCategoryAlreadyExists": "الفئة الفرعية موجودة مسبقًا",
   "subCategories_subCategoriesRetrievedSuccessfully": "تم استرجاع الفئات الفرعية بنجاح",
   "subcategories_subCategoryNotFound": "الفئة الفرعية غير موجودة",

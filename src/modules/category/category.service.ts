@@ -7,9 +7,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
 import slugify from 'slugify';
-
 import { MediaService } from '../media/media.service';
-
 import {
   BaseResponse,
   DataListResponse,
@@ -22,13 +20,13 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { DeleteCategoryDto } from './dto/delete-category.dto';
 import { UnDeleteCategoryBodyDto } from './dto/unDelete-category.dto';
 import { Modules } from 'src/enums/appModules.enum';
-
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
 import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
 import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
 import { MediaPreview } from 'src/schemas/common.schema';
+import { GetActiveOnesQueryDto } from './dto/get-active-ones.dto';
 
 @Injectable()
 export class CategoryService {
@@ -415,6 +413,39 @@ export class CategoryService {
     return {
       isSuccess: true,
       message: getMessage('categories_categoriesRetrievedSuccessfully', lang),
+      dataCount: categories.length,
+      data: categories,
+    };
+  }
+
+  async getActiveOnes(
+    query: GetActiveOnesQueryDto,
+  ): Promise<DataListResponse<Category>> {
+    const findQuery = {
+      isActive: true,
+      isDeleted: false,
+    };
+
+    const categories = await this.categoryModel
+      .find(findQuery)
+      .populate('deletedBy', 'firstName lastName email _id')
+      .populate('unDeletedBy', 'firstName lastName email _id')
+      .populate('createdBy', 'firstName lastName email _id')
+      .limit(Number(query.limit))
+      .lean();
+
+    if (categories.length === 0) {
+      throw new NotFoundException(
+        getMessage('categories_noActiveCategoriesFound', query.lang),
+      );
+    }
+
+    return {
+      isSuccess: true,
+      message: getMessage(
+        'categories_activeCategoriesRetrievedSuccessfully',
+        query.lang,
+      ),
       dataCount: categories.length,
       data: categories,
     };

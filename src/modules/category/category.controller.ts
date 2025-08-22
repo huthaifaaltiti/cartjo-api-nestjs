@@ -14,7 +14,6 @@ import {
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
-
 import { CreateCategoryDto } from './dto/create-category.dto';
 import {
   UpdateCategoryDto,
@@ -37,8 +36,8 @@ import {
   UpdateCategoryStatusBodyDto,
   UpdateCategoryStatusParamsDto,
 } from './dto/update-category-status.dto';
-
 import { CategoryService } from './category.service';
+import { GetActiveOnesQueryDto } from './dto/get-active-ones.dto';
 
 @Controller('/api/v1/category')
 export class CategoryController {
@@ -134,6 +133,7 @@ export class CategoryController {
     return this.categoryService.updateStatus(id, isActive, lang, user);
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Get('all')
   async getCategories(@Query() query: GetCategoriesQueryDto) {
     const { lang, limit, lastId, search } = query;
@@ -144,6 +144,11 @@ export class CategoryController {
       lastId,
       search,
     });
+  }
+
+  @Get('active')
+  async getActiveOnes(@Query() query: GetActiveOnesQueryDto) {
+    return this.categoryService.getActiveOnes(query);
   }
 
   @Get('/:id')

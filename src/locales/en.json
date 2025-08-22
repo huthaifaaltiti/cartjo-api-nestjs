@@ -51,6 +51,8 @@
   "categories_categoryShouldHasArImage": "Category should has arabic image",
   "categories_categoryShouldHasEnImage": "Category should has english image",
   "categories_categoryImageUploadFailed": "Category image uploading failed",
+  "categories_noActiveCategoriesFound": "No active categories found",
+  "categories_activeCategoriesRetrievedSuccessfully": "Active categories retrieved successfully",
   "subcategories_subCategoryAlreadyExists": "SubCategory already exists",
   "subCategories_subCategoriesRetrievedSuccessfully": "SubCategories retrieved successfully",
   "subcategories_subCategoryNotFound": "SubCategory not found",
