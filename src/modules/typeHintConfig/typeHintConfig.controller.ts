@@ -43,6 +43,7 @@ export class TypeHintConfigController {
     return this.typeHintConfigService.getList(req?.user, query);
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Get('active')
   async getActiveOnes(@Query() query: GetActiveOnesQueryDto) {
     const { lang } = query;
