@@ -11,9 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-
 import { TypeHintConfigService } from './typeHintConfig.service';
-
 import { CreateDto } from './dto/create.dto';
 import { GetAllQueryDto } from './dto/get-all.dto';
 import { GetOneParamDto, GetOneQueryDto } from './dto/get-one.dto';
@@ -26,7 +24,6 @@ import {
   UpdateStatusParamsDto,
 } from './dto/update-active-status.dto';
 import { GetListQueryDto } from './dto/get-list.dto';
-
 @Controller('/api/v1/type-hint-config')
 export class TypeHintConfigController {
   constructor(private readonly typeHintConfigService: TypeHintConfigService) {}
@@ -45,10 +42,13 @@ export class TypeHintConfigController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get('active')
-  async getActiveOnes(@Query() query: GetActiveOnesQueryDto) {
+  async getActiveOnes(
+    @Query() query: GetActiveOnesQueryDto,
+    @Request() req: any,
+  ) {
     const { lang } = query;
 
-    return this.typeHintConfigService.getActiveOnes(lang);
+    return this.typeHintConfigService.getActiveOnes(req?.user, lang);
   }
 
   @UseGuards(AuthGuard('jwt'))

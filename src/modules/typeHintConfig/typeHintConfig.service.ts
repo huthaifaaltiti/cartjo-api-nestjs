@@ -1,8 +1,6 @@
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
-
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
-
 import { CreateDto } from './dto/create.dto';
 import {
   TypeHintConfig,
@@ -15,22 +13,20 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-
 import { Locale } from 'src/types/Locale';
-
 import {
   BaseResponse,
   DataListResponse,
   DataResponse,
 } from 'src/types/service-response.type';
 import { deactivateExpiredDocs } from 'src/common/functions/helpers/deactivateExpiredDocs';
-
 import { GetAllQueryDto } from './dto/get-all.dto';
 import { UpdateDto } from './dto/update.dto';
 import { DeleteDto } from './dto/delete.dto';
 import { UpdateStatusBodyDto } from './dto/update-active-status.dto';
 import { UnDeleteDto } from './dto/unDelete.dto';
 import { GetListQueryDto } from './dto/get-list.dto';
+import slugify from 'slugify';
 
 export class TypeHintConfigService {
   private readonly staticTypeHintConfigs: string[] = [
@@ -218,7 +214,6 @@ export class TypeHintConfigService {
     dto: CreateDto,
   ): Promise<DataResponse<TypeHintConfig>> {
     const {
-      key,
       label_ar,
       label_en,
       colorFrom,
@@ -232,6 +227,8 @@ export class TypeHintConfigService {
     } = dto;
 
     validateUserRoleAccess(reqUser, lang);
+
+    const key = label_en ? slugify(label_en, { lower: true }) : undefined;
 
     if (endDate && new Date(endDate) < new Date(startDate)) {
       throw new BadRequestException(
@@ -300,14 +297,35 @@ export class TypeHintConfigService {
       );
     }
 
+    let key = typeHintConfig.key;
+
+    if (dto.label_en) {
+      key = slugify(dto.label_en, { lower: true });
+    }
+
+    if (key) {
+      if (this.staticTypeHintConfigs.includes(typeHintConfig.key)) {
+        throw new BadRequestException(
+          getMessage('typeHintConfig_cannotUpdateDefaultKeys', dto.lang),
+        );
+      }
+
+      typeHintConfig.key = key || typeHintConfig?.key;
+    }
+
     // Check for conflicts on title if updated
     if (
-      (dto.key && dto.label_ar !== typeHintConfig.label.ar) ||
+      (dto.label_ar && dto.label_ar !== typeHintConfig.label.ar) ||
       (dto.label_en && dto.label_en !== typeHintConfig.label.en)
     ) {
+      const newKey = slugify(dto.label_en, { lower: true });
       const conflict = await this.typeHintConfigModel.findOne({
         _id: { $ne: id },
-        $or: [{ 'label.ar': dto.label_ar }, { 'label.en': dto.label_en }],
+        $or: [
+          { key: newKey },
+          { 'label.ar': dto.label_ar },
+          { 'label.en': dto.label_en },
+        ],
         isDeleted: false,
       });
 
@@ -319,6 +337,8 @@ export class TypeHintConfigService {
           ),
         );
       }
+
+      key = newKey;
     }
 
     if (dto.label_ar || dto.label_en) {
@@ -326,16 +346,6 @@ export class TypeHintConfigService {
         ar: dto.label_ar || typeHintConfig.label.ar,
         en: dto.label_en || typeHintConfig.label.en,
       };
-    }
-
-    if (dto.key) {
-      if (this.staticTypeHintConfigs.includes(typeHintConfig.key)) {
-        throw new BadRequestException(
-          getMessage('typeHintConfig_cannotUpdateDefaultKeys', dto.lang),
-        );
-      }
-
-      typeHintConfig.key = dto?.key || typeHintConfig?.key;
     }
 
     if (dto.icon) {

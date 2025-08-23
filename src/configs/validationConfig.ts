@@ -30,8 +30,6 @@ export const validationConfig = {
     showAllButtonLinkMaxChars: 200,
   },
   typeHint: {
-    keyMinChars: 3,
-    keyMaxChars: 50,
     labelMinChars: 3,
     labelMaxChars: 50,
     iconMinChars: 3,

@@ -10,13 +10,10 @@ import {
   Max,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
-
 import { Locale } from 'src/types/Locale';
 import { validationConfig } from 'src/configs/validationConfig';
 
 const {
-  keyMinChars,
-  keyMaxChars,
   labelMinChars,
   labelMaxChars,
   iconMinChars,
@@ -28,12 +25,6 @@ const {
 } = validationConfig.typeHint;
 
 export class CreateDto {
-  @IsString()
-  @IsNotEmpty({ message: 'Type hint key is required' })
-  @MinLength(keyMinChars)
-  @MaxLength(keyMaxChars)
-  key: string;
-
   @IsString()
   @IsNotEmpty({ message: 'Type hint AR label is required' })
   @MinLength(labelMinChars)

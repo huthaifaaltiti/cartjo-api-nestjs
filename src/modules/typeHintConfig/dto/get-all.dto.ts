@@ -1,6 +1,5 @@
 import { IsMongoId, IsOptional, IsString, IsDateString } from 'class-validator';
 import { Locale } from 'src/types/Locale';
-
 export class GetAllQueryDto {
   @IsOptional()
   @IsString()

@@ -7,7 +7,6 @@ import {
   IsString,
 } from 'class-validator';
 import { Locale } from 'src/types/Locale';
-
 export class GetActiveOnesQueryDto {
   @IsOptional()
   @IsNumber()
@@ -24,7 +23,6 @@ export class GetActiveOnesQueryDto {
   @IsOptional()
   lang: Locale = 'en';
 }
-
 export class GetParamDto {
   @IsMongoId({ message: 'Invalid Showcase ID format' })
   @IsNotEmpty({ message: 'Showcase ID is required' })
