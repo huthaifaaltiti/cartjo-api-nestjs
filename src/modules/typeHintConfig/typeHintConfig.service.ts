@@ -122,7 +122,7 @@ export class TypeHintConfigService {
     reqUser: any,
     dto: GetListQueryDto,
   ): Promise<DataListResponse<string>> {
-    const typeHintConfigs = await this.getAll(reqUser, dto);
+    const typeHintConfigs = await this.getActiveOnes(reqUser, dto.lang);
     const typeHintConfigsKeysList = typeHintConfigs?.data?.map(
       typeHintConfig => typeHintConfig?.key,
     );
@@ -139,8 +139,11 @@ export class TypeHintConfigService {
   }
 
   async getActiveOnes(
+    reqUser: any,
     lang?: Locale,
   ): Promise<DataListResponse<TypeHintConfigDocument>> {
+    validateUserRoleAccess(reqUser, lang);
+
     const now = new Date();
 
     const findQuery = {
