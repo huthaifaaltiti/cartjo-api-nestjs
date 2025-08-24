@@ -132,6 +132,7 @@
   "showcase_cannotActivateBeforeStartDate": "لا يمكن تفعيل العرض قبل تاريخ البدء",
   "showcase_showcaseActivatedSuccessfully": "تم تفعيل العرض بنجاح",
   "showcase_showcaseDeActivatedSuccessfully": "تم إلغاء تفعيل العرض بنجاح",
+  "showcase_noProductsWithThisTypeForShowcase": "لا توجد منتجات بهذا النوع للعرض",
   "showcase_invalidTypeHint": "دليل عرض غير صحيح",
   "showcase_typeHintNotActive": "فعّل دليل العرض لتتمكن من إنشاء العرض",
   "showcase_cannotActivateUnActiveDefaultShowcase": "لا يمكن تفعيل أو إلغاء تفعيل أدلة العرض الرئيسية",

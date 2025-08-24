@@ -265,6 +265,19 @@ export class ShowcaseService {
   ): Promise<DataResponse<ShowCase>> {
     validateUserRoleAccess(requestingUser, dto.lang);
 
+    // prevent create showcase without products from same type
+    const foundProducts = await this.productModel.findOne({
+      typeHint: dto.type,
+      isDeleted: false,
+      isActive: true,
+      availableCount: { $gt: 0 },
+    });
+    if (!foundProducts) {
+      throw new BadRequestException(
+        getMessage('showcase_noProductsWithThisTypeForShowcase', dto.lang),
+      );
+    }
+
     const existing = await this.showcaseModel.findOne({
       $or: [
         { 'title.ar': dto.title_ar },

@@ -135,6 +135,7 @@
   "showcase_showcaseActivatedSuccessfully": "Showcase activated successfully",
   "showcase_showcaseDeActivatedSuccessfully": "Showcase deactivated successfully",
   "showcase_invalidTypeHint": "Invalid type-hint",
+  "showcase_noProductsWithThisTypeForShowcase": "No products with this type for showcase",
   "showcase_cannotActivateUnActiveDefaultShowcase": "Cannot activate or de-Activate default showcase",
   "showcase_typeHintNotActive":"Activate type-hint to create showcase",
   "typeHintConfig_typeHintConfigWithThisDetailsAlreadyExist": "Type hint config with this details already exist",
