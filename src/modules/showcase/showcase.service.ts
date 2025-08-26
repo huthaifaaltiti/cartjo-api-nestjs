@@ -136,11 +136,24 @@ export class ShowcaseService {
       .select('-__v')
       .lean();
 
+    const showcasesWithPriority = await Promise.all(
+      showcases.map(async showcase => {
+        const typeHintConfig = await this.typeHintConfigModel
+          .findOne({ key: showcase.type })
+          .lean();
+
+        return {
+          ...showcase,
+          priority: typeHintConfig?.priority ?? null,
+        };
+      }),
+    );
+
     return {
       isSuccess: true,
       message: getMessage('showcase_showcasesRetrievedSuccessfully', lang),
-      dataCount: showcases.length,
-      data: showcases,
+      dataCount: showcasesWithPriority.length,
+      data: showcasesWithPriority,
     };
   }
 
@@ -215,14 +228,27 @@ export class ShowcaseService {
       });
     }
 
+    const showcasesWithPriorityWithPriority = await Promise.all(
+      populatedShowcases.map(async showcase => {
+        const typeHintConfig = await this.typeHintConfigModel
+          .findOne({ key: showcase.type })
+          .lean();
+
+        return {
+          ...showcase,
+          priority: typeHintConfig?.priority ?? null,
+        };
+      }),
+    );
+
     return {
       isSuccess: true,
       message: getMessage(
         'showcase_activeShowcasesRetrievedSuccessfully',
         lang,
       ),
-      dataCount: populatedShowcases.length,
-      data: populatedShowcases,
+      dataCount: showcasesWithPriorityWithPriority.length,
+      data: showcasesWithPriorityWithPriority,
     };
   }
 
@@ -246,6 +272,10 @@ export class ShowcaseService {
       .populate('createdBy', 'firstName lastName email _id')
       .lean();
 
+    const { priority } = await this.typeHintConfigModel.findOne({
+      key: showcase?.type,
+    });
+
     if (!showcase) {
       throw new NotFoundException(
         getMessage('showcase_showcaseNotFound', lang),
@@ -255,7 +285,7 @@ export class ShowcaseService {
     return {
       isSuccess: true,
       message: getMessage('showcase_showcaseRetrievedSuccessfully', lang),
-      data: showcase,
+      data: { ...showcase, priority },
     };
   }
 

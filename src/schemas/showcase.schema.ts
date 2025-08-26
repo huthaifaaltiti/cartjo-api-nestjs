@@ -13,6 +13,9 @@ export class ShowCase {
   @Prop({ required: true, type: Object })
   description: NameRef;
 
+  @Prop({ required: false, type: Number })
+  priority: null | number;
+
   @Prop({
     required: true,
     type: Object,
