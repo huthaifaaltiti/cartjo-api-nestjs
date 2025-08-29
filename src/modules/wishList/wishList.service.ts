@@ -97,7 +97,6 @@ export class WishListService {
     dto: WishListItemBodyDto,
   ): Promise<DataResponse<WishList>> {
     const { lang, productId } = dto;
-    validateUserRoleAccess(requestingUser, lang);
 
     this.isValidProduct(productId, lang);
 
@@ -135,8 +134,6 @@ export class WishListService {
     dto: WishListItemBodyDto,
   ): Promise<DataResponse<WishList>> {
     const { lang, productId } = dto;
-
-    validateUserRoleAccess(requestingUser, lang);
 
     await this.isValidProduct(productId, lang);
 
@@ -179,8 +176,6 @@ export class WishListService {
   ): Promise<DataResponse<WishList>> {
     const { lang } = dto;
     const { userId } = requestingUser;
-
-    validateUserRoleAccess(requestingUser, lang);
 
     const wishList = await this.wishListModel.findOne({ user: userId });
 
