@@ -4,10 +4,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ScheduleModule } from '@nestjs/schedule';
 import * as path from 'path';
-
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-
 import { AuthModule } from './modules/authentication/authentication.module';
 import { JwtModule } from './modules/jwt/jwt.module';
 import { AuthorizationModule } from './modules/authorization/authorization.module';

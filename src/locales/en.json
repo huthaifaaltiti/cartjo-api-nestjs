@@ -137,7 +137,7 @@
   "showcase_invalidTypeHint": "Invalid type-hint",
   "showcase_noProductsWithThisTypeForShowcase": "No products with this type for showcase",
   "showcase_cannotActivateUnActiveDefaultShowcase": "Cannot activate or de-Activate default showcase",
-  "showcase_typeHintNotActive":"Activate type-hint to create showcase",
+  "showcase_typeHintNotActive": "Activate type-hint to create showcase",
   "typeHintConfig_typeHintConfigWithThisDetailsAlreadyExist": "Type hint config with this details already exist",
   "typeHintConfig_endDateMustBeAfterStartDate": "Type hint end date must be after start date",
   "typeHintConfig_typeHintConfigCreatedSuccessfully": "Type hint config created successfully",
@@ -158,5 +158,8 @@
   "typeHintConfig_typeHintConfigActivatedSuccessfully": "Type-hint config activated successfully",
   "typeHintConfig_typeHintConfigDeActivatedSuccessfully": "Type-hint config de-activated successfully",
   "typeHintConfig_typeHintConfigsListRetrievedSuccessfully": "Type-hint configs list retrieved successfully",
-  "typeHintConfig_cannotUpdateDefaultKeys": "Cannot update default type-hint keys"
+  "typeHintConfig_cannotUpdateDefaultKeys": "Cannot update default type-hint keys",
+  "wishList_wishListRetrievedSuccessfully": "Wishlist retrieved successfully",
+  "wishList_productAddedToWishlistSuccessfully": "Product added to wishlist successfully",
+  "wishList_productIsInWishList": "Product is already wish-listed"
 }

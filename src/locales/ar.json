@@ -155,5 +155,8 @@
   "typeHintConfig_typeHintConfigActivatedSuccessfully": "تم تفعيل دليل النوع بنجاح",
   "typeHintConfig_typeHintConfigDeActivatedSuccessfully": "تم إلغاء تفعيل دليل النوع بنجاح",
   "typeHintConfig_typeHintConfigsListRetrievedSuccessfully": "تم استرداد أدلة النوع بنجاح",
-  "typeHintConfig_cannotUpdateDefaultKeys": "لا يمكن تعديل رموز أدلة النوع الأساسية"
+  "typeHintConfig_cannotUpdateDefaultKeys": "لا يمكن تعديل رموز أدلة النوع الأساسية",
+  "wishList_wishListRetrievedSuccessfully": "تم استرجاع قائمة الأمنيات بنجاح",
+  "wishList_productAddedToWishlistSuccessfully": "تمت إضافة المنتج إلى قائمة الأمنيات بنجاح",
+  "wishList_productIsInWishList": "المنتج موجود بالفعل في قائمة الأمنيات"
 }
