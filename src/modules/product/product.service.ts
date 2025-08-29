@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import slugify from 'slugify';
-import { Model, Types } from 'mongoose';
+import mongoose, { Model, Types } from 'mongoose';
 
 import {
   BaseResponse,
@@ -29,6 +29,7 @@ import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess'
 import { getMessage } from 'src/common/utils/translator';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
 import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
+import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
 
 @Injectable()
 export class ProductService {
@@ -40,15 +41,21 @@ export class ProductService {
     @InjectModel(Category.name)
     private categoryModel: Model<CategoryDocument>,
 
+    @InjectModel(WishList.name)
+    private wishListModel: Model<WishListDocument>,
+
     private typeHintConfigService: TypeHintConfigService,
   ) {}
 
-  async getAll(params: {
-    lang?: Locale;
-    limit?: string;
-    lastId?: string;
-    search?: string;
-  }): Promise<DataListResponse<Product>> {
+  async getAll(
+    params: {
+      lang?: Locale;
+      limit?: string;
+      lastId?: string;
+      search?: string;
+    },
+    userId?: mongoose.Types.ObjectId,
+  ): Promise<DataListResponse<Product>> {
     const { lang = 'en', limit = 10, lastId, search } = params;
 
     const query: any = {};
@@ -81,15 +88,36 @@ export class ProductService {
       .populate('mediaListIds')
       .lean();
 
+    // Enrich with isWishListed per user
+    let wishListProducts: string[] = [];
+    if (userId) {
+      const wishList = await this.wishListModel
+        .findOne({ user: userId })
+        .lean();
+
+      if (wishList) {
+        wishListProducts = wishList.products.map(p => p.toString());
+      }
+    }
+
+    const enrichedProducts = products.map(p => ({
+      ...p,
+      isWishListed: wishListProducts.includes(p._id.toString()),
+    }));
+
     return {
       isSuccess: true,
       message: getMessage('products_productsRetrievedSuccessfully', lang),
-      dataCount: products.length,
-      data: products,
+      dataCount: enrichedProducts.length,
+      data: enrichedProducts,
     };
   }
 
-  async getOne(id: string, lang?: Locale): Promise<DataResponse<Product>> {
+  async getOne(
+    id: string,
+    lang?: Locale,
+    userId?: mongoose.Types.ObjectId,
+  ): Promise<DataResponse<Product>> {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException(
         getMessage('products_invalidProductId', lang),
@@ -107,10 +135,24 @@ export class ProductService {
       throw new NotFoundException(getMessage('products_productNotFound', lang));
     }
 
+    // Enrich with isWishListed per user
+    let isWishListed = false;
+    if (userId) {
+      const wishList = await this.wishListModel.findOne({
+        user: userId,
+        products: new Types.ObjectId(id),
+      });
+
+      isWishListed = !!wishList;
+    }
+
     return {
       isSuccess: true,
       message: getMessage('products_productRetrievedSuccessfully', lang),
-      data: product,
+      data: {
+        ...product,
+        isWishListed,
+      },
     };
   }
 

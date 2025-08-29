@@ -52,7 +52,7 @@ export class WishListService {
 
     validateUserRoleAccess(requestingUser, lang);
 
-    const query: any = { user: requestingUser._id };
+    const query: any = { user: requestingUser.userId };
 
     if (lastId) {
       query._id = { $lt: new Types.ObjectId(lastId) };
@@ -116,13 +116,6 @@ export class WishListService {
         wishList.products.push(new Types.ObjectId(productId));
         wishList.updatedBy = requestingUser.userId;
         await wishList.save();
-
-        // Update product as wish-listed
-        const product = await this.productModel.findById(productId);
-        if (product) {
-          product.isWishListed = true;
-          await product.save();
-        }
       } else {
         throw new BadRequestException(
           getMessage('wishList_productIsInWishList', lang),
@@ -172,13 +165,6 @@ export class WishListService {
     wishList.products = newProducts;
     wishList.updatedBy = requestingUser.userId;
     await wishList.save();
-
-    // Update product as un-wish-listed
-    const product = await this.productModel.findById(productId);
-    if (product) {
-      product.isWishListed = false;
-      await product.save();
-    }
 
     return {
       isSuccess: true,

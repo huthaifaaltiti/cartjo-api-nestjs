@@ -35,6 +35,7 @@ import {
   UnDeleteProductBodyDto,
   UnDeleteProductParamsDto,
 } from './dto/unDelete-product.dto';
+import { OptionalJwtAuthGuard } from 'src/common/utils/optionalJwtAuthGuard';
 
 @Controller('/api/v1/product')
 export class ProductController {
@@ -72,27 +73,39 @@ export class ProductController {
     return this.productService.update(id, user, body, mainImage, images);
   }
 
+  @UseGuards(OptionalJwtAuthGuard)
   @Get('all')
-  async getAll(@Query() query: GetProductsQueryDto) {
+  async getAll(@Query() query: GetProductsQueryDto, @Request() req: any) {
     const { lang, limit, lastId, search } = query;
+    const {
+      user: { userId },
+    } = req;
 
-    return this.productService.getAll({
-      lang,
-      limit,
-      lastId,
-      search,
-    });
+    return this.productService.getAll(
+      {
+        lang,
+        limit,
+        lastId,
+        search,
+      },
+      userId,
+    );
   }
 
+  @UseGuards(OptionalJwtAuthGuard)
   @Get('/:id')
   async getOne(
     @Param() param: GetProductParamDto,
     @Query() query: GetProductQueryDto,
+    @Request() req: any,
   ) {
     const { id } = param;
     const { lang } = query;
+    const {
+      user: { userId },
+    } = req;
 
-    return this.productService.getOne(id, lang);
+    return this.productService.getOne(id, lang, userId);
   }
 
   @UseGuards(AuthGuard('jwt'))
