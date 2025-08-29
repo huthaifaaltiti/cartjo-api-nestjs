@@ -4,22 +4,38 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-
-import { Model, Types } from 'mongoose';
+import mongoose, { Model, Types } from 'mongoose';
 import { getMessage } from 'src/common/utils/translator';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
-// import { AddWishListItemDto } from './dto/add-wishlist-item.dto';
 import { Locale } from 'src/types/Locale';
-import { DataResponse } from 'src/types/service-response.type';
-import { AddWishListItemBodyDto } from './dto/add-wishlist-item.dto';
+import { BaseResponse, DataResponse } from 'src/types/service-response.type';
+import { WishListItemBodyDto } from './dto/wishlist-item.dto';
+import { WishListItemsBodyDto } from './dto/wishlist-items.dto';
+import { Product, ProductDocument } from 'src/schemas/product.schema';
 
 @Injectable()
 export class WishListService {
   constructor(
     @InjectModel(WishList.name)
     private readonly wishListModel: Model<WishListDocument>,
+
+    @InjectModel(Product.name)
+    private productModel: Model<ProductDocument>,
   ) {}
+
+  isValidProduct = async (
+    prodId: mongoose.Types.ObjectId,
+    lang: Locale,
+  ): Promise<void> => {
+    const product = await this.productModel.findOne({
+      _id: new Types.ObjectId(prodId),
+    });
+
+    if (!product) {
+      throw new NotFoundException(getMessage('wishList_notFoundProduct', lang));
+    }
+  };
 
   async getWishList(
     requestingUser: any,
@@ -76,9 +92,14 @@ export class WishListService {
     };
   }
 
-  async addWishListItem(requestingUser: any, dto: AddWishListItemBodyDto) {
+  async addWishListItem(
+    requestingUser: any,
+    dto: WishListItemBodyDto,
+  ): Promise<DataResponse<WishList>> {
     const { lang, productId } = dto;
     validateUserRoleAccess(requestingUser, lang);
+
+    this.isValidProduct(productId, lang);
 
     let wishList = await this.wishListModel.findOne({
       user: requestingUser.userId,
@@ -109,35 +130,79 @@ export class WishListService {
     };
   }
 
-  // // ✅ Remove single product
-  // async removeWishListItem(user: any, productId: string) {
-  //   const wishList = await this.wishListModel.findOne({ user: user._id });
-  //   if (!wishList) throw new NotFoundException('Wishlist not found');
+  async removeWishListItem(
+    requestingUser: any,
+    dto: WishListItemBodyDto,
+  ): Promise<DataResponse<WishList>> {
+    const { lang, productId } = dto;
 
-  //   wishList.products = wishList.products.filter(
-  //     p => p.toString() !== productId,
-  //   );
-  //   wishList.updatedBy = user._id;
-  //   await wishList.save();
+    validateUserRoleAccess(requestingUser, lang);
 
-  //   return {
-  //     isSuccess: true,
-  //     message: 'Product removed from wishlist successfully',
-  //   };
-  // }
+    this.isValidProduct(productId, lang);
 
-  // // ✅ Remove all wishlist items
-  // async removeAllWishListItems(user: any) {
-  //   const wishList = await this.wishListModel.findOne({ user: user._id });
-  //   if (!wishList) throw new NotFoundException('Wishlist not found');
+    const wishList = await this.wishListModel.findOne({
+      user: requestingUser.userId,
+    });
 
-  //   wishList.products = [];
-  //   wishList.updatedBy = user._id;
-  //   await wishList.save();
+    if (!wishList) {
+      throw new NotFoundException(getMessage('wishList_notFound', lang));
+    }
 
-  //   return {
-  //     isSuccess: true,
-  //     message: 'All products removed from wishlist successfully',
-  //   };
-  // }
+    const productObjectId = new Types.ObjectId(productId);
+
+    // Remove product
+    const newProducts = wishList.products.filter(
+      (p: any) => !p.equals(productObjectId),
+    );
+
+    // If no product was removed
+    if (newProducts.length === wishList.products.length) {
+      throw new BadRequestException(
+        getMessage('wishList_productNotInWishList', lang),
+      );
+    }
+
+    wishList.products = newProducts;
+    wishList.updatedBy = requestingUser.userId;
+    await wishList.save();
+
+    return {
+      isSuccess: true,
+      message: getMessage('wishList_productRemovedSuccessfully', lang),
+      data: wishList,
+    };
+  }
+
+  async removeAllWishListItems(
+    requestingUser: any,
+    dto: WishListItemsBodyDto,
+  ): Promise<BaseResponse> {
+    const { lang } = dto;
+    const { userId } = requestingUser;
+
+    validateUserRoleAccess(requestingUser, lang);
+
+    const wishList = await this.wishListModel.findOne({
+      user: userId,
+    });
+
+    if (!wishList) {
+      throw new NotFoundException(getMessage('wishList_notFound', lang));
+    }
+
+    if (wishList.products.length === 0) {
+      throw new BadRequestException(
+        getMessage('wishList_wishListWithNoItems', lang),
+      );
+    }
+
+    wishList.products = [];
+    wishList.updatedBy = userId;
+    await wishList.save();
+
+    return {
+      isSuccess: true,
+      message: getMessage('wishList_productsRemovedSuccessfully', lang),
+    };
+  }
 }

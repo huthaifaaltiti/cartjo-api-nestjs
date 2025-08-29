@@ -14,7 +14,8 @@ import {
 import { WishListService } from './wishList.service';
 import { AuthGuard } from '@nestjs/passport';
 import { GetQueryDto } from './dto/get-one.dto';
-import { AddWishListItemBodyDto } from './dto/add-wishlist-item.dto';
+import { WishListItemBodyDto } from './dto/wishlist-item.dto';
+import { WishListItemsBodyDto } from './dto/wishlist-items.dto';
 // import { AddWishListItemDto } from './dto/add-wishlist-item.dto';
 
 @Controller('/api/v1/wish-list')
@@ -37,30 +38,32 @@ export class WishListController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('add')
-  async addWishListItem(
-    @Body() dto: AddWishListItemBodyDto,
-    @Request() req: any,
-  ) {
+  async addWishListItem(@Body() dto: WishListItemBodyDto, @Request() req: any) {
     const { user } = req;
 
     return this.wishListService.addWishListItem(user, dto);
   }
 
-  // // ✅ Remove one product
-  // @UseGuards(AuthGuard('jwt'))
-  // @Delete('remove/:productId')
-  // async removeWishListItem(
-  //   @Param('productId') productId: string,
-  //   @Request() req: any,
-  // ) {
-  //   return this.wishListService.removeWishListItem(req.user, productId);
-  // }
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('remove')
+  async removeWishListItem(
+    @Body() dto: WishListItemBodyDto,
+    @Request() req: any,
+  ) {
+    const { user } = req;
 
-  // // ✅ Remove all
-  // @UseGuards(AuthGuard('jwt'))
-  // @Delete('remove-all')
+    return this.wishListService.removeWishListItem(user, dto);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('remove-all')
   // @HttpCode(HttpStatus.NO_CONTENT)
-  // async removeAllWishListItems(@Request() req: any) {
-  //   return this.wishListService.removeAllWishListItems(req.user);
-  // }
+  async removeAllWishListItems(
+    @Body() dto: WishListItemsBodyDto,
+    @Request() req: any,
+  ) {
+    const { user } = req;
+
+    return this.wishListService.removeAllWishListItems(user, dto);
+  }
 }
