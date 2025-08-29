@@ -116,6 +116,13 @@ export class WishListService {
         wishList.products.push(new Types.ObjectId(productId));
         wishList.updatedBy = requestingUser.userId;
         await wishList.save();
+
+        // Update product as wish-listed
+        const product = await this.productModel.findById(productId);
+        if (product) {
+          product.isWishListed = true;
+          await product.save();
+        }
       } else {
         throw new BadRequestException(
           getMessage('wishList_productIsInWishList', lang),
@@ -138,7 +145,7 @@ export class WishListService {
 
     validateUserRoleAccess(requestingUser, lang);
 
-    this.isValidProduct(productId, lang);
+    await this.isValidProduct(productId, lang);
 
     const wishList = await this.wishListModel.findOne({
       user: requestingUser.userId,
@@ -166,6 +173,13 @@ export class WishListService {
     wishList.updatedBy = requestingUser.userId;
     await wishList.save();
 
+    // Update product as un-wish-listed
+    const product = await this.productModel.findById(productId);
+    if (product) {
+      product.isWishListed = false;
+      await product.save();
+    }
+
     return {
       isSuccess: true,
       message: getMessage('wishList_productRemovedSuccessfully', lang),
@@ -176,15 +190,13 @@ export class WishListService {
   async removeAllWishListItems(
     requestingUser: any,
     dto: WishListItemsBodyDto,
-  ): Promise<BaseResponse> {
+  ): Promise<DataResponse<WishList>> {
     const { lang } = dto;
     const { userId } = requestingUser;
 
     validateUserRoleAccess(requestingUser, lang);
 
-    const wishList = await this.wishListModel.findOne({
-      user: userId,
-    });
+    const wishList = await this.wishListModel.findOne({ user: userId });
 
     if (!wishList) {
       throw new NotFoundException(getMessage('wishList_notFound', lang));
@@ -196,6 +208,13 @@ export class WishListService {
       );
     }
 
+    // Un-wishlist all products in one bulk update
+    await this.productModel.updateMany(
+      { _id: { $in: wishList.products } },
+      { $set: { isWishListed: false } },
+    );
+
+    // Clear wishlist
     wishList.products = [];
     wishList.updatedBy = userId;
     await wishList.save();
@@ -203,6 +222,7 @@ export class WishListService {
     return {
       isSuccess: true,
       message: getMessage('wishList_productsRemovedSuccessfully', lang),
+      data: wishList,
     };
   }
 }

@@ -57,6 +57,9 @@ export class Product {
   @Prop({ default: 0 })
   favoriteCount: number;
 
+  @Prop({ default: false, required: false })
+  isWishListed: boolean;
+
   @Prop({
     required: true,
   })

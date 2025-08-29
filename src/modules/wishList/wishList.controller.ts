@@ -4,9 +4,6 @@ import {
   Post,
   Delete,
   Body,
-  Param,
-  HttpCode,
-  HttpStatus,
   UseGuards,
   Query,
   Request,
@@ -16,7 +13,6 @@ import { AuthGuard } from '@nestjs/passport';
 import { GetQueryDto } from './dto/get-one.dto';
 import { WishListItemBodyDto } from './dto/wishlist-item.dto';
 import { WishListItemsBodyDto } from './dto/wishlist-items.dto';
-// import { AddWishListItemDto } from './dto/add-wishlist-item.dto';
 
 @Controller('/api/v1/wish-list')
 export class WishListController {
@@ -57,7 +53,6 @@ export class WishListController {
 
   @UseGuards(AuthGuard('jwt'))
   @Delete('remove-all')
-  // @HttpCode(HttpStatus.NO_CONTENT)
   async removeAllWishListItems(
     @Body() dto: WishListItemsBodyDto,
     @Request() req: any,
