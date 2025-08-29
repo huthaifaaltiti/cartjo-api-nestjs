@@ -50,8 +50,6 @@ export class WishListService {
   ): Promise<DataResponse<WishList>> {
     const { lang = 'en', limit = '10', lastId, search } = params;
 
-    validateUserRoleAccess(requestingUser, lang);
-
     const query: any = { user: requestingUser.userId };
 
     if (lastId) {
