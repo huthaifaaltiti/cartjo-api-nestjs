@@ -77,9 +77,7 @@ export class ProductController {
   @Get('all')
   async getAll(@Query() query: GetProductsQueryDto, @Request() req: any) {
     const { lang, limit, lastId, search } = query;
-    const {
-      user: { userId },
-    } = req;
+    const userId = req.user?.userId; // userId will be undefined if no logged user, user => null
 
     return this.productService.getAll(
       {
@@ -101,9 +99,7 @@ export class ProductController {
   ) {
     const { id } = param;
     const { lang } = query;
-    const {
-      user: { userId },
-    } = req;
+    const userId = req.user?.userId;
 
     return this.productService.getOne(id, lang, userId);
   }
