@@ -163,6 +163,7 @@
   "wishList_productAddedToWishlistSuccessfully": "Product added to wishlist successfully",
   "wishList_productIsInWishList": "Product is already wish-listed",
   "wishList_notFound": "Wishlist not found",
+  "wishList_productAddedSuccessfully": "Product added to wishlist successfully",
   "wishList_productRemovedSuccessfully": "Product removed from wishlist successfully",
   "wishList_productIsNotInWishList": "Product does not belong to your wishlist",
   "wishList_wishListWithNoItems": "Wish List with no items",

@@ -161,6 +161,7 @@
   "wishList_productIsInWishList": "المنتج موجود بالفعل في قائمة الأمنيات",
   "wishList_notFound": "لم يتم العثور على قائمة الأمنيات",
   "wishList_productRemovedSuccessfully": "تمت إزالة المنتج من قائمة الأمنيات بنجاح",
+  "wishList_productAddedSuccessfully": "تمت إضافة المنتج إلى قائمة الأمنيات بنجاح",
   "wishList_productIsNotInWishList": "المنتج لا ينتمي إلى قائمة أمنياتك",
   "wishList_wishListWithNoItems": "قائمة الأمنيات فارغة",
   "wishList_productNotInWishList": "المنتج غير موجود في قائمة الأمنيات",

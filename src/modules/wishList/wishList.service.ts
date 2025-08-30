@@ -122,7 +122,7 @@ export class WishListService {
 
     return {
       isSuccess: true,
-      message: getMessage('wishList_wishListRetrievedSuccessfully', lang),
+      message: getMessage('wishList_productAddedSuccessfully', lang),
       data: wishList,
     };
   }
