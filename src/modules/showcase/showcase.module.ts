@@ -13,6 +13,7 @@ import {
   TypeHintConfig,
   TypeHintConfigSchema,
 } from 'src/schemas/typeHintConfig.schema';
+import { WishList, WishListSchema } from 'src/schemas/wishList.schema';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import {
       { name: ShowCase.name, schema: ShowCaseSchema },
       { name: Product.name, schema: ProductSchema },
       { name: TypeHintConfig.name, schema: TypeHintConfigSchema },
+      { name: WishList.name, schema: WishListSchema },
     ]),
     JwtModule,
     ProductModule,

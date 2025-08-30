@@ -4,25 +4,19 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import mongoose, { Model, Types } from 'mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
-
 import { getMessage } from 'src/common/utils/translator';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
-import { activateDefaultIfAllInactive } from 'src/common/functions/helpers/activateDefaultIfAllInactive.helper';
-
 import { TypeHintConfigService } from '../typeHintConfig/typeHintConfig.service';
-
 import { ShowCase, ShowCaseDocument } from 'src/schemas/showcase.schema';
 import { Product, ProductDocument } from 'src/schemas/product.schema';
-
 import { Locale } from 'src/types/Locale';
 import {
   BaseResponse,
   DataListResponse,
   DataResponse,
 } from 'src/types/service-response.type';
-
 import { CreateDto } from './dto/create.dto';
 import { UpdateDto } from './dto/update.dto';
 import { DeleteDto } from './dto/delete.dto';
@@ -31,6 +25,7 @@ import {
   TypeHintConfig,
   TypeHintConfigDocument,
 } from 'src/schemas/typeHintConfig.schema';
+import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
 
 export class ShowcaseService {
   constructor(
@@ -39,6 +34,9 @@ export class ShowcaseService {
 
     @InjectModel(Product.name)
     private productModel: Model<ProductDocument>,
+
+    @InjectModel(WishList.name)
+    private wishListModel: Model<WishListDocument>,
 
     @InjectModel(TypeHintConfig.name)
     private typeHintConfigModel: Model<TypeHintConfigDocument>,
@@ -87,6 +85,7 @@ export class ShowcaseService {
       endDate?: string;
     },
   ): Promise<DataListResponse<ShowCase>> {
+
     validateUserRoleAccess(requestingUser, params.lang);
 
     const {
@@ -160,6 +159,7 @@ export class ShowcaseService {
   async getActiveOnes(
     lang?: Locale,
     limit: number = 3,
+    userId?: mongoose.Types.ObjectId,
   ): Promise<DataListResponse<ShowCase>> {
     const now = new Date();
 
@@ -196,6 +196,18 @@ export class ShowcaseService {
       );
     }
 
+    // wishListed products
+    let wishListProducts: string[] = [];
+    if (userId) {
+      const wishList = await this.wishListModel
+        .findOne({ user: userId })
+        .lean();
+
+      if (wishList) {
+        wishListProducts = wishList.products.map(p => p.toString());
+      }
+    }
+
     const usedProductIds = new Set<string>();
     const populatedShowcases = [];
 
@@ -222,9 +234,15 @@ export class ShowcaseService {
       // Add product IDs to the used set
       products.forEach(p => usedProductIds.add(p._id.toString()));
 
+      // enrichedProducts
+      const enrichedProducts = products.map(p => ({
+        ...p,
+        isWishListed: wishListProducts.includes(p._id.toString()),
+      }));
+
       populatedShowcases.push({
         ...showcase,
-        items: products,
+        items: enrichedProducts,
       });
     }
 

@@ -6,13 +6,11 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import slugify from 'slugify';
 import mongoose, { Model, Types } from 'mongoose';
-
 import {
   BaseResponse,
   DataListResponse,
   DataResponse,
 } from 'src/types/service-response.type';
-
 import { Product, ProductDocument } from 'src/schemas/product.schema';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductBodyDto } from './dto/update-product.dto';
@@ -21,10 +19,8 @@ import { Category, CategoryDocument } from 'src/schemas/category.schema';
 import { DeleteProductDto } from './dto/delete-product.dto';
 import { UnDeleteProductBodyDto } from './dto/unDelete-product.dto';
 import { Modules } from 'src/enums/appModules.enum';
-
 import { MediaService } from '../media/media.service';
 import { TypeHintConfigService } from '../typeHintConfig/typeHintConfig.service';
-
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';

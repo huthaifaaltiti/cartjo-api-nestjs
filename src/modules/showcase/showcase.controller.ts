@@ -21,7 +21,11 @@ import { UpdateDto } from './dto/update.dto';
 import { DeleteDto, DeleteParamsDto } from './dto/delete.dto';
 import { GetActiveOnesQueryDto } from './dto/get-active-ones.dto';
 import { UnDeleteDto, UnDeleteParamsDto } from './dto/unDelete.dto';
-import { UpdateStatusBodyDto, UpdateStatusParamsDto } from './dto/update-active-status.dto';
+import {
+  UpdateStatusBodyDto,
+  UpdateStatusParamsDto,
+} from './dto/update-active-status.dto';
+import { OptionalJwtAuthGuard } from 'src/common/utils/optionalJwtAuthGuard';
 
 @Controller('/api/v1/showcase')
 export class ShowcaseController {
@@ -43,11 +47,16 @@ export class ShowcaseController {
     });
   }
 
+  @UseGuards(OptionalJwtAuthGuard)
   @Get('active')
-  async getActiveOnes(@Query() query: GetActiveOnesQueryDto) {
+  async getActiveOnes(
+    @Query() query: GetActiveOnesQueryDto,
+    @Request() req: any,
+  ) {
     const { lang, limit } = query;
+    const userId = req.user?.userId;
 
-    return this.showcaseService.getActiveOnes(lang, limit);
+    return this.showcaseService.getActiveOnes(lang, limit, userId);
   }
 
   @UseGuards(AuthGuard('jwt'))
