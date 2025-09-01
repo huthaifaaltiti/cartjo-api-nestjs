@@ -14,11 +14,8 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
-
 import { UserService } from './user.service';
-
 import { ALLOWED_AUTHENTICATED_ROLES } from 'src/common/constants/roles.constants';
-
 import { GetUsersStatsQueryDto } from './dto/get-users-stats.dto';
 import { GetAllUsersQueryDto } from './dto/get-all-users-query.dto';
 import { DeleteUserBodyDto } from './dto/delete-user-body.dto';
