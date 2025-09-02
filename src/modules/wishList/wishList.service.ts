@@ -83,6 +83,14 @@ export class WishListService {
       wishList = wishList.toObject();
     }
 
+    // Enrich products with `isWishListed`
+    if (wishList.products?.length) {
+      wishList.products = wishList.products.map((p: any) => ({
+        ...p,
+        isWishListed: true,
+      }));
+    }
+
     return {
       isSuccess: true,
       message: getMessage('wishList_wishListRetrievedSuccessfully', lang),

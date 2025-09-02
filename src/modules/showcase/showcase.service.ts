@@ -239,10 +239,6 @@ export class ShowcaseService {
         isWishListed: wishListProducts.includes(p._id.toString()),
       }));
 
-      console.log({ userId });
-      console.log({ wishListProducts });
-      console.log({ enrichedProducts });
-
       populatedShowcases.push({
         ...showcase,
         items: enrichedProducts,
