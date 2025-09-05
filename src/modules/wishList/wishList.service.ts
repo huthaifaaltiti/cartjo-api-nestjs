@@ -37,6 +37,69 @@ export class WishListService {
     }
   };
 
+  // async getWishList(
+  //   requestingUser: any,
+  //   params: {
+  //     lang?: Locale;
+  //     limit?: number;
+  //     lastId?: string;
+  //     search?: string;
+  //     startDate?: string;
+  //     endDate?: string;
+  //   },
+  // ): Promise<DataResponse<WishList>> {
+  //   const { lang = 'en', limit = '10', lastId, search } = params;
+
+  //   const query: any = { user: requestingUser.userId };
+
+  //   if (lastId) {
+  //     query._id = { $lt: new Types.ObjectId(lastId) };
+  //   }
+
+  //   console.log({ query });
+
+  //   // ✅ Get wishlist with paginated products
+  //   let wishList = await this.wishListModel
+  //     .findOne(query)
+  //     .populate({
+  //       path: 'products',
+  //       match: search ? { name: new RegExp(search, 'i') } : {},
+  //       options: {
+  //         limit: Number(limit),
+  //         sort: { _id: -1 },
+  //       },
+  //     })
+  //     .populate('deletedBy', 'firstName lastName email _id')
+  //     .populate('createdBy', 'firstName lastName email _id')
+  //     .populate('updatedBy', 'firstName lastName email _id')
+  //     .populate('restoredBy', 'firstName lastName email _id')
+  //     .select('-__v')
+  //     .lean();
+
+  //   if (!wishList) {
+  //     // auto create wishlist if not exist
+  //     wishList = await this.wishListModel.create({
+  //       user: requestingUser.userId,
+  //       createdBy: requestingUser.userId,
+  //     });
+  //     wishList = wishList.toObject();
+  //   }
+
+  //   // Enrich products with `isWishListed`
+  //   if (wishList.products?.length) {
+  //     wishList.products = wishList.products.map((p: any) => ({
+  //       ...p,
+  //       isWishListed: true,
+  //     }));
+  //   }
+
+  //   return {
+  //     isSuccess: true,
+  //     message: getMessage('wishList_wishListRetrievedSuccessfully', lang),
+  //     data: wishList,
+  //   };
+  // }
+
   async getWishList(
     requestingUser: any,
     params: {
@@ -47,26 +110,12 @@ export class WishListService {
       startDate?: string;
       endDate?: string;
     },
-  ): Promise<DataResponse<WishList>> {
-    const { lang = 'en', limit = '10', lastId, search } = params;
+  ): Promise<DataResponse<any>> {
+    const { lang = 'en', limit = 10, lastId, search } = params;
 
-    const query: any = { user: requestingUser.userId };
-
-    if (lastId) {
-      query._id = { $lt: new Types.ObjectId(lastId) };
-    }
-
-    // ✅ Get wishlist with paginated products
+    // ✅ Always get wishlist for this user
     let wishList = await this.wishListModel
-      .findOne(query)
-      .populate({
-        path: 'products',
-        match: search ? { name: new RegExp(search, 'i') } : {},
-        options: {
-          limit: Number(limit),
-          sort: { _id: -1 },
-        },
-      })
+      .findOne({ user: requestingUser.userId })
       .populate('deletedBy', 'firstName lastName email _id')
       .populate('createdBy', 'firstName lastName email _id')
       .populate('updatedBy', 'firstName lastName email _id')
@@ -83,18 +132,46 @@ export class WishListService {
       wishList = wishList.toObject();
     }
 
-    // Enrich products with `isWishListed`
-    if (wishList.products?.length) {
-      wishList.products = wishList.products.map((p: any) => ({
-        ...p,
-        isWishListed: true,
-      }));
+    // ✅ Query all products in this user's wishlist
+    const baseQuery: any = {
+      _id: { $in: wishList.products || [] },
+    };
+
+    if (search) {
+      baseQuery.name = new RegExp(search, 'i');
     }
+
+    // ✅ Count all products for this user (without pagination)
+    const totalProductsCount =
+      await this.productModel.countDocuments(baseQuery);
+
+    // ✅ Apply pagination separately
+    const paginatedQuery = { ...baseQuery };
+
+    if (lastId) {
+      paginatedQuery._id = { $lt: new Types.ObjectId(lastId) };
+    }
+
+    const products = await this.productModel
+      .find(paginatedQuery)
+      .sort({ _id: -1 })
+      .limit(Number(limit))
+      .lean();
+
+    // Mark products as wishlisted
+    const enrichedProducts = products.map((p: any) => ({
+      ...p,
+      isWishListed: true,
+    }));
 
     return {
       isSuccess: true,
       message: getMessage('wishList_wishListRetrievedSuccessfully', lang),
-      data: wishList,
+      data: {
+        ...wishList,
+        productsCount: totalProductsCount, // ✅ all products for this user
+        products: enrichedProducts, // ✅ paginated products
+      },
     };
   }
 
