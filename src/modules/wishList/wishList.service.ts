@@ -37,69 +37,6 @@ export class WishListService {
     }
   };
 
-  // async getWishList(
-  //   requestingUser: any,
-  //   params: {
-  //     lang?: Locale;
-  //     limit?: number;
-  //     lastId?: string;
-  //     search?: string;
-  //     startDate?: string;
-  //     endDate?: string;
-  //   },
-  // ): Promise<DataResponse<WishList>> {
-  //   const { lang = 'en', limit = '10', lastId, search } = params;
-
-  //   const query: any = { user: requestingUser.userId };
-
-  //   if (lastId) {
-  //     query._id = { $lt: new Types.ObjectId(lastId) };
-  //   }
-
-  //   console.log({ query });
-
-  //   // ✅ Get wishlist with paginated products
-  //   let wishList = await this.wishListModel
-  //     .findOne(query)
-  //     .populate({
-  //       path: 'products',
-  //       match: search ? { name: new RegExp(search, 'i') } : {},
-  //       options: {
-  //         limit: Number(limit),
-  //         sort: { _id: -1 },
-  //       },
-  //     })
-  //     .populate('deletedBy', 'firstName lastName email _id')
-  //     .populate('createdBy', 'firstName lastName email _id')
-  //     .populate('updatedBy', 'firstName lastName email _id')
-  //     .populate('restoredBy', 'firstName lastName email _id')
-  //     .select('-__v')
-  //     .lean();
-
-  //   if (!wishList) {
-  //     // auto create wishlist if not exist
-  //     wishList = await this.wishListModel.create({
-  //       user: requestingUser.userId,
-  //       createdBy: requestingUser.userId,
-  //     });
-  //     wishList = wishList.toObject();
-  //   }
-
-  //   // Enrich products with `isWishListed`
-  //   if (wishList.products?.length) {
-  //     wishList.products = wishList.products.map((p: any) => ({
-  //       ...p,
-  //       isWishListed: true,
-  //     }));
-  //   }
-
-  //   return {
-  //     isSuccess: true,
-  //     message: getMessage('wishList_wishListRetrievedSuccessfully', lang),
-  //     data: wishList,
-  //   };
-  // }
-
   async getWishList(
     requestingUser: any,
     params: {
@@ -181,7 +118,7 @@ export class WishListService {
   ): Promise<DataResponse<WishList>> {
     const { lang, productId } = dto;
 
-    this.isValidProduct(productId, lang);
+    await this.isValidProduct(productId, lang);
 
     let wishList = await this.wishListModel.findOne({
       user: requestingUser.userId,
@@ -204,6 +141,12 @@ export class WishListService {
         );
       }
     }
+
+    // ✅ Increment favoriteCount atomically
+    await this.productModel.updateOne(
+      { _id: productId },
+      { $inc: { favoriteCount: 1 } },
+    );
 
     return {
       isSuccess: true,
@@ -230,12 +173,10 @@ export class WishListService {
 
     const productObjectId = new Types.ObjectId(productId);
 
-    // Remove product
     const newProducts = wishList.products.filter(
       (p: any) => !p.equals(productObjectId),
     );
 
-    // If no product was removed
     if (newProducts.length === wishList.products.length) {
       throw new BadRequestException(
         getMessage('wishList_productNotInWishList', lang),
@@ -245,6 +186,12 @@ export class WishListService {
     wishList.products = newProducts;
     wishList.updatedBy = requestingUser.userId;
     await wishList.save();
+
+    // ✅ Decrement favoriteCount atomically, but not below zero
+    await this.productModel.updateOne(
+      { _id: productId, favoriteCount: { $gt: 0 } },
+      { $inc: { favoriteCount: -1 } },
+    );
 
     return {
       isSuccess: true,
