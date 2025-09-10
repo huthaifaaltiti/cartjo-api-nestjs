@@ -19,7 +19,6 @@ export class WishListService {
   constructor(
     @InjectModel(WishList.name)
     private readonly wishListModel: Model<WishListDocument>,
-
     @InjectModel(Product.name)
     private productModel: Model<ProductDocument>,
   ) {}
@@ -31,7 +30,6 @@ export class WishListService {
     const product = await this.productModel.findOne({
       _id: new Types.ObjectId(prodId),
     });
-
     if (!product) {
       throw new NotFoundException(getMessage('wishList_notFoundProduct', lang));
     }
@@ -50,7 +48,7 @@ export class WishListService {
   ): Promise<DataResponse<any>> {
     const { lang = 'en', limit = 10, lastId, search } = params;
 
-    // ✅ Always get wishlist for this user
+    // Get wishlist for this user
     let wishList = await this.wishListModel
       .findOne({ user: requestingUser.userId })
       .populate('deletedBy', 'firstName lastName email _id')
@@ -61,7 +59,7 @@ export class WishListService {
       .lean();
 
     if (!wishList) {
-      // auto create wishlist if not exist
+      // Auto create wishlist if not exist
       wishList = await this.wishListModel.create({
         user: requestingUser.userId,
         createdBy: requestingUser.userId,
@@ -69,24 +67,44 @@ export class WishListService {
       wishList = wishList.toObject();
     }
 
-    // ✅ Query all products in this user's wishlist
+    // If wishlist is empty, return empty result
+    if (!wishList.products || wishList.products.length === 0) {
+      return {
+        isSuccess: true,
+        message: getMessage('wishList_wishListRetrievedSuccessfully', lang),
+        data: {
+          ...wishList,
+          productsCount: 0,
+          products: [],
+        },
+      };
+    }
+
+    // Build query for products in wishlist
     const baseQuery: any = {
-      _id: { $in: wishList.products || [] },
+      _id: { $in: wishList.products },
+      isDeleted: { $ne: true }, // Only active products
+      isActive: true,
     };
 
     if (search) {
-      baseQuery.name = new RegExp(search, 'i');
+      baseQuery.$or = [
+        { 'name.en': new RegExp(search, 'i') },
+        { 'name.ar': new RegExp(search, 'i') },
+      ];
     }
 
-    // ✅ Count all products for this user (without pagination)
+    // Count total products matching the criteria
     const totalProductsCount =
       await this.productModel.countDocuments(baseQuery);
 
-    // ✅ Apply pagination separately
+    // Apply pagination
     const paginatedQuery = { ...baseQuery };
-
     if (lastId) {
-      paginatedQuery._id = { $lt: new Types.ObjectId(lastId) };
+      paginatedQuery._id = {
+        $in: wishList.products,
+        $lt: new Types.ObjectId(lastId),
+      };
     }
 
     const products = await this.productModel
@@ -106,8 +124,8 @@ export class WishListService {
       message: getMessage('wishList_wishListRetrievedSuccessfully', lang),
       data: {
         ...wishList,
-        productsCount: totalProductsCount, // ✅ all products for this user
-        products: enrichedProducts, // ✅ paginated products
+        productsCount: totalProductsCount,
+        products: enrichedProducts,
       },
     };
   }
@@ -125,24 +143,31 @@ export class WishListService {
     });
 
     if (!wishList) {
+      // Create new wishlist
       wishList = await this.wishListModel.create({
         user: requestingUser.userId,
         createdBy: requestingUser.userId,
         products: [productId],
       });
     } else {
-      if (!wishList.products.includes(new Types.ObjectId(productId))) {
-        wishList.products.push(new Types.ObjectId(productId));
-        wishList.updatedBy = requestingUser.userId;
-        await wishList.save();
-      } else {
+      // Check if product already exists
+      const productExists = wishList.products.some(p =>
+        p.equals(new Types.ObjectId(productId)),
+      );
+
+      if (productExists) {
         throw new BadRequestException(
           getMessage('wishList_productIsInWishList', lang),
         );
       }
+
+      // Add product to wishlist
+      wishList.products.push(new Types.ObjectId(productId));
+      wishList.updatedBy = requestingUser.userId;
+      await wishList.save();
     }
 
-    // ✅ Increment favoriteCount atomically
+    // Increment favoriteCount atomically
     await this.productModel.updateOne(
       { _id: productId },
       { $inc: { favoriteCount: 1 } },
@@ -173,21 +198,23 @@ export class WishListService {
 
     const productObjectId = new Types.ObjectId(productId);
 
-    const newProducts = wishList.products.filter(
-      (p: any) => !p.equals(productObjectId),
+    // Check if product exists in wishlist
+    const productIndex = wishList.products.findIndex((p: any) =>
+      p.equals(productObjectId),
     );
 
-    if (newProducts.length === wishList.products.length) {
+    if (productIndex === -1) {
       throw new BadRequestException(
         getMessage('wishList_productNotInWishList', lang),
       );
     }
 
-    wishList.products = newProducts;
+    // Remove product from wishlist
+    wishList.products.splice(productIndex, 1);
     wishList.updatedBy = requestingUser.userId;
     await wishList.save();
 
-    // ✅ Decrement favoriteCount atomically, but not below zero
+    // Decrement favoriteCount atomically, but not below zero
     await this.productModel.updateOne(
       { _id: productId, favoriteCount: { $gt: 0 } },
       { $inc: { favoriteCount: -1 } },
@@ -219,16 +246,22 @@ export class WishListService {
       );
     }
 
-    // Un-wishlist all products in one bulk update
-    await this.productModel.updateMany(
-      { _id: { $in: wishList.products } },
-      { $set: { isWishListed: false } },
-    );
+    // Store product IDs before clearing
+    const productIds = wishList.products;
 
-    // Clear wishlist
+    // Clear wishlist first
     wishList.products = [];
     wishList.updatedBy = userId;
     await wishList.save();
+
+    // Decrement favoriteCount for all products that were in wishlist
+    await this.productModel.updateMany(
+      {
+        _id: { $in: productIds },
+        favoriteCount: { $gt: 0 },
+      },
+      { $inc: { favoriteCount: -1 } },
+    );
 
     return {
       isSuccess: true,
