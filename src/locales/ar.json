@@ -71,6 +71,8 @@
   "products_productWithSlugAlreadyExist": "يوجد منتج بهذا المعرف بالفعل",
   "products_productWithThisNameOrDescAlreadyExist": "يوجد منتج بنفس الاسم أو الوصف بالفعل",
   "products_productNotFound": "المنتج غير موجود",
+  "products_productsNotFound": "المنتجات غير متوفرة",
+  "products_requiredCategoryId": "معرَّف التصنيف الرئيسي مطلوب",
   "products_productUpdatedSuccessfully": "تم تحديث المنتج بنجاح",
   "products_productsRetrievedSuccessfully": "تم استرجاع المنتجات بنجاح",
   "products_productRetrievedSuccessfully": "تم استرجاع المنتج بنجاح",

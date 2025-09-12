@@ -92,6 +92,25 @@ export class ProductController {
   }
 
   @UseGuards(OptionalJwtAuthGuard)
+  @Get('categories-picks')
+  async getCategoriesPicks(
+    @Query() query: GetProductsQueryDto,
+    @Request() req: any,
+  ) {
+    const { lang, limit, categoryId } = query;
+    const userId = req?.user?.userId;
+
+    return this.productService.getCategoriesPicks(
+      {
+        lang,
+        limit,
+        categoryId,
+      },
+      userId,
+    );
+  }
+
+  @UseGuards(OptionalJwtAuthGuard)
   @Get('/:id')
   async getOne(
     @Param() param: GetProductParamDto,

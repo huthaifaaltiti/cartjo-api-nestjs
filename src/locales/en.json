@@ -72,6 +72,8 @@
   "products_productWithSlugAlreadyExist": "Product with this slug already exists",
   "products_productWithThisNameOrDescAlreadyExist": "Product with this slug or description already exists",
   "products_productNotFound": "Product not found",
+  "products_productsNotFound": "Products not found",
+  "products_requiredCategoryId": "Category ID is required",
   "products_productUpdatedSuccessfully": "Product has been updated successfully",
   "products_productsRetrievedSuccessfully": "Products Retrieved Successfully",
   "products_productRetrievedSuccessfully": "Product retrieved successfully",

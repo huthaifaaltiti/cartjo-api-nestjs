@@ -114,6 +114,68 @@ export class ProductService {
     };
   }
 
+  async getCategoriesPicks(
+    params: {
+      lang?: Locale;
+      limit?: string;
+      categoryId?: string;
+    },
+    userId?: mongoose.Types.ObjectId,
+  ): Promise<DataListResponse<Product>> {
+    const { lang = 'en', limit = 10, categoryId } = params;
+
+    if (!categoryId) {
+      throw new BadRequestException(
+        getMessage('products_requiredCategoryId', lang),
+      );
+    }
+
+    // search active items bu category
+    const findQuery: any = {
+      isActive: true,
+      isDeleted: false,
+      categoryId: new Types.ObjectId(categoryId),
+    };
+
+    // ✅ Get random products each request
+    const products = await this.productModel
+      .aggregate([
+        { $match: findQuery },
+        { $sample: { size: Number(limit) } }, // randomize products
+      ])
+      .exec();
+
+    if (!products.length) {
+      throw new NotFoundException(
+        getMessage('products_productsNotFound', lang),
+      );
+    }
+
+    // ✅ Fetch wishlist for user
+    let wishListProducts: string[] = [];
+    if (userId) {
+      const wishList = await this.wishListModel
+        .findOne({ user: userId })
+        .lean();
+      if (wishList) {
+        wishListProducts = wishList.products.map(p => p.toString());
+      }
+    }
+
+    // ✅ Enrich with wishlist status
+    const enrichedProducts = products.map((p: any) => ({
+      ...p,
+      isWishListed: wishListProducts.includes(p._id.toString()),
+    }));
+
+    return {
+      isSuccess: true,
+      message: getMessage('products_productsRetrievedSuccessfully', lang),
+      dataCount: enrichedProducts.length,
+      data: enrichedProducts,
+    };
+  }
+
   async getOne(
     id: string,
     lang?: Locale,
