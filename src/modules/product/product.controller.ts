@@ -76,7 +76,7 @@ export class ProductController {
   @UseGuards(OptionalJwtAuthGuard)
   @Get('all')
   async getAll(@Query() query: GetProductsQueryDto, @Request() req: any) {
-    const { lang, limit, lastId, search } = query;
+    const { lang, limit, lastId, search, categoryId } = query;
     const userId = req.user?.userId; // userId will be undefined if no logged user, user => null
 
     return this.productService.getAll(
@@ -85,6 +85,7 @@ export class ProductController {
         limit,
         lastId,
         search,
+        categoryId,
       },
       userId,
     );

@@ -49,15 +49,20 @@ export class ProductService {
       limit?: string;
       lastId?: string;
       search?: string;
+      categoryId?: string;
     },
     userId?: mongoose.Types.ObjectId,
   ): Promise<DataListResponse<Product>> {
-    const { lang = 'en', limit = 10, lastId, search } = params;
+    const { lang = 'en', limit = 10, lastId, search, categoryId } = params;
 
     const query: any = {};
 
     if (lastId) {
       query._id = { $lt: new Types.ObjectId(lastId) };
+    }
+
+    if (categoryId) {
+      query.categoryId = new Types.ObjectId(categoryId);
     }
 
     if (search) {

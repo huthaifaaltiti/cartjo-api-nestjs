@@ -19,4 +19,9 @@ export class GetProductsQueryDto {
   @IsString()
   @IsOptional()
   lang: Locale = 'en';
+
+  @IsOptional()
+  @IsString()
+  @IsMongoId()
+  categoryId?: string;
 }
