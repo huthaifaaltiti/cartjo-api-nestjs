@@ -50,10 +50,24 @@ export class ProductService {
       lastId?: string;
       search?: string;
       categoryId?: string;
+      priceFrom?: string;
+      priceTo?: string;
+      ratingFrom?: string;
+      ratingTo?: string;
     },
     userId?: mongoose.Types.ObjectId,
   ): Promise<DataListResponse<Product>> {
-    const { lang = 'en', limit = 10, lastId, search, categoryId } = params;
+    const {
+      lang = 'en',
+      limit = 10,
+      lastId,
+      search,
+      categoryId,
+      priceFrom,
+      priceTo,
+      ratingFrom,
+      ratingTo,
+    } = params;
 
     const query: any = {};
 
@@ -74,6 +88,21 @@ export class ProductService {
         { 'description.en': searchRegex },
         { slug: searchRegex },
       ];
+    }
+
+    // ✅ Dynamic filters
+    if (priceFrom || priceTo) {
+      query.price = {};
+
+      if (priceFrom) query.price.$gte = Number(priceFrom);
+      if (priceTo) query.price.$lte = Number(priceTo);
+    }
+
+    if (ratingFrom || ratingTo) {
+      query.ratings = {};
+
+      if (ratingFrom) query.ratings.$gte = Number(ratingFrom);
+      if (ratingTo) query.ratings.$lte = Number(ratingTo);
     }
 
     const products = await this.productModel

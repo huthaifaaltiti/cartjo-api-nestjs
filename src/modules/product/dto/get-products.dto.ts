@@ -1,4 +1,9 @@
-import { IsMongoId, IsOptional, IsString } from 'class-validator';
+import {
+  IsMongoId,
+  IsNumberString,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 import { Locale } from 'src/types/Locale';
 
@@ -24,4 +29,20 @@ export class GetProductsQueryDto {
   @IsString()
   @IsMongoId()
   categoryId?: string;
+
+  @IsOptional()
+  @IsNumberString()
+  priceFrom?: string;
+
+  @IsOptional()
+  @IsNumberString()
+  priceTo?: string;
+
+  @IsOptional()
+  @IsNumberString()
+  ratingTo?: string;
+
+  @IsOptional()
+  @IsNumberString()
+  ratingFrom?: string;
 }
