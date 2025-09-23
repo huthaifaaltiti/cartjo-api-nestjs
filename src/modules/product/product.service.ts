@@ -54,6 +54,9 @@ export class ProductService {
       priceTo?: string;
       ratingFrom?: string;
       ratingTo?: string;
+      createdFrom?: string;
+      createdTo?: string;
+      beforeNumOfDays?: string;
     },
     userId?: mongoose.Types.ObjectId,
   ): Promise<DataListResponse<Product>> {
@@ -67,7 +70,12 @@ export class ProductService {
       priceTo,
       ratingFrom,
       ratingTo,
+      createdFrom,
+      createdTo,
+      beforeNumOfDays,
     } = params;
+
+    console.log({ beforeNumOfDays });
 
     const query: any = {};
 
@@ -105,9 +113,28 @@ export class ProductService {
       if (ratingTo) query.ratings.$lte = Number(ratingTo);
     }
 
+    if (beforeNumOfDays) {
+      let days = Number(beforeNumOfDays);
+
+      if (days > 36500) {
+        // ~100 years sanity cap
+        days = 36500;
+      }
+
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - days);
+
+      query.createdAt = { $lte: cutoffDate };
+    } else if (createdFrom || createdTo) {
+      query.createdAt = {};
+
+      if (createdFrom) query.createdAt.$gte = new Date(createdFrom);
+      if (createdTo) query.createdAt.$lte = new Date(createdTo);
+    }
+
     const products = await this.productModel
       .find(query)
-      .sort({ _id: -1 })
+      .sort({ _id: -1 }) // Sorting by .sort({ createdAt: -1 }) ensures most recent products appear first.
       .limit(Number(limit))
       .populate('deletedBy', 'firstName lastName email _id')
       .populate('unDeletedBy', 'firstName lastName email _id')

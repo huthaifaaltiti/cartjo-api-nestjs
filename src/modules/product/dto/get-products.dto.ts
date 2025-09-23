@@ -1,4 +1,5 @@
 import {
+  IsDateString,
   IsMongoId,
   IsNumberString,
   IsOptional,
@@ -45,4 +46,16 @@ export class GetProductsQueryDto {
   @IsOptional()
   @IsNumberString()
   ratingFrom?: string;
+
+  @IsOptional()
+  @IsDateString()
+  createdTo?: string; // e.g. "2025-09-23T08:00:00.000Z"
+
+  @IsOptional()
+  @IsDateString()
+  createdFrom?: string;
+
+  @IsOptional()
+  @IsNumberString()
+  beforeNumOfDays?: string;
 }
