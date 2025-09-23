@@ -50,6 +50,7 @@ export class ProductService {
       lastId?: string;
       search?: string;
       categoryId?: string;
+      subCategoryId?: string;
       priceFrom?: string;
       priceTo?: string;
       ratingFrom?: string;
@@ -66,6 +67,7 @@ export class ProductService {
       lastId,
       search,
       categoryId,
+      subCategoryId,
       priceFrom,
       priceTo,
       ratingFrom,
@@ -75,8 +77,6 @@ export class ProductService {
       beforeNumOfDays,
     } = params;
 
-    console.log({ beforeNumOfDays });
-
     const query: any = {};
 
     if (lastId) {
@@ -85,6 +85,10 @@ export class ProductService {
 
     if (categoryId) {
       query.categoryId = new Types.ObjectId(categoryId);
+    }
+
+    if (subCategoryId) {
+      query.subCategoryId = new Types.ObjectId(subCategoryId);
     }
 
     if (search) {

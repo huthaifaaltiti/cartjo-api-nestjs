@@ -32,6 +32,11 @@ export class GetProductsQueryDto {
   categoryId?: string;
 
   @IsOptional()
+  @IsString()
+  @IsMongoId()
+  subCategoryId?: string;
+
+  @IsOptional()
   @IsNumberString()
   priceFrom?: string;
 
