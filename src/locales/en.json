@@ -1,6 +1,8 @@
 {
   "general_cantPerformThisTask": "Can not perform this task",
   "general_allowedTypes": "Allowed types",
+  "general_databaseError": "Database Error",
+  "general_unknownDatabaseError": "Unknown database error",
   "authentication_termsAndConditionsRequired": "You must accept the terms and conditions",
   "authentication_emailAlreadyInUse": "Email is already in use",
   "authentication_phoneNumberAlreadyInUse": "Phone number is already in use",

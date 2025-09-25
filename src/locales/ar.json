@@ -1,6 +1,8 @@
 {
   "general_cantPerformThisTask": "لا يمكن تنفيذ هذه العملية",
   "general_allowedTypes": "الامتدادات المناسبة",
+  "general_databaseError": "خطأ في قاعدة البيانات",
+  "general_unknownDatabaseError": "خطأ غير معروف في قاعدة البيانات",
   "authentication_termsAndConditionsRequired": "يجب عليك قبول الشروط والأحكام",
   "authentication_emailAlreadyInUse": "البريد الإلكتروني مستخدم بالفعل",
   "authentication_phoneNumberAlreadyInUse": "رقم الهاتف مستخدم بالفعل",

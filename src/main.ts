@@ -1,8 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
-
 import { AppModule } from './app.module';
+import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 
 async function server() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -44,6 +44,9 @@ async function server() {
       },
     }),
   );
+
+  // NestJS-style global exception filter
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   await app.listen(process.env.PORT ?? 8000);
 }
