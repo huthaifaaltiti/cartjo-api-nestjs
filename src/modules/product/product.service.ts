@@ -309,6 +309,69 @@ export class ProductService {
   //   }
   // }
 
+  async geSuggestedItems(
+    params: {
+      lang?: Locale;
+      limit?: string;
+      categoryId?: string;
+      subCategoryId?: string;
+    },
+    userId?: mongoose.Types.ObjectId,
+  ) {
+    const { lang = 'en', limit = 10, categoryId, subCategoryId } = params;
+
+    const match: any = {};
+
+    if (categoryId) {
+      match.categoryId = new Types.ObjectId(categoryId);
+    }
+
+    if (subCategoryId) {
+      match.subCategoryId = new Types.ObjectId(subCategoryId);
+    }
+
+    // Use aggregation pipeline with $sample for randomness
+    const products = await this.productModel.aggregate([
+      { $match: match },
+      { $sample: { size: Number(limit) } }, // random N docs
+    ]);
+
+    // Populate fields manually since aggregate doesn't auto-populate
+    const populatedProducts = await this.productModel.populate(products, [
+      { path: 'deletedBy', select: 'firstName lastName email _id' },
+      { path: 'unDeletedBy', select: 'firstName lastName email _id' },
+      { path: 'createdBy', select: 'firstName lastName email _id' },
+      { path: 'categoryId' },
+      { path: 'subCategoryId' },
+      { path: 'mainMediaId' },
+      { path: 'mediaListIds' },
+    ]);
+
+    // Enrich with isWishListed per user
+    let wishListProducts: string[] = [];
+    if (userId) {
+      const wishList = await this.wishListModel
+        .findOne({ user: userId })
+        .lean();
+
+      if (wishList) {
+        wishListProducts = wishList.products.map(p => p.toString());
+      }
+    }
+
+    const enrichedProducts = populatedProducts.map(p => ({
+      ...p,
+      isWishListed: wishListProducts.includes(p._id.toString()),
+    }));
+
+    return {
+      isSuccess: true,
+      message: getMessage('products_productsRetrievedSuccessfully', lang),
+      dataCount: enrichedProducts.length,
+      data: enrichedProducts,
+    };
+  }
+
   async getOne(
     id: string,
     lang?: Locale,

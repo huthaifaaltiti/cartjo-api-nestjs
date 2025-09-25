@@ -36,6 +36,7 @@ import {
   UnDeleteProductParamsDto,
 } from './dto/unDelete-product.dto';
 import { OptionalJwtAuthGuard } from 'src/common/utils/optionalJwtAuthGuard';
+import { GetSuggestedProductsQueryDto } from './dto/get-suggested-products.dto';
 
 @Controller('/api/v1/product')
 export class ProductController {
@@ -79,6 +80,17 @@ export class ProductController {
     const userId = req.user?.userId; // userId will be undefined if no logged user, user => null
 
     return this.productService.getAll(query, userId);
+  }
+
+  @UseGuards(OptionalJwtAuthGuard)
+  @Get('suggested')
+  async geSuggestedItems(
+    @Query() query: GetSuggestedProductsQueryDto,
+    @Request() req: any,
+  ) {
+    const userId = req.user?.userId;
+
+    return this.productService.geSuggestedItems(query, userId);
   }
 
   @UseGuards(OptionalJwtAuthGuard)
