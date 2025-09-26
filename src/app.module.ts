@@ -20,6 +20,7 @@ import { BannerModule } from './modules/banner/banner.module';
 import { ShowcaseModule } from './modules/showcase/showcase.module';
 import { TypeHintConfigModule } from './modules/typeHintConfig/typeHintConfig.module';
 import { WishListModule } from './modules/wishList/wishList.module';
+import { SearchModule } from './modules/search/search.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { WishListModule } from './modules/wishList/wishList.module';
     ShowcaseModule,
     TypeHintConfigModule,
     WishListModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [AppService],

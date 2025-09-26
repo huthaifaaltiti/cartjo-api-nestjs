@@ -173,5 +173,7 @@
   "wishList_wishListWithNoItems": "Wish List with no items",
   "wishList_productNotInWishList": "Product is not in wish list",
   "wishList_productsRemovedSuccessfully": "All products removed from wishlist successfully",
-  "wishList_notFoundProduct": "Not Found product item"
+  "wishList_notFoundProduct": "Not Found product item",
+  "search_productsRetrievedSuccessfully": "Products retrieved successfully",
+  "search_noSearchForItems": "No search text for items"
 }

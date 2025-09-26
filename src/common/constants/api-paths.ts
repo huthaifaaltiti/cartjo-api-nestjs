@@ -13,5 +13,6 @@ export const ApiPaths = {
   },
   Search: {
     Root: '/api/v1/search',
+    Products: 'products',
   },
 };

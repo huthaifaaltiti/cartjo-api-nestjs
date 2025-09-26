@@ -26,6 +26,7 @@ import { getMessage } from 'src/common/utils/translator';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
 import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
 import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
+import { GetProductsQueryDto } from './dto/get-products.dto';
 
 @Injectable()
 export class ProductService {
@@ -44,21 +45,7 @@ export class ProductService {
   ) {}
 
   async getAll(
-    params: {
-      lang?: Locale;
-      limit?: string;
-      lastId?: string;
-      search?: string;
-      categoryId?: string;
-      subCategoryId?: string;
-      priceFrom?: string;
-      priceTo?: string;
-      ratingFrom?: string;
-      ratingTo?: string;
-      createdFrom?: string;
-      createdTo?: string;
-      beforeNumOfDays?: string;
-    },
+    params: GetProductsQueryDto,
     userId?: mongoose.Types.ObjectId,
   ): Promise<DataListResponse<Product>> {
     const {
