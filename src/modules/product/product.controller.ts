@@ -14,7 +14,6 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
-
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import {
@@ -35,16 +34,17 @@ import {
   UnDeleteProductBodyDto,
   UnDeleteProductParamsDto,
 } from './dto/unDelete-product.dto';
-import { OptionalJwtAuthGuard } from 'src/common/utils/optionalJwtAuthGuard';
 import { GetSuggestedProductsQueryDto } from './dto/get-suggested-products.dto';
+import { OptionalJwtAuthGuard } from 'src/common/utils/optionalJwtAuthGuard';
+import { ApiPaths } from 'src/common/constants/api-paths';
 
-@Controller('/api/v1/product')
+@Controller(ApiPaths.Product.Root)
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(AnyFilesInterceptor())
-  @Post('create')
+  @Post(ApiPaths.Product.Create)
   async create(
     @UploadedFiles() files: Express.Multer.File[],
     @Body() dto: CreateProductDto,
@@ -58,7 +58,7 @@ export class ProductController {
 
   @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(AnyFilesInterceptor())
-  @Put('update/:id')
+  @Put(ApiPaths.Product.Update)
   async update(
     @UploadedFiles() files: Express.Multer.File[],
     @Body() body: UpdateProductBodyDto,
@@ -75,7 +75,7 @@ export class ProductController {
   }
 
   @UseGuards(OptionalJwtAuthGuard)
-  @Get('all')
+  @Get(ApiPaths.Product.GetAll)
   async getAll(@Query() query: GetProductsQueryDto, @Request() req: any) {
     const userId = req.user?.userId; // userId will be undefined if no logged user, user => null
 
@@ -83,7 +83,7 @@ export class ProductController {
   }
 
   @UseGuards(OptionalJwtAuthGuard)
-  @Get('suggested')
+  @Get(ApiPaths.Product.Suggested)
   async geSuggestedItems(
     @Query() query: GetSuggestedProductsQueryDto,
     @Request() req: any,
@@ -94,7 +94,7 @@ export class ProductController {
   }
 
   @UseGuards(OptionalJwtAuthGuard)
-  @Get('categories-picks')
+  @Get(ApiPaths.Product.CategoriesPicks)
   async getCategoriesPicks(
     @Query() query: GetProductsQueryDto,
     @Request() req: any,
@@ -113,7 +113,7 @@ export class ProductController {
   }
 
   @UseGuards(OptionalJwtAuthGuard)
-  @Get('/:id')
+  @Get(ApiPaths.Product.GetOne)
   async getOne(
     @Param() param: GetProductParamDto,
     @Query() query: GetProductQueryDto,
@@ -127,7 +127,7 @@ export class ProductController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Put('status/:id')
+  @Put(ApiPaths.Product.UpdateStatus)
   async updateStatus(
     @Param() param: UpdateProductStatusParamsDto,
     @Body() body: UpdateProductStatusBodyDto,
@@ -141,7 +141,7 @@ export class ProductController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Delete('delete/:id')
+  @Delete(ApiPaths.Product.Delete)
   async delete(
     @Request() req: any,
     @Body() body: DeleteProductDto,
@@ -154,7 +154,7 @@ export class ProductController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Delete('un-delete/:id')
+  @Delete(ApiPaths.Product.UnDelete)
   async unDelete(
     @Request() req: any,
     @Param() param: UnDeleteProductParamsDto,
