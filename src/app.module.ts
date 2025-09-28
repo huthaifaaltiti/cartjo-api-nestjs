@@ -21,6 +21,7 @@ import { ShowcaseModule } from './modules/showcase/showcase.module';
 import { TypeHintConfigModule } from './modules/typeHintConfig/typeHintConfig.module';
 import { WishListModule } from './modules/wishList/wishList.module';
 import { SearchModule } from './modules/search/search.module';
+import { CommentModule } from './modules/comment/comment.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { SearchModule } from './modules/search/search.module';
     TypeHintConfigModule,
     WishListModule,
     SearchModule,
+    CommentModule
   ],
   controllers: [AppController],
   providers: [AppService],

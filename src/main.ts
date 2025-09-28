@@ -46,7 +46,7 @@ async function server() {
   );
 
   // NestJS-style global exception filter
-  app.useGlobalFilters(new AllExceptionsFilter());
+  // app.useGlobalFilters(new AllExceptionsFilter());
 
   await app.listen(process.env.PORT ?? 8000);
 }

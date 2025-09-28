@@ -175,5 +175,11 @@
   "wishList_productsRemovedSuccessfully": "All products removed from wishlist successfully",
   "wishList_notFoundProduct": "Not Found product item",
   "search_productsRetrievedSuccessfully": "Products retrieved successfully",
-  "search_noSearchForItems": "No search text for items"
+  "search_noSearchForItems": "No search text for items",
+  "comment_commentsRetrievedSuccessfully": "Comments Retrieved Successfully",
+  "comment_unAuthorized": "Only logged-in users can comment",
+  "comment_commentCreatedSuccessfully": "Comments Created Successfully",
+  "comment_commentNotFound": "Comment not found",
+  "comment_cannotUpdateOthers": "Comment not update other's comment",
+  "comment_commentUpdatedSuccessfully": "Comment is updated successfully"
 }

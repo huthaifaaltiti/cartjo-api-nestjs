@@ -15,4 +15,11 @@ export const ApiPaths = {
     Root: '/api/v1/search',
     Products: 'products',
   },
+  Comment: {
+    Root: '/api/v1/comment',
+    All: 'all',
+    One: 'one/:id',
+    Create: 'create',
+    Update: 'update/:id',
+  },
 };
