@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -18,6 +19,12 @@ import {
   UpdateCommentParamsDto,
   UpdateCommentQueryDto,
 } from './dto/update.dto';
+import { GetCommentParamDto, GetCommentQueryDto } from './dto/get-one.dto';
+import { DeleteCommentBodyDto, DeleteCommentParamsDto } from './dto/delete.dto';
+import {
+  UnDeleteCommentBodyDto,
+  UnDeleteCommentParamsDto,
+} from './dto/un-delete.dto';
 
 @Controller(ApiPaths.Comment.Root)
 export class CommentController {
@@ -25,18 +32,17 @@ export class CommentController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get(ApiPaths.Comment.All)
-  async getAll(@Query() query: GetCommentsQueryDto, @Request() req: any) {
-    const user = req?.user;
-
-    return this.commentService.getAll(user, query);
+  async getAll(@Query() query: GetCommentsQueryDto) {
+    return this.commentService.getAll(query);
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Get(ApiPaths.Comment.One)
-  async getOne(@Query() query: GetCommentsQueryDto, @Request() req: any) {
-    const user = req?.user;
-
-    return this.commentService.getAll(user, query);
+  async getOne(
+    @Query() query: GetCommentQueryDto,
+    @Param() param: GetCommentParamDto,
+  ) {
+    return this.commentService.getOne(query, param);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -57,5 +63,31 @@ export class CommentController {
     const { user } = req;
 
     return this.commentService.update(user, body, param);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete(ApiPaths.Comment.Delete)
+  async delete(
+    @Request() req: any,
+    @Body() body: DeleteCommentBodyDto,
+    @Param() param: DeleteCommentParamsDto,
+  ) {
+    const { user } = req;
+    const { id } = param;
+
+    return this.commentService.delete(user, body, id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete(ApiPaths.Comment.UnDelete)
+  async unDelete(
+    @Request() req: any,
+    @Body() body: UnDeleteCommentBodyDto,
+    @Param() param: UnDeleteCommentParamsDto,
+  ) {
+    const { user } = req;
+    const { id } = param;
+
+    return this.commentService.unDelete(user, body, id);
   }
 }

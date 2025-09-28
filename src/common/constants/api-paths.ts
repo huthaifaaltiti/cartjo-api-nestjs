@@ -21,5 +21,7 @@ export const ApiPaths = {
     One: 'one/:id',
     Create: 'create',
     Update: 'update/:id',
+    Delete: 'delete/:id',
+    UnDelete: 'un-delete/:id',
   },
 };

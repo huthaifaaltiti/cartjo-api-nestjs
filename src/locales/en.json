@@ -181,5 +181,11 @@
   "comment_commentCreatedSuccessfully": "Comments Created Successfully",
   "comment_commentNotFound": "Comment not found",
   "comment_cannotUpdateOthers": "Comment not update other's comment",
-  "comment_commentUpdatedSuccessfully": "Comment is updated successfully"
+  "comment_commentUpdatedSuccessfully": "Comment is updated successfully",
+  "comment_contentTooShort": "Comment is too short",
+  "comment_invalidCommentId": "Invalid comment id",
+  "comment_commentRetrievedSuccessfully": "Comment Retrieved Successfully",
+  "comment_cannotDelete": "Comment can not be deleted",
+  "comment_commentDeletedSuccessfully": "Comment is deleted successfully",
+  "comment_commentUnDeletedSuccessfully": "Comment is un-deleted successfully"
 }
