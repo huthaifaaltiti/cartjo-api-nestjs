@@ -25,12 +25,13 @@ import {
   UnDeleteCommentBodyDto,
   UnDeleteCommentParamsDto,
 } from './dto/un-delete.dto';
+import { OptionalJwtAuthGuard } from 'src/common/utils/optionalJwtAuthGuard';
 
 @Controller(ApiPaths.Comment.Root)
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(OptionalJwtAuthGuard)
   @Get(ApiPaths.Comment.All)
   async getAll(@Query() query: GetCommentsQueryDto) {
     return this.commentService.getAll(query);
