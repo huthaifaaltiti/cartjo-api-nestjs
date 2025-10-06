@@ -1,16 +1,15 @@
 import { Controller, Post, Body } from '@nestjs/common';
-
 import { getMessage } from 'src/common/utils/translator';
 import { ApiError } from 'src/common/utils/errorsHandling/ApiError';
-
 import { AuthorizationService } from './authorization.service';
 import { LoginDto } from './dto/login.dto';
+import { ApiPaths } from 'src/common/constants/api-paths';
 
-@Controller('api/v1/authorization')
+@Controller(ApiPaths.Authorization.Root)
 export class AuthorizationController {
   constructor(private readonly authService: AuthorizationService) {}
 
-  @Post('login')
+  @Post(ApiPaths.Authorization.Login)
   async login(
     @Body()
     body: LoginDto,

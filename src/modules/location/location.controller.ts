@@ -12,18 +12,17 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
-
 import { LocationService } from './location.service';
-
 import { BulkUploadBodyDto } from './dto/bulk-upload-body.dto';
 import { DeleteLocationBodyDto } from './dto/delete-location-body.dto';
+import { ApiPaths } from 'src/common/constants/api-paths';
 
-@Controller('api/v1/location')
+@Controller(ApiPaths.Location.Root)
 export class LocationController {
   constructor(private readonly locationService: LocationService) {}
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('bulk-upload')
+  @Post(ApiPaths.Location.BulkUpload)
   @UseInterceptors(FileInterceptor('file'))
   bulkUpload(
     @Request() req: any,
@@ -36,13 +35,13 @@ export class LocationController {
     return this.locationService.handleBulkFileUpload(file, user, lang);
   }
 
-  @Get('all')
+  @Get(ApiPaths.Location.GetAll)
   getLocations() {
     return this.locationService.getLocations();
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Delete('delete/:id')
+  @Delete(ApiPaths.Location.Delete)
   deleteLocation(
     @Param('id') id: string,
     @Body() body: DeleteLocationBodyDto,

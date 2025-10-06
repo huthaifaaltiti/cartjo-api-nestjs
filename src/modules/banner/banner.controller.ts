@@ -13,11 +13,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import {
-  FileFieldsInterceptor,
-  FilesInterceptor,
-} from '@nestjs/platform-express';
-
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { BannerService } from './banner.service';
 import { GetBannersQueryDto } from './dto/get-all.dto';
 import { GetBannerParamDto, GetBannerQueryDto } from './dto/get-one.dto';
@@ -29,13 +25,14 @@ import {
   UpdateStatusBodyDto,
   UpdateStatusParamsDto,
 } from './dto/update-active-status.dto';
+import { ApiPaths } from 'src/common/constants/api-paths';
 
-@Controller('/api/v1/banner')
+@Controller(ApiPaths.Banner.Root)
 export class BannerController {
   constructor(private readonly bannerService: BannerService) {}
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('all')
+  @Get(ApiPaths.Banner.GetAll)
   async getAll(@Query() query: GetBannersQueryDto, @Request() req: any) {
     const { lang, limit, lastId, search, startDate, endDate } = query;
     const { user } = req;
@@ -50,14 +47,14 @@ export class BannerController {
     });
   }
 
-  @Get('active')
+  @Get(ApiPaths.Banner.GetActiveOnes)
   async getActiveOnes(@Query() query: GetBannerQueryDto) {
     const { lang } = query;
 
     return this.bannerService.getActiveOnes(lang);
   }
 
-  @Get('/:id')
+  @Get(ApiPaths.Banner.GetOne)
   async getOne(
     @Param() param: GetBannerParamDto,
     @Query() query: GetBannerQueryDto,
@@ -69,7 +66,7 @@ export class BannerController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('create')
+  @Post(ApiPaths.Banner.Create)
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'image_ar', maxCount: 1 },
@@ -92,7 +89,7 @@ export class BannerController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Put('update/:id')
+  @Put(ApiPaths.Banner.Update)
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'image_ar', maxCount: 1 },
@@ -122,7 +119,7 @@ export class BannerController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Delete('delete/:id')
+  @Delete(ApiPaths.Banner.Delete)
   async delete(
     @Request() req: any,
     @Body() body: DeleteDto,
@@ -135,7 +132,7 @@ export class BannerController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Delete('un-delete/:id')
+  @Delete(ApiPaths.Banner.UnDelete)
   async unDelete(
     @Request() req: any,
     @Param() param: UnDeleteParamsDto,
@@ -148,7 +145,7 @@ export class BannerController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Put('status/:id')
+  @Put(ApiPaths.Banner.UpdateStatus)
   async updateStatus(
     @Param() param: UpdateStatusParamsDto,
     @Body() body: UpdateStatusBodyDto,

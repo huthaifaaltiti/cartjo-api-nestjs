@@ -11,9 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-
 import { ShowcaseService } from './showcase.service';
-
 import { GetQueryDto } from './dto/get-all.dto';
 import { GetParamDto } from './dto/get-one.dto';
 import { CreateDto } from './dto/create.dto';
@@ -26,13 +24,14 @@ import {
   UpdateStatusParamsDto,
 } from './dto/update-active-status.dto';
 import { OptionalJwtAuthGuard } from 'src/common/utils/optionalJwtAuthGuard';
+import { ApiPaths } from 'src/common/constants/api-paths';
 
-@Controller('/api/v1/showcase')
+@Controller(ApiPaths.Showcase.Root)
 export class ShowcaseController {
   constructor(private readonly showcaseService: ShowcaseService) {}
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('all')
+  @Get(ApiPaths.Showcase.GetAll)
   async getAll(@Query() query: GetQueryDto, @Request() req: any) {
     const { lang, limit, lastId, search, startDate, endDate } = query;
     const { user } = req;
@@ -48,7 +47,7 @@ export class ShowcaseController {
   }
 
   @UseGuards(OptionalJwtAuthGuard)
-  @Get('active')
+  @Get(ApiPaths.Showcase.GetActiveOnes)
   async getActiveOnes(
     @Query() query: GetActiveOnesQueryDto,
     @Request() req: any,
@@ -60,7 +59,7 @@ export class ShowcaseController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('/:id')
+  @Get(ApiPaths.Showcase.GetOne)
   async getOne(
     @Param() param: GetParamDto,
     @Query() query: GetQueryDto,
@@ -74,7 +73,7 @@ export class ShowcaseController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('create')
+  @Post(ApiPaths.Showcase.Create)
   async create(@Body() dto: CreateDto, @Request() req: any) {
     const { user } = req;
 
@@ -82,7 +81,7 @@ export class ShowcaseController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Put('update/:id')
+  @Put(ApiPaths.Showcase.Update)
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateDto,
@@ -94,7 +93,7 @@ export class ShowcaseController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Delete('delete/:id')
+  @Delete(ApiPaths.Showcase.Delete)
   async delete(
     @Request() req: any,
     @Body() body: DeleteDto,
@@ -107,7 +106,7 @@ export class ShowcaseController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Delete('un-delete/:id')
+  @Delete(ApiPaths.Showcase.UnDelete)
   async unDelete(
     @Request() req: any,
     @Param() param: UnDeleteParamsDto,
@@ -120,7 +119,7 @@ export class ShowcaseController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Put('status/:id')
+  @Put(ApiPaths.Showcase.UpdateStatus)
   async updateStatus(
     @Param() param: UpdateStatusParamsDto,
     @Body() body: UpdateStatusBodyDto,

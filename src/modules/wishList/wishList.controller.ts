@@ -13,13 +13,14 @@ import { AuthGuard } from '@nestjs/passport';
 import { GetQueryDto } from './dto/get-one.dto';
 import { WishListItemBodyDto } from './dto/wishlist-item.dto';
 import { WishListItemsBodyDto } from './dto/wishlist-items.dto';
+import { ApiPaths } from 'src/common/constants/api-paths';
 
-@Controller('/api/v1/wish-list')
+@Controller(ApiPaths.Wishlist.Root)
 export class WishListController {
   constructor(private readonly wishListService: WishListService) {}
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('/')
+  @Get(ApiPaths.Wishlist.GetWishlist)
   async getWishList(@Query() query: GetQueryDto, @Request() req: any) {
     const { lang, limit, lastId, search } = query;
     const { user } = req;
@@ -33,7 +34,7 @@ export class WishListController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('add')
+  @Post(ApiPaths.Wishlist.AddOne)
   async addWishListItem(@Body() dto: WishListItemBodyDto, @Request() req: any) {
     const { user } = req;
 
@@ -41,7 +42,7 @@ export class WishListController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Delete('remove')
+  @Delete(ApiPaths.Wishlist.RemoveOne)
   async removeWishListItem(
     @Body() dto: WishListItemBodyDto,
     @Request() req: any,
@@ -52,7 +53,7 @@ export class WishListController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Delete('remove-all')
+  @Delete(ApiPaths.Wishlist.RemoveAll)
   async removeAllWishListItems(
     @Body() dto: WishListItemsBodyDto,
     @Request() req: any,

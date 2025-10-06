@@ -15,19 +15,19 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
-
 import { MediaService } from './media.service';
 import { UploadFileBodyDto } from './dto/upload-file.dto';
 import { Modules } from 'src/enums/appModules.enum';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
 import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
+import { ApiPaths } from 'src/common/constants/api-paths';
 
-@Controller('api/v1/media')
+@Controller(ApiPaths.Media.Root)
 export class MediaController {
   constructor(private readonly fileUploadService: MediaService) {}
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('upload')
+  @Post(ApiPaths.Media.Upload)
   @UseInterceptors(FileInterceptor('file'))
   uploadFile(
     @Request() req: any,
@@ -48,7 +48,7 @@ export class MediaController {
     );
   }
 
-  @Get('file/:fileId')
+  @Get(ApiPaths.Media.GetOne)
   async serveFile(@Param('fileId') fileId: string, @Res() res: Response) {
     try {
       const { stream, metadata } =

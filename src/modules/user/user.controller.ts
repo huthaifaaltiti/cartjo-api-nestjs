@@ -31,13 +31,14 @@ import {
 import { GetUserParamDto, GetUserQueryDto } from './dto/get-user.dto';
 import { CreateAdminBodyDto } from './dto/create-admin.dto';
 import { UpdateAdminUserParamsDto } from './dto/update-admin.dto';
+import { ApiPaths } from 'src/common/constants/api-paths';
 
-@Controller('/api/v1/user')
+@Controller(ApiPaths.User.Root)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('all')
+  @Get(ApiPaths.User.GetAll)
   async getUsers(@Query() query: GetAllUsersQueryDto) {
     const { lang, limit, lastId, search, isActive, isDeleted, canManage } =
       query;
@@ -54,7 +55,7 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('stats')
+  @Get(ApiPaths.User.GetStats)
   async getStats(@Query() query: GetUsersStatsQueryDto) {
     const { lang } = query;
 
@@ -62,7 +63,7 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('/:id')
+  @Get(ApiPaths.User.GetOne)
   async getUser(
     @Request() req: any,
     @Param() param: GetUserParamDto,
@@ -78,7 +79,7 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Delete('delete/:id')
+  @Delete(ApiPaths.User.Delete)
   async deleteUser(
     @Request() req: any,
     @Param() param: UnDeleteUserParamDto,
@@ -92,7 +93,7 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Delete('un-delete/:id')
+  @Delete(ApiPaths.User.UnDelete)
   async unDeleteUser(
     @Request() req: any,
     @Param() param: DeleteUserParamDto,
@@ -106,7 +107,7 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Put('status/:id')
+  @Put(ApiPaths.User.UpdateStatus)
   async updateUserStatus(
     @Param() param: UpdateUserStatusParamsDto,
     @Body() body: UpdateUserStatusBodyDto,
@@ -120,7 +121,7 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('create-admin')
+  @Post(ApiPaths.User.CreateAdmin)
   @UseInterceptors(FileInterceptor('profilePic'))
   async createAdminUser(
     @UploadedFile() profilePic: Express.Multer.File,
@@ -133,7 +134,7 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Put('update-admin/:id')
+  @Put(ApiPaths.User.UpdateAdmin)
   @UseInterceptors(FileInterceptor('profilePic'))
   async updateAdminUser(
     @Param() param: UpdateAdminUserParamsDto,

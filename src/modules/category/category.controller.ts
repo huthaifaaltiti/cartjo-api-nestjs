@@ -38,13 +38,14 @@ import {
 } from './dto/update-category-status.dto';
 import { CategoryService } from './category.service';
 import { GetActiveOnesQueryDto } from './dto/get-active-ones.dto';
+import { ApiPaths } from 'src/common/constants/api-paths';
 
-@Controller('/api/v1/category')
+@Controller(ApiPaths.Category.Root)
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('create')
+  @Post(ApiPaths.Category.Create)
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'image_ar', maxCount: 1 },
@@ -68,7 +69,7 @@ export class CategoryController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Put('update/:id')
+  @Put(ApiPaths.Category.Update)
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'image_ar', maxCount: 1 },
@@ -94,7 +95,7 @@ export class CategoryController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Delete('delete/:id')
+  @Delete(ApiPaths.Category.Delete)
   async delete(
     @Request() req: any,
     @Body() body: DeleteCategoryDto,
@@ -107,7 +108,7 @@ export class CategoryController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Delete('un-delete/:id')
+  @Delete(ApiPaths.Category.UnDelete)
   async unDeleteCategory(
     @Request() req: any,
     @Param() param: UnDeleteCategoryParamsDto,
@@ -120,7 +121,7 @@ export class CategoryController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Put('status/:id')
+  @Put(ApiPaths.Category.UpdateStatus)
   async updateCategoryStatus(
     @Param() param: UpdateCategoryStatusParamsDto,
     @Body() body: UpdateCategoryStatusBodyDto,
@@ -134,7 +135,7 @@ export class CategoryController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('all')
+  @Get(ApiPaths.Category.GetAll)
   async getCategories(@Query() query: GetCategoriesQueryDto) {
     const { lang, limit, lastId, search } = query;
 
@@ -146,12 +147,12 @@ export class CategoryController {
     });
   }
 
-  @Get('active')
+  @Get(ApiPaths.Category.GetActiveOnes)
   async getActiveOnes(@Query() query: GetActiveOnesQueryDto) {
     return this.categoryService.getActiveOnes(query);
   }
 
-  @Get('/:id')
+  @Get(ApiPaths.Category.GetOne)
   async getCategory(
     @Param() param: GetCategoryParamDto,
     @Query() query: GetCategoryQueryDto,

@@ -6,15 +6,14 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-
 import { AuthService } from './authentication.service';
 import { RegisterDto } from './dto/register.dto';
-
-@Controller('api/v1/authentication')
+import { ApiPaths } from 'src/common/constants/api-paths';
+@Controller(ApiPaths.Authentication.Root)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('register')
+  @Post(ApiPaths.Authentication.Register)
   @UseInterceptors(FileInterceptor('profilePic'))
   async register(
     @UploadedFile() profilePic: Express.Multer.File,

@@ -24,24 +24,25 @@ import {
   UpdateStatusParamsDto,
 } from './dto/update-active-status.dto';
 import { GetListQueryDto } from './dto/get-list.dto';
-@Controller('/api/v1/type-hint-config')
+import { ApiPaths } from 'src/common/constants/api-paths';
+@Controller(ApiPaths.TypeHintConfig.Root)
 export class TypeHintConfigController {
   constructor(private readonly typeHintConfigService: TypeHintConfigService) {}
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('all')
+  @Get(ApiPaths.TypeHintConfig.GetAll)
   async getAll(@Query() query: GetAllQueryDto, @Request() req: any) {
     return this.typeHintConfigService.getAll(req?.user, query);
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('list')
+  @Get(ApiPaths.TypeHintConfig.GetList)
   async getList(@Query() query: GetListQueryDto, @Request() req: any) {
     return this.typeHintConfigService.getList(req?.user, query);
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('active')
+  @Get(ApiPaths.TypeHintConfig.GetActiveOnes)
   async getActiveOnes(
     @Query() query: GetActiveOnesQueryDto,
     @Request() req: any,
@@ -52,19 +53,19 @@ export class TypeHintConfigController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('/:id')
+  @Get(ApiPaths.TypeHintConfig.GetOne)
   async getOne(@Param() param: GetOneParamDto, @Query() query: GetOneQueryDto) {
     return this.typeHintConfigService.getOne(param?.id, query?.lang);
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('create')
+  @Post(ApiPaths.TypeHintConfig.Create)
   async create(@Request() req: any, @Body() dto: CreateDto) {
     return this.typeHintConfigService.create(req?.user, dto);
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Put('update/:id')
+  @Put(ApiPaths.TypeHintConfig.Update)
   async update(
     @Request() req: any,
     @Body() body: UpdateDto,
@@ -74,7 +75,7 @@ export class TypeHintConfigController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Delete('delete/:id')
+  @Delete(ApiPaths.TypeHintConfig.Delete)
   async delete(
     @Request() req: any,
     @Body() dto: DeleteDto,
@@ -84,7 +85,7 @@ export class TypeHintConfigController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Delete('un-delete/:id')
+  @Delete(ApiPaths.TypeHintConfig.UnDelete)
   async unDelete(
     @Request() req: any,
     @Body() dto: UnDeleteDto,
@@ -94,7 +95,7 @@ export class TypeHintConfigController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Put('status/:id')
+  @Put(ApiPaths.TypeHintConfig.UpdateStatus)
   async updateStatus(
     @Param() param: UpdateStatusParamsDto,
     @Body() dto: UpdateStatusBodyDto,

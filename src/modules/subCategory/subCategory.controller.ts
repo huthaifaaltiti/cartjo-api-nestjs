@@ -15,11 +15,8 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import {
   FileFieldsInterceptor,
-  FileInterceptor,
 } from '@nestjs/platform-express';
-
 import { SubCategoryService } from './subCategory.service';
-
 import { CreateSubCategoryDto } from './dto/create-subCategory.dto';
 import {
   UpdateSubCategoryDto,
@@ -42,8 +39,9 @@ import {
   GetSubCategoryParamDto,
   GetSubCategoryQueryDto,
 } from './dto/get-subCategory.dto';
+import { ApiPaths } from 'src/common/constants/api-paths';
 
-@Controller('/api/v1/sub-category')
+@Controller(ApiPaths.SubCategory.Root)
 export class SubCategoryController {
   constructor(private readonly subCategoryService: SubCategoryService) {}
 
@@ -54,7 +52,7 @@ export class SubCategoryController {
       { name: 'image_en', maxCount: 1 },
     ]),
   )
-  @Post('create')
+  @Post(ApiPaths.SubCategory.Create)
   async create(
     @UploadedFiles()
     files: {
@@ -64,18 +62,15 @@ export class SubCategoryController {
     @Request() req: any,
     @Body() body: CreateSubCategoryDto,
   ) {
-    console.log({files})
     const { user } = req;
     const image_ar = files.image_ar?.[0];
     const image_en = files.image_en?.[0];
-
-    console.log({ image_ar });
 
     return this.subCategoryService.create(user, body, image_ar, image_en);
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Put('update/:id')
+  @Put(ApiPaths.SubCategory.Update)
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'image_ar', maxCount: 1 },
@@ -101,7 +96,7 @@ export class SubCategoryController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Delete('delete/:id')
+  @Delete(ApiPaths.SubCategory.Delete)
   async delete(
     @Request() req: any,
     @Body() body: DeleteSubCategoryDto,
@@ -114,7 +109,7 @@ export class SubCategoryController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Delete('un-delete/:id')
+  @Delete(ApiPaths.SubCategory.UnDelete)
   async unDelete(
     @Request() req: any,
     @Param() param: UnDeleteSubCategoryParamsDto,
@@ -127,7 +122,7 @@ export class SubCategoryController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Put('status/:id')
+  @Put(ApiPaths.SubCategory.UpdateStatus)
   async updateStatus(
     @Param() param: UpdateSubCategoryStatusParamsDto,
     @Body() body: UpdateSubCategoryStatusBodyDto,
@@ -140,7 +135,7 @@ export class SubCategoryController {
     return this.subCategoryService.updateStatus(id, isActive, lang, user);
   }
 
-  @Get('all')
+  @Get(ApiPaths.SubCategory.GetAll)
   async getAll(@Query() query: GetSubCategoriesQueryDto) {
     const { lang, limit, lastId, search, catId } = query;
 
@@ -153,7 +148,7 @@ export class SubCategoryController {
     });
   }
 
-  @Get('/:id')
+  @Get(ApiPaths.SubCategory.GetOne)
   async getOne(
     @Param() param: GetSubCategoryParamDto,
     @Query() query: GetSubCategoryQueryDto,

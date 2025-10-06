@@ -14,9 +14,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
-
 import { LogoService } from './logo.service';
-
 import { CreateLogoDto } from './dto/create-logo.dto';
 import { UpdateLogoDto, UpdateLogoParamsDto } from './dto/update-logo.dto';
 import { DeleteLogoDto, DeleteLogoParamsDto } from './dto/delete-logo.dto';
@@ -30,13 +28,14 @@ import {
 } from './dto/update-logo-status.dto';
 import { GetLogoParamDto, GetLogoQueryDto } from './dto/get-logo.dto';
 import { GetLogosQueryDto } from './dto/get-logos-query.dto';
+import { ApiPaths } from 'src/common/constants/api-paths';
 
-@Controller('/api/v1/logo')
+@Controller(ApiPaths.Logo.Root)
 export class LogoController {
   constructor(private readonly logoService: LogoService) {}
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('all')
+  @Get(ApiPaths.Logo.GetAll)
   async getLogos(@Query() query: GetLogosQueryDto, @Request() req: any) {
     const { lang, limit, lastId, search } = query;
     const { user } = req;
@@ -49,13 +48,13 @@ export class LogoController {
     });
   }
 
-  @Get('active')
+  @Get(ApiPaths.Logo.GetActiveOnes)
   async getActiveLogo(@Query() query: GetLogoQueryDto) {
     const { lang } = query;
     return this.logoService.getActiveLogo(lang);
   }
 
-  @Get('/:id')
+  @Get(ApiPaths.Logo.GetOne)
   async getLogo(
     @Param() param: GetLogoParamDto,
     @Query() query: GetLogoQueryDto,
@@ -67,7 +66,7 @@ export class LogoController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('create')
+  @Post(ApiPaths.Logo.Create)
   @UseInterceptors(FileInterceptor('image'))
   async createLogo(
     @UploadedFile() image: Express.Multer.File,
@@ -80,7 +79,7 @@ export class LogoController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Put('update/:id')
+  @Put(ApiPaths.Logo.Update)
   @UseInterceptors(FileInterceptor('image'))
   async update(
     @UploadedFile() image: Express.Multer.File,
@@ -95,7 +94,7 @@ export class LogoController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Delete('delete/:id')
+  @Delete(ApiPaths.Logo.Delete)
   async delete(
     @Request() req: any,
     @Body() body: DeleteLogoDto,
@@ -108,8 +107,8 @@ export class LogoController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Delete('un-delete/:id')
-  async unDeletelogo(
+  @Delete(ApiPaths.Logo.UnDelete)
+  async unDeleteLogo(
     @Request() req: any,
     @Param() param: UnDeleteLogoParamsDto,
     @Body() body: UnDeleteLogoBodyDto,
@@ -121,7 +120,7 @@ export class LogoController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Put('status/:id')
+  @Put(ApiPaths.Logo.UpdateStatus)
   async updateLogoStatus(
     @Param() param: UpdateLogoStatusParamsDto,
     @Body() body: UpdateLogoStatusBodyDto,
