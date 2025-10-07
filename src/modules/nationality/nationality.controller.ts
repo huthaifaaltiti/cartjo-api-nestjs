@@ -3,7 +3,6 @@ import {
   Get,
   UseGuards,
   Query,
-  Request,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiPaths } from 'src/common/constants/api-paths';
