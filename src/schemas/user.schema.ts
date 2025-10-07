@@ -3,6 +3,7 @@ import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
 import { hashSync } from 'bcrypt';
 import { UserRole } from 'src/enums/user-role.enum';
 import { NameRef } from './common.schema';
+import { Gender } from 'src/enums/genders.enum';
 
 export type UserDocument = User & Document;
 
@@ -16,10 +17,10 @@ class MapLocation {
 
 class Nationality {
   @Prop({ required: true })
-  code: string; 
+  code: string;
 
   @Prop({ required: true })
-  name: NameRef; 
+  name: NameRef;
 }
 
 @Schema({ collection: 'users', timestamps: true })
@@ -78,6 +79,9 @@ export class User extends Document {
     default: UserRole.USER,
   })
   role: UserRole;
+
+  @Prop({ default: false, enum: Object.values(Gender) })
+  gender?: Gender;
 
   @Prop({ default: false })
   canManage: boolean;

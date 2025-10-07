@@ -81,9 +81,6 @@ export class UserService {
     if (typeof isDeleted === 'boolean') query.isDeleted = isDeleted;
     if (typeof canManage === 'boolean') query.role = UserRole.ADMINISTRATOR;
 
-    console.log(canManage);
-    console.log(typeof canManage);
-
     // if (typeof isDeleted === 'boolean') {
     //   query.isDeleted = isDeleted;
     // }
@@ -117,7 +114,7 @@ export class UserService {
   ): Promise<{
     isSuccess: boolean;
     message: string;
-    user: User | null;
+    data: User | null;
   }> {
     validateSameUserAccess(
       requestingUser?.userId?.toString(),
@@ -135,7 +132,7 @@ export class UserService {
     return {
       isSuccess: true,
       message: getMessage('user_userRetrievedSuccessfully', lang),
-      user,
+      data: user,
     };
   }
 
@@ -146,7 +143,7 @@ export class UserService {
   ): Promise<{
     isSuccess: boolean;
     message: string;
-    user: User | null;
+    data: User | null;
   }> {
     validateUserRoleAccess(requestingUser, lang);
 
@@ -160,7 +157,7 @@ export class UserService {
     return {
       isSuccess: true,
       message: getMessage('user_userRetrievedSuccessfully', lang),
-      user,
+      data: user,
     };
   }
 
