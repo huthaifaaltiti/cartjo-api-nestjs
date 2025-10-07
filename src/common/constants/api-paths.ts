@@ -131,4 +131,9 @@ export const ApiPaths = {
     RemoveOne: 'remove',
     RemoveAll: 'remove-all',
   },
+  Nationality: {
+    Root: '/api/v1/nationality',
+    GetAll: 'all',
+    GetAllStatic: 'all-static',
+  },
 };

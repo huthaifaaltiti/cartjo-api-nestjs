@@ -187,5 +187,6 @@
   "comment_commentRetrievedSuccessfully": "Comment Retrieved Successfully",
   "comment_cannotDelete": "Comment can not be deleted",
   "comment_commentDeletedSuccessfully": "Comment is deleted successfully",
-  "comment_commentUnDeletedSuccessfully": "Comment is un-deleted successfully"
+  "comment_commentUnDeletedSuccessfully": "Comment is un-deleted successfully",
+  "nationality_staticNationalitiesRetrievedSuccessfully": "Static nationalities retrieved successfully"
 }

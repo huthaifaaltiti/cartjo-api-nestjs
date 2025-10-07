@@ -22,6 +22,7 @@ import { TypeHintConfigModule } from './modules/typeHintConfig/typeHintConfig.mo
 import { WishListModule } from './modules/wishList/wishList.module';
 import { SearchModule } from './modules/search/search.module';
 import { CommentModule } from './modules/comment/comment.module';
+import { NationalityModule } from './modules/nationality/nationality.module';
 
 @Module({
   imports: [
@@ -50,7 +51,8 @@ import { CommentModule } from './modules/comment/comment.module';
     TypeHintConfigModule,
     WishListModule,
     SearchModule,
-    CommentModule
+    CommentModule,
+    NationalityModule
   ],
   controllers: [AppController],
   providers: [AppService],

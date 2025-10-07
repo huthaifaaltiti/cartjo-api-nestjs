@@ -184,5 +184,6 @@
   "comment_commentRetrievedSuccessfully": "تم جلب التعليق بنجاح",
   "comment_cannotDelete": "لا يمكن حذف التعليق",
   "comment_commentDeletedSuccessfully": "تم حذف التعليق بنجاح",
-  "comment_commentUnDeletedSuccessfully": "تم إلغاء حذف التعليق بنجاح"
+  "comment_commentUnDeletedSuccessfully": "تم إلغاء حذف التعليق بنجاح",
+  "nationality_staticNationalitiesRetrievedSuccessfully": "تم استرداد الجنسيات الثابتة بنجاح"
 }
