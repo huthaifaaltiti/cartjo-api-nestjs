@@ -17,7 +17,7 @@ export class NationalityService {
   ) {}
 
   async getAllStatic(query: GetStaticNationalitiesQueryDto) {
-    const { lang } = query;
+    const { lang = "en" } = query;
 
     const nationalities = [...NATIONALITIES];
 
