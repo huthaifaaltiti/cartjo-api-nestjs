@@ -80,8 +80,13 @@ export class User extends Document {
   })
   role: UserRole;
 
-  @Prop({ default: false, enum: Object.values(Gender) })
-  gender?: Gender;
+  @Prop({
+    type: String,
+    enum: Object.values(Gender),
+    required: false,
+    default: null,
+  })
+  gender?: Gender | null;
 
   @Prop({ default: false })
   canManage: boolean;

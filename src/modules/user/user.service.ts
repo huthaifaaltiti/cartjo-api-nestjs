@@ -7,7 +7,6 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { MongoError } from 'mongodb';
-
 import { getMessage } from 'src/common/utils/translator';
 import { validateSameUserAccess } from 'src/common/utils/validateSameUserAccess';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
@@ -17,16 +16,14 @@ import { checkUserRole } from 'src/common/utils/checkUserRole';
 import { validateSameUsersRoleLevel } from 'src/common/utils/validateSameUsersRoleLevel';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
 import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
-
 import { UserRole } from 'src/enums/user-role.enum';
 import { User, UserDocument } from 'src/schemas/user.schema';
 import { Locale } from 'src/types/Locale';
 import { CreateAdminBodyDto } from './dto/create-admin.dto';
-
 import { JwtService } from '../jwt/jwt.service';
 import { MediaService } from '../media/media.service';
 import { Modules } from 'src/enums/appModules.enum';
-
+import { UpdateUserDto } from './dto/update.dto';
 @Injectable()
 export class UserService {
   constructor(
@@ -476,7 +473,6 @@ export class UserService {
     profilePic?: Express.Multer.File,
   ): Promise<{ isSuccess: boolean; message: string; user?: User }> {
     const {
-      termsAccepted,
       lang,
       email,
       firstName,
@@ -562,6 +558,90 @@ export class UserService {
     return {
       isSuccess: true,
       message: getMessage('users_adminUserUpdatedSuccessfully', lang),
+      user,
+    };
+  }
+
+  async updateUser(
+    userId: string,
+    dto: UpdateUserDto,
+    requestingUser: any,
+    profilePic?: Express.Multer.File,
+  ): Promise<{ isSuccess: boolean; message: string; user: User }> {
+    const { firstName, lastName, email, phoneNumber, countryCode, lang } = dto;
+
+    validateSameUserAccess(
+      requestingUser?.userId?.toString(),
+      userId?.toString(),
+      lang,
+    );
+
+    if (
+      !checkUserRole({
+        userRole: requestingUser?.role,
+        requiredRole: UserRole.USER,
+      })
+    ) {
+      return {
+        isSuccess: false,
+        message: getMessage('users_OnlyOwnersCanUpdateAdmins', lang),
+        user: null,
+      };
+    }
+
+    const user = await this.userModel.findById(userId);
+
+    if (!user) {
+      throw new BadRequestException(getMessage('users_userNotFound', lang));
+    }
+
+    // Check for duplicate email
+    if (email && email !== user.email) {
+      const existingEmail = await this.userModel.findOne({ email });
+
+      if (existingEmail) {
+        throw new BadRequestException(
+          getMessage('authentication_emailAlreadyInUse', lang),
+        );
+      }
+    }
+
+    // Check for duplicate phone number
+    if (phoneNumber && phoneNumber !== user.phoneNumber) {
+      const existingPhone = await this.userModel.findOne({ phoneNumber });
+      if (existingPhone) {
+        throw new BadRequestException(
+          getMessage('authentication_phoneNumberAlreadyInUse', lang),
+        );
+      }
+    }
+
+    if (profilePic && Object.keys(profilePic).length > 0) {
+      fileSizeValidator(profilePic, MAX_FILE_SIZES.USER_PROFILE_IMAGE, lang);
+
+      const result = await this.mediaService.handleFileUpload(
+        profilePic,
+        { userId: requestingUser?.userId },
+        lang,
+        Modules.USER,
+      );
+
+      if (result?.isSuccess) {
+        user.profilePic = result.fileUrl;
+      }
+    }
+
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
+    if (countryCode) user.countryCode = countryCode;
+    if (phoneNumber) user.phoneNumber = phoneNumber;
+    if (email) user.email = email;
+
+    await user.save();
+
+    return {
+      isSuccess: true,
+      message: getMessage('users_userUpdatedSuccessfully', lang),
       user,
     };
   }

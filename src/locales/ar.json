@@ -39,6 +39,7 @@
   "users_adminUserCreatedSuccessfully": "تم إنشاء مستخدم مدير بنجاح",
   "users_adminUserUpdatedSuccessfully": "تم تحديث بيانات المدير بنجاح",
   "users_cantEditUserDetails": "لا يمكن تعديل تفاصيل المستخدم العادي",
+  "users_userUpdatedSuccessfully": "تم تحديث بيانات المستخدم بنجاح",
   "categories_categoryCreatedSuccessfully": "تم إنشاء الفئة بنجاح",
   "categories_categoryAlreadyExists": "الفئة موجودة مسبقًا",
   "categories_categoryNotFound": "الفئة غير موجودة",
