@@ -3,7 +3,7 @@ import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
 import { hashSync } from 'bcrypt';
 import { UserRole } from 'src/enums/user-role.enum';
 import { NameRef } from './common.schema';
-import { Gender } from 'src/enums/genders.enum';
+import { Gender } from 'src/enums/gender.enum';
 
 export type UserDocument = User & Document;
 

@@ -4,10 +4,13 @@ import {
   IsString,
   IsBoolean,
   IsPhoneNumber,
-  IsNotEmpty,
+  IsDateString,
+  IsEnum,
   IsMongoId,
+  IsNotEmpty,
 } from 'class-validator';
 import { Locale } from 'src/types/Locale';
+import { Gender } from 'src/enums/gender.enum';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -23,7 +26,7 @@ export class UpdateUserDto {
   email?: string;
 
   @IsOptional()
-  @IsPhoneNumber()
+  @IsPhoneNumber('JO')
   phoneNumber?: string;
 
   @IsOptional()
@@ -33,6 +36,14 @@ export class UpdateUserDto {
   @IsOptional()
   @IsBoolean()
   marketingEmails?: boolean;
+
+  @IsOptional()
+  @IsEnum(Gender)
+  gender?: Gender; 
+
+  @IsOptional()
+  @IsDateString()
+  birthDate?: string; 
 
   @IsOptional()
   @IsString()
