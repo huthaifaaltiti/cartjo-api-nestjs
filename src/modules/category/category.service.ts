@@ -431,6 +431,7 @@ export class CategoryService {
       .populate('deletedBy', 'firstName lastName email _id')
       .populate('unDeletedBy', 'firstName lastName email _id')
       .populate('createdBy', 'firstName lastName email _id')
+      .populate('subCategories')
       .limit(Number(query.limit))
       .lean();
 
