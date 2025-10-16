@@ -2,7 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
-import { AllExceptionsFilter } from './filters/all-exceptions.filter';
+import { EmailTemplateSeeder } from './modules/email/seeders/email-template.seeder';
+// import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 
 async function server() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -47,6 +48,10 @@ async function server() {
 
   // NestJS-style global exception filter
   // app.useGlobalFilters(new AllExceptionsFilter());
+
+  // Seed email templates
+  const seeder = app.get(EmailTemplateSeeder);
+  await seeder.seed();
 
   await app.listen(process.env.PORT ?? 8000);
 }

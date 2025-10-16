@@ -6,20 +6,21 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { MongoError } from 'mongodb';
-
 import { getMessage } from 'src/common/utils/translator';
 import { generateUsername } from 'src/common/utils/generators';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
 import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
 import { RolePermissions } from 'src/common/constants/roles-permissions.constant';
-
 import { UserRole } from 'src/enums/user-role.enum';
 import { User, UserDocument } from 'src/schemas/user.schema';
-import { RegisterDto } from './dto/register.dto';
+import { RegisterDto, VerifyEmailQueryDto } from './dto/register.dto';
 import { Modules } from 'src/enums/appModules.enum';
-
 import { JwtService } from '../jwt/jwt.service';
 import { MediaService } from '../media/media.service';
+import { randomBytes } from 'crypto';
+import { EmailService } from '../email/email.service';
+import { EmailTemplates } from 'src/enums/emailTemplates.enum';
+import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
 
 @Injectable()
 export class AuthService {
@@ -27,6 +28,7 @@ export class AuthService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private jwtService: JwtService,
     private mediaService: MediaService,
+    private emailService: EmailService,
   ) {}
 
   async register(
@@ -43,6 +45,7 @@ export class AuthService {
       password,
       phoneNumber,
       countryCode,
+      preferredLang,
     } = dto;
 
     let profilePicUrl: string | undefined = undefined;
@@ -118,9 +121,32 @@ export class AuthService {
         role: defaultRole,
         permissions,
         profilePic: profilePicUrl,
+        preferredLang,
       };
 
-      const user = await this.userModel.create({ ...newUserData });
+      const emailVerificationToken = randomBytes(32).toString('hex');
+      const emailVerificationTokenExpires = new Date(
+        Date.now() +
+          Number(process.env.EMAIL_VERIFICATION_EXPIRY_TIME || 48) * 60 * 60 * 1000,
+      );
+
+      const user = await this.userModel.create({
+        ...newUserData,
+        emailVerificationToken,
+        emailVerificationTokenExpires,
+      });
+
+      if (user.email) {
+        await this.emailService.sendTemplateEmail({
+          to: user.email,
+          templateName: EmailTemplates.USER_REGISTRATION_CONFIRMATION,
+          templateData: {
+            firstName: user.firstName,
+            confirmationUrl: `http://localhost:3002/verify-email?token=${emailVerificationToken}`,
+          },
+          prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
+        });
+      }
 
       const token = this.jwtService.generateToken(
         user?._id?.toString(),
@@ -152,5 +178,40 @@ export class AuthService {
         getMessage('users_errWhileCreatingUser', lang),
       );
     }
+  }
+
+  async verifyEmail(
+    query: VerifyEmailQueryDto,
+  ): Promise<{ isSuccess: boolean; message: string }> {
+    const { token, lang } = query;
+
+    if (!token) {
+      throw new BadRequestException(getMessage('authentication_noToken', lang));
+    }
+
+    const user = await this.userModel.findOne({
+      emailVerificationToken: token,
+    });
+
+    if (
+      !user ||
+      !user.emailVerificationTokenExpires ||
+      user.emailVerificationTokenExpires < new Date()
+    ) {
+      throw new BadRequestException(
+        getMessage('authentication_invalidOrExpiredToken', lang),
+      );
+    }
+
+    user.isEmailVerified = true;
+    user.emailVerificationToken = null;
+    user.emailVerificationTokenExpires = null;
+
+    await user.save();
+
+    return {
+      isSuccess: true,
+      message: getMessage('authentication_emailVerifiedSuccessfully', lang),
+    };
   }
 }

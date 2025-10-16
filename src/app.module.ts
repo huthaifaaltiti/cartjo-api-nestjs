@@ -23,6 +23,7 @@ import { WishListModule } from './modules/wishList/wishList.module';
 import { SearchModule } from './modules/search/search.module';
 import { CommentModule } from './modules/comment/comment.module';
 import { NationalityModule } from './modules/nationality/nationality.module';
+import { EmailModule } from './modules/email/email.module';
 
 @Module({
   imports: [
@@ -52,7 +53,8 @@ import { NationalityModule } from './modules/nationality/nationality.module';
     WishListModule,
     SearchModule,
     CommentModule,
-    NationalityModule
+    NationalityModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

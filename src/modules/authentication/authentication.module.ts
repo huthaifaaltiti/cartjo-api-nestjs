@@ -10,6 +10,7 @@ import { AuthService } from './authentication.service';
 import { JwtService } from '../jwt/jwt.service';
 import { MediaModule } from '../media/media.module';
 import { Modules } from 'src/enums/appModules.enum';
+import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { Modules } from 'src/enums/appModules.enum';
     }),
     MulterModule.register(createMulterOptions(Modules.AUTHENTICATION)),
     MediaModule,
+    EmailModule
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtService],

@@ -4,6 +4,7 @@ import { hashSync } from 'bcrypt';
 import { UserRole } from 'src/enums/user-role.enum';
 import { NameRef } from './common.schema';
 import { Gender } from 'src/enums/gender.enum';
+import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
 
 export type UserDocument = User & Document;
 
@@ -88,6 +89,14 @@ export class User extends Document {
   })
   gender?: Gender | null;
 
+  @Prop({
+    type: String,
+    enum: Object.values(PreferredLanguage),
+    required: false,
+    default: PreferredLanguage.ARABIC,
+  })
+  preferredLang: PreferredLanguage;
+
   @Prop({ default: false })
   canManage: boolean;
 
@@ -127,6 +136,15 @@ export class User extends Document {
 
   @Prop()
   marketingEmails: boolean;
+
+  @Prop({ default: null })
+  emailVerificationToken?: string;
+
+  @Prop({ type: Date, nullable: true })
+  emailVerificationTokenExpires?: Date;
+
+  @Prop({ default: false })
+  isEmailVerified?: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

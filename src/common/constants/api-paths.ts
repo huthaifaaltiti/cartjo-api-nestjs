@@ -2,6 +2,7 @@ export const ApiPaths = {
   Authentication: {
     Root: 'api/v1/authentication',
     Register: 'register',
+    VerifyEmail: 'verify-email',
   },
   Authorization: {
     Root: 'api/v1/authorization',

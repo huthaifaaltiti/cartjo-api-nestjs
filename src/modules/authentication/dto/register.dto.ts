@@ -1,10 +1,14 @@
 import {
+  IsBoolean,
   IsEmail,
+  IsEnum,
   IsNotEmpty,
+  IsOptional,
   IsString,
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
 import { Locale } from 'src/types/Locale';
 
 export class RegisterDto {
@@ -37,12 +41,25 @@ export class RegisterDto {
   @MaxLength(20, { message: 'Password cannot exceed 20 characters' })
   password: string;
 
-  @IsString({ message: 'Terms acceptance must be a string value' })
+  @IsBoolean()
   @IsNotEmpty({ message: 'You must accept the terms' })
   termsAccepted: string;
 
-  @IsString({ message: 'Marketing emails preference must be a string value' })
+  @IsBoolean()
+  @IsOptional()
   marketingEmails?: string;
+
+  @IsEnum(PreferredLanguage)
+  preferredLang: PreferredLanguage;
+
+  @IsString()
+  lang: Locale;
+}
+
+export class VerifyEmailQueryDto {
+  @IsNotEmpty()
+  @IsString()
+  token: string;
 
   @IsString()
   lang: Locale;
