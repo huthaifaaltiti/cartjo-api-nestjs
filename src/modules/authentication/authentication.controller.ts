@@ -10,7 +10,11 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './authentication.service';
-import { RegisterDto, VerifyEmailQueryDto } from './dto/register.dto';
+import {
+  RegisterDto,
+  ResendVerificationEmailDto,
+  VerifyEmailQueryDto,
+} from './dto/register.dto';
 import { ApiPaths } from 'src/common/constants/api-paths';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -33,7 +37,12 @@ export class AuthController {
   }
 
   @Get(ApiPaths.Authentication.VerifyEmail)
-  async verifyEmail(@Query()  query: VerifyEmailQueryDto,) {
-    return this.authService.verifyEmail(query)
+  async verifyEmail(@Query() query: VerifyEmailQueryDto) {
+    return this.authService.verifyEmail(query);
+  }
+
+  @Post(ApiPaths.Authentication.ResendVerificationEmail)
+  async resendVerificationEmail(@Body() dto: ResendVerificationEmailDto) {
+    return this.authService.resendVerificationEmail(dto);
   }
 }

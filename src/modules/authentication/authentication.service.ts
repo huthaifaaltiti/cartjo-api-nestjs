@@ -13,7 +13,11 @@ import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
 import { RolePermissions } from 'src/common/constants/roles-permissions.constant';
 import { UserRole } from 'src/enums/user-role.enum';
 import { User, UserDocument } from 'src/schemas/user.schema';
-import { RegisterDto, VerifyEmailQueryDto } from './dto/register.dto';
+import {
+  RegisterDto,
+  ResendVerificationEmailDto,
+  VerifyEmailQueryDto,
+} from './dto/register.dto';
 import { Modules } from 'src/enums/appModules.enum';
 import { JwtService } from '../jwt/jwt.service';
 import { MediaService } from '../media/media.service';
@@ -127,7 +131,10 @@ export class AuthService {
       const emailVerificationToken = randomBytes(32).toString('hex');
       const emailVerificationTokenExpires = new Date(
         Date.now() +
-          Number(process.env.EMAIL_VERIFICATION_EXPIRY_TIME || 48) * 60 * 60 * 1000,
+          Number(process.env.EMAIL_VERIFICATION_EXPIRY_TIME || 48) *
+            60 *
+            60 *
+            1000,
       );
 
       const user = await this.userModel.create({
@@ -212,6 +219,56 @@ export class AuthService {
     return {
       isSuccess: true,
       message: getMessage('authentication_emailVerifiedSuccessfully', lang),
+    };
+  }
+
+  async resendVerificationEmail(
+    dto: ResendVerificationEmailDto,
+  ): Promise<{ isSuccess: boolean; message: string }> {
+    const { email, lang } = dto;
+
+    const user = await this.userModel.findOne({ email });
+
+    if (!user) {
+      throw new BadRequestException(
+        getMessage('authentication_userNotFound', lang),
+      );
+    }
+
+    if (user.isEmailVerified) {
+      return {
+        isSuccess: true,
+        message: getMessage('authentication_emailAlreadyVerified', lang),
+      };
+    }
+
+    const emailVerificationToken = randomBytes(32).toString('hex');
+    const emailVerificationTokenExpires = new Date(
+      Date.now() +
+        Number(process.env.EMAIL_VERIFICATION_EXPIRY_TIME || 48) *
+          60 *
+          60 *
+          1000,
+    );
+
+    user.emailVerificationToken = emailVerificationToken;
+    user.emailVerificationTokenExpires = emailVerificationTokenExpires;
+
+    await user.save();
+
+    await this.emailService.sendTemplateEmail({
+      to: user.email,
+      templateName: EmailTemplates.RESEND_VERIFICATION_EMAIL,
+      templateData: {
+        firstName: user.firstName,
+        confirmationUrl: `http://localhost:3002/verify-email?token=${emailVerificationToken}`,
+      },
+      prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
+    });
+
+    return {
+      isSuccess: true,
+      message: getMessage('authentication_verificationEmailSent', lang),
     };
   }
 }

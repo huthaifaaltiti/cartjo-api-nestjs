@@ -3,8 +3,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { EmailTemplates } from 'src/enums/emailTemplates.enum';
 import { EmailTemplate } from 'src/schemas/email-template.schema';
-import { userRegistrationTemplate } from './email-templates/user-registration.template';
-import { privacyPolicyTemplate } from './email-templates/privacy-policy.template';
+import {
+  privacyPolicyTemplate,
+  resendVerificationTemplate,
+  userRegistrationTemplate,
+} from './email-templates';
 
 @Injectable()
 export class EmailTemplateSeeder {
@@ -16,6 +19,7 @@ export class EmailTemplateSeeder {
   async seed() {
     await this.seedUserRegistration();
     await this.seedPrivacyPolicyUpdate();
+    await this.seedResendVerificationEmail();
   }
 
   private async seedUserRegistration() {
@@ -42,5 +46,18 @@ export class EmailTemplateSeeder {
     });
 
     Logger.log('✅ Privacy policy update template created (EN & AR)');
+  }
+
+  private async seedResendVerificationEmail() {
+    const name = EmailTemplates.RESEND_VERIFICATION_EMAIL;
+    const exists = await this.templateModel.findOne({ name });
+    if (exists) return Logger.log(`✅ "${name}" template already exists`);
+
+    await this.templateModel.create({
+      name,
+      ...resendVerificationTemplate,
+    });
+
+    Logger.log('✅ Resend Verification Email template created (EN & AR)');
   }
 }

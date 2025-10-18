@@ -64,3 +64,13 @@ export class VerifyEmailQueryDto {
   @IsString()
   lang: Locale;
 }
+
+
+export class ResendVerificationEmailDto {
+  @IsEmail({}, { message: 'Invalid email format' })
+  @IsNotEmpty({ message: 'Email is required' })
+  email: string;
+
+  @IsString()
+  lang: Locale;
+}
