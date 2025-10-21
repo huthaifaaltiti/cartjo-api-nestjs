@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
@@ -11,9 +10,12 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './authentication.service';
 import {
+  ForgotPasswordBodyDto,
   RegisterDto,
   ResendVerificationEmailDto,
+  ResetPasswordBodyDto,
   VerifyEmailQueryDto,
+  VerifyResetPasswordCodeBodyDto,
 } from './dto/register.dto';
 import { ApiPaths } from 'src/common/constants/api-paths';
 import { InjectModel } from '@nestjs/mongoose';
@@ -44,5 +46,20 @@ export class AuthController {
   @Post(ApiPaths.Authentication.ResendVerificationEmail)
   async resendVerificationEmail(@Body() dto: ResendVerificationEmailDto) {
     return this.authService.resendVerificationEmail(dto);
+  }
+
+  @Post(ApiPaths.Authentication.ForgotPassword)
+  async forgotPassword(@Body() dto: ForgotPasswordBodyDto) {
+    return this.authService.forgotPassword(dto);
+  }
+
+  @Post(ApiPaths.Authentication.VerifyResetPasswordCode)
+  async verifyResetPasswordCode(@Body() dto: VerifyResetPasswordCodeBodyDto) {
+    return this.authService.verifyResetPasswordCode(dto);
+  }
+
+  @Post(ApiPaths.Authentication.ResetPassword)
+  async resetPassword(@Body() dto: ResetPasswordBodyDto) {
+    return this.authService.resetPassword(dto);
   }
 }

@@ -4,6 +4,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import * as crypto from 'crypto';
 import { Model } from 'mongoose';
 import { MongoError } from 'mongodb';
 import { getMessage } from 'src/common/utils/translator';
@@ -14,9 +15,12 @@ import { RolePermissions } from 'src/common/constants/roles-permissions.constant
 import { UserRole } from 'src/enums/user-role.enum';
 import { User, UserDocument } from 'src/schemas/user.schema';
 import {
+  ForgotPasswordBodyDto,
   RegisterDto,
   ResendVerificationEmailDto,
+  ResetPasswordBodyDto,
   VerifyEmailQueryDto,
+  VerifyResetPasswordCodeBodyDto,
 } from './dto/register.dto';
 import { Modules } from 'src/enums/appModules.enum';
 import { JwtService } from '../jwt/jwt.service';
@@ -25,6 +29,7 @@ import { randomBytes } from 'crypto';
 import { EmailService } from '../email/email.service';
 import { EmailTemplates } from 'src/enums/emailTemplates.enum';
 import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
+import { BaseResponse } from 'src/types/service-response.type';
 
 @Injectable()
 export class AuthService {
@@ -149,7 +154,7 @@ export class AuthService {
           templateName: EmailTemplates.USER_REGISTRATION_CONFIRMATION,
           templateData: {
             firstName: user.firstName,
-            confirmationUrl: `http://localhost:3002/verify-email?token=${emailVerificationToken}`,
+            confirmationUrl: `${process.env.APP_URL}/verify-email?token=${emailVerificationToken}`,
           },
           prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
         });
@@ -187,9 +192,7 @@ export class AuthService {
     }
   }
 
-  async verifyEmail(
-    query: VerifyEmailQueryDto,
-  ): Promise<{ isSuccess: boolean; message: string }> {
+  async verifyEmail(query: VerifyEmailQueryDto): Promise<BaseResponse> {
     const { token, lang } = query;
 
     if (!token) {
@@ -224,7 +227,7 @@ export class AuthService {
 
   async resendVerificationEmail(
     dto: ResendVerificationEmailDto,
-  ): Promise<{ isSuccess: boolean; message: string }> {
+  ): Promise<BaseResponse> {
     const { email, lang } = dto;
 
     const user = await this.userModel.findOne({ email });
@@ -261,7 +264,7 @@ export class AuthService {
       templateName: EmailTemplates.RESEND_VERIFICATION_EMAIL,
       templateData: {
         firstName: user.firstName,
-        confirmationUrl: `http://localhost:3002/verify-email?token=${emailVerificationToken}`,
+        confirmationUrl: `${process.env.APP_URL}/verify-email?token=${emailVerificationToken}`,
       },
       prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
     });
@@ -269,6 +272,152 @@ export class AuthService {
     return {
       isSuccess: true,
       message: getMessage('authentication_verificationEmailSent', lang),
+    };
+  }
+
+  async forgotPassword(dto: ForgotPasswordBodyDto): Promise<BaseResponse> {
+    const { identifier, lang } = dto;
+
+    const user = await this.userModel.findOne({
+      $or: [
+        { email: identifier },
+        { phoneNumber: identifier },
+        { username: identifier },
+      ],
+    });
+
+    if (!user) {
+      throw new BadRequestException(
+        getMessage('authentication_userNotFound', lang),
+      );
+    }
+
+    const resetCode = crypto.randomInt(100000, 999999).toString();
+
+    user.resetCode = resetCode;
+    const passwordResetCodeExpiringTime = new Date(
+      Date.now() +
+        Number(process.env.PASSWORD_RESET_CODE_EXPIRY_TIME || 15) * 60 * 1000,
+    ); // 15 min
+    user.resetCodeExpires = passwordResetCodeExpiringTime;
+
+    await user.save();
+
+    if (user.email) {
+      await this.emailService.sendTemplateEmail({
+        to: user.email,
+        templateName: EmailTemplates.RESET_PASSWORD_CODE,
+        templateData: {
+          firstName: user.firstName,
+          resetCode,
+        },
+        prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
+      });
+    }
+
+    return {
+      isSuccess: true,
+      message: getMessage('authentication_resetPasswordCodeSent', lang),
+    };
+  }
+
+  async verifyResetPasswordCode(
+    dto: VerifyResetPasswordCodeBodyDto,
+  ): Promise<BaseResponse> {
+    const { identifier, code, lang } = dto;
+
+    if (!code) {
+      throw new BadRequestException(
+        getMessage('authentication_notValidCode', lang),
+      );
+    }
+
+    const user = await this.userModel.findOne({
+      $or: [
+        { email: identifier },
+        { phoneNumber: identifier },
+        { username: identifier },
+      ],
+      resetCode: code,
+    });
+
+    if (!user) {
+      throw new BadRequestException(
+        getMessage('authentication_notValidCode', lang),
+      );
+    }
+
+    if (user.resetCodeExpires < new Date()) {
+      throw new BadRequestException(
+        getMessage('authentication_expiredRestPasswordCode', lang),
+      );
+    }
+
+    return {
+      isSuccess: true,
+      message: getMessage('authentication_verifiedRestPasswordCode', lang),
+    };
+  }
+
+  async resetPassword(
+    dto: ResetPasswordBodyDto,
+  ): Promise<BaseResponse> {
+    const { identifier, code,newPassword, lang } = dto;
+
+    if (!code) {
+      throw new BadRequestException(
+        getMessage('authentication_notValidCode', lang),
+      );
+    }
+
+    if (!newPassword) {
+      throw new BadRequestException(
+        getMessage('authentication_invalidResetPassword', lang),
+      );
+    }
+
+    const user = await this.userModel.findOne({
+      $or: [
+        { email: identifier },
+        { phoneNumber: identifier },
+        { username: identifier },
+      ],
+      resetCode: code,
+    });
+
+    if (!user) {
+      throw new BadRequestException(
+        getMessage('authentication_notValidCode', lang),
+      );
+    }
+
+    if (user.resetCodeExpires < new Date()) {
+      throw new BadRequestException(
+        getMessage('authentication_expiredRestPasswordCode', lang),
+      );
+    }
+
+    user.password = newPassword;
+    user.resetCode = undefined;
+    user.resetCodeExpires = undefined;
+
+    await user.save();
+
+    if (user.email) {
+      await this.emailService.sendTemplateEmail({
+        to: user.email,
+        templateName: EmailTemplates.PASSWORD_RESET_SUCCESS,
+        templateData: {
+          firstName: user.firstName,
+          loginUrl: `${process.env.APP_URL}/auth`,
+        },
+        prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
+      });
+    }
+
+    return {
+      isSuccess: true,
+      message: getMessage('authentication_passwordResetSuccessfully', lang),
     };
   }
 }

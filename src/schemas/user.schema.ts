@@ -71,6 +71,12 @@ export class User extends Document {
   })
   password?: string;
 
+  @Prop({ default: undefined })
+  resetCode?: string | undefined;
+
+  @Prop({ default: undefined })
+  resetCodeExpires?: Date | undefined;
+
   @Prop({ default: false })
   rememberMe: boolean;
 

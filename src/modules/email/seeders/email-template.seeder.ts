@@ -4,8 +4,10 @@ import { Model } from 'mongoose';
 import { EmailTemplates } from 'src/enums/emailTemplates.enum';
 import { EmailTemplate } from 'src/schemas/email-template.schema';
 import {
+  passwordResetSuccessTemplate,
   privacyPolicyTemplate,
   resendVerificationTemplate,
+  resetPasswordTemplate,
   userRegistrationTemplate,
 } from './email-templates';
 
@@ -20,6 +22,8 @@ export class EmailTemplateSeeder {
     await this.seedUserRegistration();
     await this.seedPrivacyPolicyUpdate();
     await this.seedResendVerificationEmail();
+    await this.seedResetPasswordEmail();
+    await this.seedPasswordResetSuccessEmail();
   }
 
   private async seedUserRegistration() {
@@ -59,5 +63,31 @@ export class EmailTemplateSeeder {
     });
 
     Logger.log('✅ Resend Verification Email template created (EN & AR)');
+  }
+
+  private async seedResetPasswordEmail() {
+    const name = EmailTemplates.RESET_PASSWORD_CODE;
+    const exists = await this.templateModel.findOne({ name });
+    if (exists) return Logger.log(`✅ "${name}" template already exists`);
+
+    await this.templateModel.create({
+      name,
+      ...resetPasswordTemplate,
+    });
+
+    Logger.log('✅ Reset password Email template created (EN & AR)');
+  }
+
+  private async seedPasswordResetSuccessEmail() {
+    const name = EmailTemplates.PASSWORD_RESET_SUCCESS;
+    const exists = await this.templateModel.findOne({ name });
+    if (exists) return Logger.log(`✅ "${name}" template already exists`);
+
+    await this.templateModel.create({
+      name,
+      ...passwordResetSuccessTemplate,
+    });
+
+    Logger.log('✅ Password reset success Email template created (EN & AR)');
   }
 }

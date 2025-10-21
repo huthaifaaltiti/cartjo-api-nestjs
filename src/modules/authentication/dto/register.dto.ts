@@ -74,3 +74,40 @@ export class ResendVerificationEmailDto {
   @IsString()
   lang: Locale;
 }
+
+export class ForgotPasswordBodyDto {
+  @IsNotEmpty({ message: 'Identifier is required' })
+  identifier: string | number;
+
+  @IsString()
+  lang: Locale;
+}
+export class VerifyResetPasswordCodeBodyDto {
+  @IsNotEmpty({ message: 'Identifier is required' })
+  identifier: string | number;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Code is required' })
+  code: string;
+
+  @IsString()
+  lang: Locale;
+}
+
+export class ResetPasswordBodyDto {
+  @IsNotEmpty({ message: 'Identifier is required' })
+  identifier: string | number;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Code is required' })
+  code: string;
+
+  @IsNotEmpty({ message: 'New password is required' })
+  @IsString()
+  @MinLength(6, { message: 'Password must be at least 6 characters long' })
+  @MaxLength(20, { message: 'Password cannot exceed 20 characters' })
+  newPassword: string;
+
+  @IsString()
+  lang: Locale;
+}
