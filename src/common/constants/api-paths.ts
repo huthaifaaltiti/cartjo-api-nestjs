@@ -4,9 +4,12 @@ export const ApiPaths = {
     Register: 'register',
     VerifyEmail: 'verify-email',
     ResendVerificationEmail: 'resend-verification-email',
-    ForgotPassword: 'forgot-password',
-    VerifyResetPasswordCode: 'verify-reset-password-code',
-    ResetPassword: 'reset-password',
+    ForgotPassword: {
+      Root:"forgot-password",
+      SendIdentifier: 'send-identifier',
+      VerifyResetPasswordCode: 'verify-reset-password-code',
+      ResetPassword: 'reset-password',
+    },
   },
   Authorization: {
     Root: 'api/v1/authorization',

@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as crypto from 'crypto';
+import * as bcrypt from 'bcrypt';
 import { Model } from 'mongoose';
 import { MongoError } from 'mongodb';
 import { getMessage } from 'src/common/utils/translator';
@@ -359,10 +360,8 @@ export class AuthService {
     };
   }
 
-  async resetPassword(
-    dto: ResetPasswordBodyDto,
-  ): Promise<BaseResponse> {
-    const { identifier, code,newPassword, lang } = dto;
+  async resetPassword(dto: ResetPasswordBodyDto): Promise<BaseResponse> {
+    const { identifier, code, newPassword, lang } = dto;
 
     if (!code) {
       throw new BadRequestException(
@@ -394,6 +393,13 @@ export class AuthService {
     if (user.resetCodeExpires < new Date()) {
       throw new BadRequestException(
         getMessage('authentication_expiredRestPasswordCode', lang),
+      );
+    }
+
+    const isSamePassword = await bcrypt.compare(newPassword, user.password);
+    if (isSamePassword) {
+      throw new BadRequestException(
+        getMessage('authentication_newPasswordSameAsOld', lang),
       );
     }
 

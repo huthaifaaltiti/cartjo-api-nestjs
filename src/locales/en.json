@@ -15,6 +15,7 @@
   "authentication_notValidCode": "Password reset code is invalid",
   "authentication_emailVerifiedSuccessfully": "Your email is verified successfully",
   "authentication_userNotFound": "User not found",
+  "authentication_newPasswordSameAsOld": "New password cannot be the same as the old password. Try to add a new one.",
   "authentication_resetPasswordCodeSent": "Reset password code is sent successfully",
   "users_userAlreadyExists": "The user already exists",
   "users_errWhileCreatingUser": "An unexpected error occurred while creating the user",

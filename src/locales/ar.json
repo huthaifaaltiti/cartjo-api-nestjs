@@ -16,6 +16,7 @@
   "authentication_notValidCode": "رمز إعادة تعيين كلمة المرور غير صالح",
   "authentication_userNotFound": "المستخدم غير موجود",
   "authentication_resetPasswordCodeSent": "تم إرسال رمز إعادة تعيين كلمة المرور بنجاح",
+  "authentication_newPasswordSameAsOld": "لا يمكن تعيين نفس كلمة المرور السابقة. حاول تعيين كلمة مرور جديدة",
   "users_userAlreadyExists": "المستخدم موجود بالفعل",
   "users_errWhileCreatingUser": "حدث خطأ غير متوقع أثناء إنشاء المستخدم",
   "authorization_accountDeleted": "تم حذف حسابك. يرجى التواصل مع الدعم.",

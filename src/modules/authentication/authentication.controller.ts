@@ -48,17 +48,26 @@ export class AuthController {
     return this.authService.resendVerificationEmail(dto);
   }
 
-  @Post(ApiPaths.Authentication.ForgotPassword)
+  // Forgot Password (1- Identifier)
+  @Post(
+    `${ApiPaths.Authentication.ForgotPassword.Root}/${ApiPaths.Authentication.ForgotPassword.SendIdentifier}`,
+  )
   async forgotPassword(@Body() dto: ForgotPasswordBodyDto) {
     return this.authService.forgotPassword(dto);
-  }
+  } 
 
-  @Post(ApiPaths.Authentication.VerifyResetPasswordCode)
+  // Forgot Password (2- Verify Code)
+  @Post(
+    `${ApiPaths.Authentication.ForgotPassword.Root}/${ApiPaths.Authentication.ForgotPassword.VerifyResetPasswordCode}`,
+  )
   async verifyResetPasswordCode(@Body() dto: VerifyResetPasswordCodeBodyDto) {
     return this.authService.verifyResetPasswordCode(dto);
   }
 
-  @Post(ApiPaths.Authentication.ResetPassword)
+  // Forgot Password (3- Reset Password)
+  @Post(
+    `${ApiPaths.Authentication.ForgotPassword.Root}/${ApiPaths.Authentication.ForgotPassword.ResetPassword}`,
+  )
   async resetPassword(@Body() dto: ResetPasswordBodyDto) {
     return this.authService.resetPassword(dto);
   }
