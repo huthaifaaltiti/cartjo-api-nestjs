@@ -24,6 +24,7 @@ import { SearchModule } from './modules/search/search.module';
 import { CommentModule } from './modules/comment/comment.module';
 import { NationalityModule } from './modules/nationality/nationality.module';
 import { EmailModule } from './modules/email/email.module';
+import { CartModule } from './modules/cart/cart.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { EmailModule } from './modules/email/email.module';
     CommentModule,
     NationalityModule,
     EmailModule,
+    CartModule
   ],
   controllers: [AppController],
   providers: [AppService],

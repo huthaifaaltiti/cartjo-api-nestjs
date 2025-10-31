@@ -196,5 +196,18 @@
   "comment_cannotDelete": "لا يمكن حذف التعليق",
   "comment_commentDeletedSuccessfully": "تم حذف التعليق بنجاح",
   "comment_commentUnDeletedSuccessfully": "تم إلغاء حذف التعليق بنجاح",
-  "nationality_staticNationalitiesRetrievedSuccessfully": "تم استرداد الجنسيات الثابتة بنجاح"
+  "nationality_staticNationalitiesRetrievedSuccessfully": "تم استرداد الجنسيات الثابتة بنجاح",
+  "cart_clearedSuccessfully": "تم مسح عناصر سلة التسوق بنجاح",
+  "cart_cartRetrievedSuccessfully": "تم استرداد سلة التسوق بنجاح",
+  "cart_productAddedToCartSuccessfully": "تمت إضافة المنتج إلى سلة التسوق بنجاح",
+  "cart_productIsInCart": "المنتج موجود بالفعل في سلة التسوق",
+  "cart_paymentProcessed": "تمت معالجة الدفع",
+  "cart_notFound": "لم يتم العثور على سلة التسوق",
+  "cart_productAddedSuccessfully": "تمت إضافة المنتج إلى سلة التسوق بنجاح",
+  "cart_productRemovedSuccessfully": "تمت إزالة المنتج من سلة التسوق بنجاح",
+  "cart_productIsNotInCart": "المنتج لا ينتمي إلى سلة التسوق الخاصة بك",
+  "cart_cartWithNoItems": "قائمة سلة التسوق لا تحتوي على أي عناصر",
+  "cart_productNotInCart": "المنتج ليس في قائمة سلة التسوق",
+  "cart_productsRemovedSuccessfully": "تمت إزالة جميع المنتجات من سلة التسوق بنجاح",
+  "cart_notFoundProduct": "لم يتم العثور على عنصر المنتج"
 }

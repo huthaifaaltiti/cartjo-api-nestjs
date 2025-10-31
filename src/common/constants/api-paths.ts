@@ -136,6 +136,14 @@ export const ApiPaths = {
     RemoveOne: 'remove',
     RemoveAll: 'remove-all',
   },
+  Cart: {
+    Root: '/api/v1/cart',
+    GetCart: '/',
+    AddOne: 'add',
+    RemoveOne: 'remove',
+    RemoveAll: 'remove-all',
+    Checkout: 'checkout',
+  },
   Nationality: {
     Root: '/api/v1/nationality',
     GetAll: 'all',
