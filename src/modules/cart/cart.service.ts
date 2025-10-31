@@ -166,7 +166,6 @@ export class CartService {
         items: [{ productId, quantity, price }],
         totalAmount: price * quantity,
       });
-
     } else {
       const existingItem = cart.items.find(i => i.productId.equals(productId));
 
@@ -182,7 +181,7 @@ export class CartService {
       );
 
       cart.updatedBy = requestingUser.userId;
-      
+
       await cart.save();
     }
 
@@ -197,7 +196,8 @@ export class CartService {
     requestingUser: any,
     dto: ItemBodyDto,
   ): Promise<DataResponse<Cart>> {
-    const { lang, productId } = dto;
+    const { lang, productId, quantity } = dto;
+
     await this.isValidProduct(productId, lang);
 
     const cart = await this.cartModel.findOne({
@@ -207,11 +207,16 @@ export class CartService {
     if (!cart) throw new NotFoundException(getMessage('cart_notFound', lang));
 
     const itemIndex = cart.items.findIndex(i => i.productId.equals(productId));
+    const item = cart.items.at(itemIndex);
 
     if (itemIndex === -1)
       throw new BadRequestException(getMessage('cart_productNotInCart', lang));
 
-    cart.items.splice(itemIndex, 1);
+    if (item.quantity === 1) {
+      cart.items.splice(itemIndex, 1);
+    } else {
+      item.quantity -= quantity;
+    }
 
     cart.totalAmount = cart.items.reduce(
       (sum, i) => sum + i.quantity * i.price,
@@ -219,6 +224,7 @@ export class CartService {
     );
 
     cart.updatedBy = requestingUser.userId;
+
     await cart.save();
 
     return {
