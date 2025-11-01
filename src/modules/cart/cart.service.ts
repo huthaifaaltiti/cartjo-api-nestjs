@@ -15,6 +15,7 @@ import { getMessage } from 'src/common/utils/translator';
 import { Product, ProductDocument } from 'src/schemas/product.schema';
 import { Cart, CartDocument } from 'src/schemas/cart.schema';
 import { DataResponse } from 'src/types/service-response.type';
+import { DeleteAllItemsBodyDto } from './dto/delete.dto';
 
 @Injectable()
 export class CartService {
@@ -236,9 +237,10 @@ export class CartService {
 
   async removeAllCartItems(
     requestingUser: any,
-    lang: Locale,
+    dto: DeleteAllItemsBodyDto,
   ): Promise<DataResponse<Cart>> {
     const { userId } = requestingUser;
+    const { lang } = dto;
 
     const cart = await this.cartModel.findOne({ userId });
     if (!cart) throw new NotFoundException(getMessage('cart_notFound', lang));

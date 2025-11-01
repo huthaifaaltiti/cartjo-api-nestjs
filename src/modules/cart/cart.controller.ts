@@ -15,6 +15,7 @@ import { CartService } from './cart.service';
 import { ItemBodyDto } from './dto/item.dto';
 import { Locale } from 'src/types/Locale';
 import { CheckoutBodyDto } from './dto/checkout.dto';
+import { DeleteAllItemsBodyDto } from './dto/delete.dto';
 
 @Controller(ApiPaths.Cart.Root)
 export class CartController {
@@ -46,10 +47,13 @@ export class CartController {
 
   @UseGuards(AuthGuard('jwt'))
   @Delete(ApiPaths.Cart.RemoveAll)
-  async removeAllCartItems(@Body('lang') lang: Locale, @Request() req: any) {
+  async removeAllCartItems(
+    @Body() dto: DeleteAllItemsBodyDto,
+    @Request() req: any,
+  ) {
     const { user } = req;
 
-    return this.cartService.removeAllCartItems(user, lang);
+    return this.cartService.removeAllCartItems(user, dto);
   }
 
   @UseGuards(AuthGuard('jwt'))
