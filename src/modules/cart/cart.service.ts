@@ -212,7 +212,7 @@ export class CartService {
     if (itemIndex === -1)
       throw new BadRequestException(getMessage('cart_productNotInCart', lang));
 
-    if (item.quantity === 1) {
+    if (quantity >= item.quantity) {
       cart.items.splice(itemIndex, 1);
     } else {
       item.quantity -= quantity;
