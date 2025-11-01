@@ -145,6 +145,7 @@ export const ApiPaths = {
     AddOne: 'add',
     RemoveOne: 'remove',
     RemoveAll: 'remove-all',
+    WishlistItems: 'wishlist-items',
     Checkout: 'checkout',
   },
   Nationality: {

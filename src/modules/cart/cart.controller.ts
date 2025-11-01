@@ -13,9 +13,9 @@ import { ApiPaths } from 'src/common/constants/api-paths';
 import { GetQueryDto } from './dto/get-one.dto';
 import { CartService } from './cart.service';
 import { ItemBodyDto } from './dto/item.dto';
-import { Locale } from 'src/types/Locale';
 import { CheckoutBodyDto } from './dto/checkout.dto';
 import { DeleteAllItemsBodyDto } from './dto/delete.dto';
+import { WishlistItemsBodyDto } from './dto/items.dto';
 
 @Controller(ApiPaths.Cart.Root)
 export class CartController {
@@ -54,6 +54,17 @@ export class CartController {
     const { user } = req;
 
     return this.cartService.removeAllCartItems(user, dto);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post(ApiPaths.Cart.WishlistItems)
+  async wishlistItems(
+    @Body() dto: WishlistItemsBodyDto,
+    @Request() req: any,
+  ) {
+    const { user } = req;
+
+    return this.cartService.wishlistItems(user, dto);
   }
 
   @UseGuards(AuthGuard('jwt'))

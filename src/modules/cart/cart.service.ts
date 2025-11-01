@@ -16,6 +16,8 @@ import { Product, ProductDocument } from 'src/schemas/product.schema';
 import { Cart, CartDocument } from 'src/schemas/cart.schema';
 import { DataResponse } from 'src/types/service-response.type';
 import { DeleteAllItemsBodyDto } from './dto/delete.dto';
+import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
+import { WishlistItemsBodyDto } from './dto/items.dto';
 
 @Injectable()
 export class CartService {
@@ -24,6 +26,8 @@ export class CartService {
     private readonly cartModel: Model<CartDocument>,
     @InjectModel(Product.name)
     private readonly productModel: Model<ProductDocument>,
+    @InjectModel(WishList.name)
+    private readonly wishlistModel: Model<WishListDocument>,
   ) {}
 
   private readonly accessCode = process.env.APS_PAY_FORT_ACCESS_CODE;
@@ -259,6 +263,59 @@ export class CartService {
       isSuccess: true,
       message: getMessage('cart_clearedSuccessfully', lang),
       data: cart,
+    };
+  }
+
+  async wishlistItems(
+    requestingUser: any,
+    dto: WishlistItemsBodyDto,
+  ): Promise<DataResponse<any>> {
+    const { lang = 'en' } = dto;
+
+    const cart = await this.cartModel.findOne({
+      userId: requestingUser.userId,
+    });
+
+    if (!cart) throw new NotFoundException(getMessage('cart_notFound', lang));
+    if (!cart.items.length)
+      throw new BadRequestException(getMessage('cart_cartWithNoItems', lang));
+
+    let wishlist = await this.wishlistModel.findOne({
+      user: requestingUser.userId,
+    });
+
+    if (!wishlist) {
+      wishlist = await this.wishlistModel.create({
+        user: requestingUser.userId,
+        createdBy: requestingUser.userId,
+        products: [],
+      });
+    }
+
+    const movedItems: any[] = [];
+
+    for (const cartItem of cart.items) {
+      const productId = cartItem.productId.toString();
+
+      const exists = wishlist.products.some(p => p.toString() === productId);
+
+      if (!exists) {
+        wishlist.products.push(cartItem.productId);
+        movedItems.push(cartItem.productId);
+      }
+    }
+
+    await wishlist.save();
+
+    cart.items = [];
+    cart.totalAmount = 0;
+
+    await cart.save();
+
+    return {
+      isSuccess: true,
+      message: getMessage('cart_itemsMovedToWishlist', lang),
+      data: movedItems,
     };
   }
 

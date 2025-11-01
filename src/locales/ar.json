@@ -210,5 +210,6 @@
   "cart_cartWithNoItems": "قائمة سلة التسوق لا تحتوي على أي عناصر",
   "cart_productNotInCart": "المنتج ليس في قائمة سلة التسوق",
   "cart_productsRemovedSuccessfully": "تمت إزالة جميع المنتجات من سلة التسوق بنجاح",
-  "cart_notFoundProduct": "لم يتم العثور على عنصر المنتج"
+  "cart_notFoundProduct": "لم يتم العثور على عنصر المنتج",
+  "cart_itemsMovedToWishlist": "تم نقل عناصر السلة لقائمة الأمنيات"
 }
