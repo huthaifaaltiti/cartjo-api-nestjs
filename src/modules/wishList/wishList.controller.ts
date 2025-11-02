@@ -42,6 +42,14 @@ export class WishListController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Post(ApiPaths.Wishlist.SendToCart)
+  async sendToCart(@Body() dto: WishListItemBodyDto, @Request() req: any) {
+    const { user } = req;
+
+    return this.wishListService.sendToCart(user, dto);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Delete(ApiPaths.Wishlist.RemoveOne)
   async removeWishListItem(
     @Body() dto: WishListItemBodyDto,

@@ -182,6 +182,7 @@
   "wishList_wishListWithNoItems": "قائمة الأمنيات فارغة",
   "wishList_productNotInWishList": "المنتج غير موجود في قائمة الأمنيات",
   "wishList_productsRemovedSuccessfully": "تمت إزالة جميع المنتجات من قائمة الأمنيات بنجاح",
+  "wishlist_productSentToCartSuccessfully": "تم نقل العنصر إلى سلة التسوق بنجاح",
   "wishList_notFoundProduct": "العنصر غير موجود",
   "search_productsRetrievedSuccessfully": "تم استرداد العناصر المبحوث عنها بنجاح",
   "search_noSearchForItems": "لا يوجد شيء للبحث عنه في قاعدة البانات",

@@ -185,6 +185,7 @@
   "wishList_wishListWithNoItems": "Wish List with no items",
   "wishList_productNotInWishList": "Product is not in wish list",
   "wishList_productsRemovedSuccessfully": "All products removed from wishlist successfully",
+  "wishlist_productSentToCartSuccessfully": "Product sent to cart successfully",
   "wishList_notFoundProduct": "Not Found product item",
   "cart_clearedSuccessfully": "Cart items cleared successfully",
   "cart_cartRetrievedSuccessfully": "Cart is retrieved successfully",

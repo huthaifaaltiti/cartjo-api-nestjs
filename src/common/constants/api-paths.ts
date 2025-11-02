@@ -138,6 +138,7 @@ export const ApiPaths = {
     AddOne: 'add',
     RemoveOne: 'remove',
     RemoveAll: 'remove-all',
+    SendToCart: 'send-to-cart',
   },
   Cart: {
     Root: '/api/v1/cart',

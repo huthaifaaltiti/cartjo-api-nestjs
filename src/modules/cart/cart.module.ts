@@ -16,7 +16,6 @@ import { WishListModule } from '../wishList/wishList.module';
       { name: WishList.name, schema: WishListSchema },
     ]),
     ProductModule,
-    WishListModule
   ],
   controllers: [CartController],
   providers: [CartService],
