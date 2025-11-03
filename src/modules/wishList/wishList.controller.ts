@@ -12,7 +12,7 @@ import { WishListService } from './wishList.service';
 import { AuthGuard } from '@nestjs/passport';
 import { GetQueryDto } from './dto/get-one.dto';
 import { WishListItemBodyDto } from './dto/wishlist-item.dto';
-import { WishListItemsBodyDto } from './dto/wishlist-items.dto';
+import { SendAllWishListItemsBodyDto, WishListItemsBodyDto } from './dto/wishlist-items.dto';
 import { ApiPaths } from 'src/common/constants/api-paths';
 
 @Controller(ApiPaths.Wishlist.Root)
@@ -47,6 +47,14 @@ export class WishListController {
     const { user } = req;
 
     return this.wishListService.sendToCart(user, dto);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post(ApiPaths.Wishlist.SendAllToCart)
+  async sendAllToCart(@Body() dto: SendAllWishListItemsBodyDto, @Request() req: any) {
+    const { user } = req;
+
+    return this.wishListService.sendAllToCart(user, dto);
   }
 
   @UseGuards(AuthGuard('jwt'))

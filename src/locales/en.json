@@ -182,6 +182,8 @@
   "wishList_productAddedSuccessfully": "Product added to wishlist successfully",
   "wishList_productRemovedSuccessfully": "Product removed from wishlist successfully",
   "wishList_productIsNotInWishList": "Product does not belong to your wishlist",
+  "wishList_noProductsToSend": "No Products to send to the cart",
+  "wishlist_productsSentToCartSuccessfully": "Products sent to cart successfully",
   "wishList_wishListWithNoItems": "Wish List with no items",
   "wishList_productNotInWishList": "Product is not in wish list",
   "wishList_productsRemovedSuccessfully": "All products removed from wishlist successfully",

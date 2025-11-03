@@ -11,3 +11,5 @@ export class WishListItemBodyDto {
   @IsOptional()
   lang: Locale = 'en';
 }
+
+

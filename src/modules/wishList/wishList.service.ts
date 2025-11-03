@@ -10,7 +10,10 @@ import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
 import { Locale } from 'src/types/Locale';
 import { DataResponse } from 'src/types/service-response.type';
 import { WishListItemBodyDto } from './dto/wishlist-item.dto';
-import { WishListItemsBodyDto } from './dto/wishlist-items.dto';
+import {
+  SendAllWishListItemsBodyDto,
+  WishListItemsBodyDto,
+} from './dto/wishlist-items.dto';
 import { Product, ProductDocument } from 'src/schemas/product.schema';
 import { Cart, CartDocument } from 'src/schemas/cart.schema';
 import { CartService } from '../cart/cart.service';
@@ -208,6 +211,40 @@ export class WishListService {
       isSuccess: true,
       message: getMessage('wishlist_productSentToCartSuccessfully', lang),
       data: cart,
+    };
+  }
+
+  async sendAllToCart(
+    requestingUser: any,
+    dto: SendAllWishListItemsBodyDto,
+  ): Promise<DataResponse<WishList>> {
+    const { lang } = dto;
+
+    const wishList = await this.wishListModel.findOne({
+      user: requestingUser.userId,
+    });
+
+    if (!wishList || !wishList.products.length)
+      throw new NotFoundException(
+        getMessage('wishList_noProductsToSend', lang),
+      );
+
+    await Promise.all(
+      wishList.products.map((product: any) => {
+        return this.sendToCart(requestingUser, {
+          productId: product._id,
+          lang,
+        });
+      }),
+    );
+
+    wishList.products = [];
+    await wishList.save();
+
+    return {
+      isSuccess: true,
+      message: getMessage('wishlist_productsSentToCartSuccessfully', lang),
+      data: wishList,
     };
   }
 

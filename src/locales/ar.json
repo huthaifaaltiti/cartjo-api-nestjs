@@ -184,6 +184,8 @@
   "wishList_productsRemovedSuccessfully": "تمت إزالة جميع المنتجات من قائمة الأمنيات بنجاح",
   "wishlist_productSentToCartSuccessfully": "تم نقل العنصر إلى سلة التسوق بنجاح",
   "wishList_notFoundProduct": "العنصر غير موجود",
+  "wishList_noProductsToSend": "لا توجد منتجات لإرسالها إلى السلة",
+  "wishlist_productsSentToCartSuccessfully": "تم إرسال المنتجات إلى السلة بنجاح",
   "search_productsRetrievedSuccessfully": "تم استرداد العناصر المبحوث عنها بنجاح",
   "search_noSearchForItems": "لا يوجد شيء للبحث عنه في قاعدة البانات",
   "comment_commentsRetrievedSuccessfully": "تم جلب التعليقات بنجاح",
