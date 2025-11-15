@@ -36,6 +36,8 @@ export class PaymentService {
   private readonly shaResponsePhrase =
     process.env.APS_PAY_FORT_SHA_RESPONSE_PHRASE;
   private readonly paymentApiUrl = process.env.APS_PAY_FORT_PAYMENT_API_URL;
+  private readonly paymentReturnUrl =
+    process.env.APS_PAY_FORT_PAYMENT_RETURN_URL;
 
   private decryptOrderDetails(
     encryptedText: string,
@@ -119,10 +121,12 @@ export class PaymentService {
       });
 
       if (!cart || !cart.items.length) {
-        return {
-          valid: false,
-          message: getMessage('cart_cartWithNoItems', lang),
-        };
+        // return {
+        //   valid: false,
+        //   message: getMessage('cart_cartWithNoItems', lang),
+        // };
+
+        throw new BadRequestException(getMessage('cart_cartWithNoItems', lang));
       }
 
       return { valid: true, cart };
@@ -156,7 +160,7 @@ export class PaymentService {
       this.shaRequestPhrase,
     );
 
-    paymentPayload.return_url = `http://localhost:3002/checkout/complete?order=${encodeURIComponent(encryptedOrderDetails)}`;
+    paymentPayload.return_url = `${this.paymentReturnUrl}=${encodeURIComponent(encryptedOrderDetails)}`;
 
     paymentPayload.signature = this.generateSignature(
       paymentPayload,
@@ -165,7 +169,7 @@ export class PaymentService {
 
     return {
       isSuccess: true,
-      message: getMessage('cart_processPayment', lang),
+      message: getMessage('payment_processPayment', lang),
       data: paymentPayload,
     };
   }
@@ -177,13 +181,6 @@ export class PaymentService {
     if (!check.valid) {
       return { isSuccess: false, message: check.message, data: null };
     }
-
-    const cart = await this.cartModel.findOne({
-      userId: requestingUser.userId,
-    });
-
-    if (!cart || !cart.items.length)
-      throw new BadRequestException(getMessage('cart_cartWithNoItems', lang));
 
     const decrypted = this.decryptOrderDetails(
       encryptedOrder,
