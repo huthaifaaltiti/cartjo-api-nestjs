@@ -5,7 +5,7 @@ export const ApiPaths = {
     VerifyEmail: 'verify-email',
     ResendVerificationEmail: 'resend-verification-email',
     ForgotPassword: {
-      Root:"forgot-password",
+      Root: 'forgot-password',
       SendIdentifier: 'send-identifier',
       VerifyResetPasswordCode: 'verify-reset-password-code',
       ResetPassword: 'reset-password',
@@ -148,11 +148,16 @@ export const ApiPaths = {
     RemoveOne: 'remove',
     RemoveAll: 'remove-all',
     WishlistItems: 'wishlist-items',
-    Checkout: 'checkout',
   },
   Nationality: {
     Root: '/api/v1/nationality',
     GetAll: 'all',
     GetAllStatic: 'all-static',
+  },
+  Payment: {
+    Root: '/api/v1/payment',
+    ProcessPayment: 'process',
+    VerifyPayment: 'verify',
+    Checkout: 'checkout',
   },
 };

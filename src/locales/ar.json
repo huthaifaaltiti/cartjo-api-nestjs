@@ -214,5 +214,8 @@
   "cart_productNotInCart": "المنتج ليس في قائمة سلة التسوق",
   "cart_productsRemovedSuccessfully": "تمت إزالة جميع المنتجات من سلة التسوق بنجاح",
   "cart_notFoundProduct": "لم يتم العثور على عنصر المنتج",
-  "cart_itemsMovedToWishlist": "تم نقل عناصر السلة لقائمة الأمنيات"
+  "cart_itemsMovedToWishlist": "تم نقل عناصر السلة لقائمة الأمنيات",
+  "payment_verifyPayment": "تم التحقق من دفع الطلب بنجاح",
+  "payment_processPayment": "تمت معالجة الدفع بنجاح",
+  "payment_notFoundUserOrUnauthorized": "المستخدم غير موجود أو غير موثّق"
 }
