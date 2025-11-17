@@ -10,6 +10,8 @@ import { generateRandomString } from 'src/common/utils/generateRandomString';
 import { CheckoutBodyDto } from './dto/checkout.dto';
 import { Currency } from 'src/enums/currency.enum';
 import { Locale } from 'src/types/Locale';
+import { PaymentMethod } from 'src/enums/paymentMethod.enum';
+import { OrderService } from '../order/order.service';
 
 interface TokenizationPayload {
   service_command: string;
@@ -26,6 +28,7 @@ export class PaymentService {
   constructor(
     @InjectModel(Cart.name)
     private readonly cartModel: Model<CartDocument>,
+    private readonly orderService: OrderService,
   ) {}
 
   private readonly accessCode = process.env.APS_PAY_FORT_ACCESS_CODE;
@@ -121,11 +124,6 @@ export class PaymentService {
       });
 
       if (!cart || !cart.items.length) {
-        // return {
-        //   valid: false,
-        //   message: getMessage('cart_cartWithNoItems', lang),
-        // };
-
         throw new BadRequestException(getMessage('cart_cartWithNoItems', lang));
       }
 
@@ -213,6 +211,7 @@ export class PaymentService {
       amount,
       customer_email,
       merchant_reference,
+      shippingAddress
     } = dto;
 
     const check = await this.validateUser(requestingUser, true, language);
@@ -220,6 +219,7 @@ export class PaymentService {
       return { isSuccess: false, message: check.message, data: null };
     }
 
+    const cart = check.cart!;
     const amountVal = this.toMinorUnits(amount, currency);
 
     const paymentRequest: Record<string, any> = {
@@ -242,18 +242,14 @@ export class PaymentService {
       this.shaRequestPhrase,
     );
 
-    // SEND to PayFort S2S API
     const response = await fetch(this.paymentApiUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(paymentRequest),
     });
 
     const result = await response.json();
 
-    // HANDLE PAYFORT RESPONSE
     if (!result.response_code.startsWith('14')) {
       return {
         isSuccess: false,
@@ -262,15 +258,29 @@ export class PaymentService {
       };
     }
 
+    // Create order
+    const order = await this.orderService.createOrderAndClearCart(
+      requestingUser.userId,
+      cart,
+      amount,
+      currency,
+      customer_email,
+      merchant_reference,
+      result.fort_id,
+      PaymentMethod.CARD,
+      shippingAddress
+    );
+
     return {
       isSuccess: true,
-      message: 'Payment completed successfully',
+      message: getMessage('payment_successPayment', language),
       data: {
         fort_id: result.fort_id,
         amount: result.amount / 100,
         currency: result.currency,
         customer_email,
         merchant_reference,
+        order,
       },
     };
   }

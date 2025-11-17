@@ -26,6 +26,7 @@ import { NationalityModule } from './modules/nationality/nationality.module';
 import { EmailModule } from './modules/email/email.module';
 import { CartModule } from './modules/cart/cart.module';
 import { PaymentModule } from './modules/payment/payment.module';
+import { OrderModule } from './modules/order/order.module';
 
 @Module({
   imports: [
@@ -58,7 +59,8 @@ import { PaymentModule } from './modules/payment/payment.module';
     NationalityModule,
     EmailModule,
     CartModule,
-    PaymentModule
+    PaymentModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -220,5 +220,6 @@
   "nationality_staticNationalitiesRetrievedSuccessfully": "Static nationalities retrieved successfully",
   "payment_verifyPayment": "Verify order payment successfully",
   "payment_processPayment": "Process Payment done successfully",
-  "payment_notFoundUserOrUnauthorized": "User not found or unauthorized"
+  "payment_notFoundUserOrUnauthorized": "User not found or unauthorized",
+  "payment_successPayment": "Payment completed and order created successfully"
 }

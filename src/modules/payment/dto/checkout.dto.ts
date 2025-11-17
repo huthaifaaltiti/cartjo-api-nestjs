@@ -1,13 +1,48 @@
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
+  ValidateNested,
 } from 'class-validator';
 import { Currency } from 'src/enums/currency.enum';
 import { Locale } from 'src/types/Locale';
+
+export class ShippingAddressDto {
+  @IsString()
+  @IsNotEmpty()
+  fullName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  phone: string;
+
+  @IsString()
+  @IsNotEmpty()
+  country: string;
+
+  @IsString()
+  @IsNotEmpty()
+  city: string;
+
+  @IsString()
+  @IsNotEmpty()
+  town: string;
+
+  @IsString()
+  @IsNotEmpty()
+  street: string;
+
+  @IsString()
+  @IsOptional()
+  building?: string;
+
+  @IsString()
+  @IsOptional()
+  additionalInfo?: string;
+}
 
 export class CheckoutBodyDto {
   @IsString()
@@ -66,4 +101,9 @@ export class CheckoutBodyDto {
   @IsNotEmpty()
   @IsString()
   customer_email: string;
+
+  @ValidateNested()
+  @Type(() => ShippingAddressDto)
+  @IsNotEmpty()
+  shippingAddress: ShippingAddressDto;
 }
