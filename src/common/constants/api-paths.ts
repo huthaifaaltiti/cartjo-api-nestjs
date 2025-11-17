@@ -131,6 +131,7 @@ export const ApiPaths = {
     Delete: 'delete/:id',
     UnDelete: 'un-delete/:id',
     UpdateStatus: 'status/:id',
+    UpdateDefaultAddress: 'update-default-shipping-address',
   },
   Wishlist: {
     Root: '/api/v1/wish-list',

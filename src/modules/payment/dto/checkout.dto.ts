@@ -10,6 +10,12 @@ import {
 import { Currency } from 'src/enums/currency.enum';
 import { Locale } from 'src/types/Locale';
 
+export class MapLocation {
+  lang: number;
+  lat: number;
+  name: string
+}
+
 export class ShippingAddressDto {
   @IsString()
   @IsNotEmpty()
@@ -42,6 +48,11 @@ export class ShippingAddressDto {
   @IsString()
   @IsOptional()
   additionalInfo?: string;
+
+  @ValidateNested()
+  @Type(() => MapLocation)
+  @IsNotEmpty()
+  mapLocation: MapLocation;
 }
 
 export class CheckoutBodyDto {

@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document } from 'mongoose';
 import { PaymentStatus } from 'src/enums/paymentStatus.enum';
+import { DefaultShippingAddress } from './user.schema';
 
 export type OrderDocument = Order & Document;
 
@@ -42,27 +43,10 @@ export class Order extends Document {
   merchantReference: string;
 
   @Prop({
-    type: {
-      fullName: String,
-      phone: String,
-      country: String,
-      city: String,
-      street: String,
-      building: String,
-      additionalInfo: String,
-    },
+    type: DefaultShippingAddress,
     required: true,
   })
-  shippingAddress: {
-    fullName: string;
-    phone: string;
-    country: string;
-    city: string;
-    town: string;
-    street: string;
-    building: string;
-    additionalInfo?: string;
-  };
+  shippingAddress: DefaultShippingAddress;
 
   @Prop({ type: Date, default: null })
   deletedAt?: Date;

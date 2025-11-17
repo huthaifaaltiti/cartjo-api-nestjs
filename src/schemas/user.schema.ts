@@ -24,6 +24,18 @@ class Nationality {
   name: NameRef;
 }
 
+export class DefaultShippingAddress {
+  fullName: string;
+  phone: string;
+  country: string;
+  city: string;
+  town: string;
+  street: string;
+  building?: string;
+  additionalInfo?: string;
+  location: { lat: number; lng: number; name: string };
+}
+
 @Schema({ collection: 'users', timestamps: true })
 export class User extends Document {
   @Prop({ required: false })
@@ -151,6 +163,9 @@ export class User extends Document {
 
   @Prop({ default: false })
   isEmailVerified?: boolean;
+
+  @Prop({ type: Object })
+  defaultShippingAddress?: DefaultShippingAddress;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

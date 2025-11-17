@@ -23,7 +23,8 @@ import { CreateAdminBodyDto } from './dto/create-admin.dto';
 import { JwtService } from '../jwt/jwt.service';
 import { MediaService } from '../media/media.service';
 import { Modules } from 'src/enums/appModules.enum';
-import { UpdateUserDto } from './dto/update.dto';
+import { UpdateDefaultAddressDto, UpdateUserDto } from './dto/update.dto';
+import { BaseResponse } from 'src/types/service-response.type';
 @Injectable()
 export class UserService {
   constructor(
@@ -644,5 +645,36 @@ export class UserService {
       message: getMessage('users_userUpdatedSuccessfully', lang),
       user,
     };
+  }
+
+  async updateDefaultShippingAddress(
+    requestingUser: any,
+    dto: UpdateDefaultAddressDto,
+  ):Promise<BaseResponse>{
+    const { lang, shippingAddress } = dto;
+    
+    if (
+      !checkUserRole({
+        userRole: requestingUser?.role,
+        requiredRole: UserRole.USER,
+      })
+    ) {
+      return {
+        isSuccess: false,
+        message: getMessage('users_userWithPermissionCanUpdateOwnData', lang),
+      };
+    }
+
+    await this.userModel.findByIdAndUpdate(
+      requestingUser?.userId,
+      { defaultShippingAddress: shippingAddress },
+      { new: true },
+    );
+
+    
+    return {
+      isSuccess: true,
+      message: getMessage('users_defaultShippingAddressChangedSuccessfully', lang),
+    }; 
   }
 }

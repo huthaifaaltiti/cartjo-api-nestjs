@@ -32,7 +32,7 @@ import { GetUserParamDto, GetUserQueryDto } from './dto/get-user.dto';
 import { CreateAdminBodyDto } from './dto/create-admin.dto';
 import { UpdateAdminUserParamsDto } from './dto/update-admin.dto';
 import { ApiPaths } from 'src/common/constants/api-paths';
-import { UpdateUserDto, UpdateUserParamsDto } from './dto/update.dto';
+import { UpdateDefaultAddressDto, UpdateUserDto, UpdateUserParamsDto } from './dto/update.dto';
 
 @Controller(ApiPaths.User.Root)
 export class UserController {
@@ -162,5 +162,16 @@ export class UserController {
     const { id } = param;
 
     return this.userService.updateUser(id, body, user, profilePic);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Put(ApiPaths.User.UpdateDefaultAddress)
+  async updateDefaultShippingAddress(
+    @Request() req: any,
+    @Body() dto: UpdateDefaultAddressDto,
+  ) {
+    const { user } = req;
+
+    return this.userService.updateDefaultShippingAddress(user, dto);
   }
 }

@@ -48,6 +48,8 @@
   "users_OnlyOwnersCanCreateAdmins": "Only users with owner role can create administrators",
   "users_onlyOwnersCanDeleteAdmins": "Only users with owner role can delete administrators",
   "users_adminUserCreatedSuccessfully": "Admin user created successfully",
+  "users_userWithPermissionCanUpdateOwnData": "User with permission can update his/her data",
+  "users_defaultShippingAddressChangedSuccessfully": "Shipping address updated successfully",
   "users_adminUserUpdatedSuccessfully": "Admin user details updated successfully",
   "users_cantEditUserDetails": "Cant not edit ordinary user details",
   "users_userUpdatedSuccessfully": "User Updated Successfully",
