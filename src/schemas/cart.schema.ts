@@ -1,25 +1,33 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { Document, Types } from 'mongoose';
+import mongoose, { Document } from 'mongoose';
+import { NameRef } from './common.schema';
 
 export type CartDocument = Cart & Document;
+
+@Schema({ _id: false }) // _id: false prevents generating separate ObjectId for each item
+export class CartItem {
+  @Prop({ type: mongoose.Types.ObjectId, ref: 'Product', required: true })
+  productId: mongoose.Types.ObjectId;
+
+  @Prop({ default: 1 })
+  quantity: number;
+
+  @Prop({ required: true })
+  price: number;
+
+  @Prop({ type: NameRef, required: true })
+  name: NameRef;
+}
+
+export const CartItemSchema = SchemaFactory.createForClass(CartItem);
 
 @Schema({ timestamps: true })
 export class Cart extends Document {
   @Prop({ type: mongoose.Types.ObjectId, ref: 'User', required: true })
   userId: mongoose.Types.ObjectId;
 
-  @Prop([
-    {
-      productId: { type: mongoose.Types.ObjectId, ref: 'Product', required: true },
-      quantity: { type: Number, default: 1 },
-      price: { type: Number, required: true },
-    },
-  ])
-  items: {
-    productId: mongoose.Types.ObjectId;
-    quantity: number;
-    price: number;
-  }[];
+  @Prop({ type: [CartItemSchema], default: [] })
+  items: CartItem[];
 
   @Prop({ default: 0 })
   totalAmount: number;

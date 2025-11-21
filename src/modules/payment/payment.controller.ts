@@ -4,6 +4,7 @@ import { PaymentService } from './payment.service';
 import { AuthGuard } from '@nestjs/passport';
 import { ProcessPaymentBodyDto, VerifyPaymentBodyDto } from './dto/payment.dto';
 import { CheckoutBodyDto } from './dto/checkout.dto';
+import { CreateCashOrderDto } from './dto/createCashOrder.dto';
 
 @Controller(ApiPaths.Payment.Root)
 export class PaymentController {
@@ -26,6 +27,12 @@ export class PaymentController {
     const { user } = req;
 
     return this.paymentService.verifyPayment(user, dto);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post(ApiPaths.Payment.PayWithCash)
+  async payWithCash(@Body() dto: CreateCashOrderDto, @Request() req: any) {
+    return this.paymentService.payWithCash(req.user, dto);
   }
 
   @UseGuards(AuthGuard('jwt'))

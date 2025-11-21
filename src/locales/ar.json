@@ -217,5 +217,16 @@
   "cart_itemsMovedToWishlist": "تم نقل عناصر السلة لقائمة الأمنيات",
   "payment_verifyPayment": "تم التحقق من دفع الطلب بنجاح",
   "payment_processPayment": "تمت معالجة الدفع بنجاح",
-  "payment_notFoundUserOrUnauthorized": "المستخدم غير موجود أو غير موثّق"
+  "payment_notFoundUserOrUnauthorized": "المستخدم غير موجود أو غير موثّق",
+  "payment_cashOrderCreated": "تم إنشاء الطلب، والدفع النقدي معلق",
+  "order_orderNotFound": "الطلب غير موجود",
+  "order_orderMarkedPaid": "تم وضع علامة الدفع على الطلب بالفعل",
+  "order_orderMarkedPaidSuccessfully": "تم وضع علامة الدفع على الطلب بنجاح",
+  "order_orderMarkedUnPaidSuccessfully": "تم وضع الطلب في حالة الدفع المعلق بنجاح",
+  "order_notDeleted": "لم يتم حذف الطلب",
+  "order_restoredSuccessfully": "تم استعادة الطلب بنجاح",
+  "order_ordersRetrievedSuccessfully": "تم استرجاع الطلبات بنجاح",
+  "order_invalidId": "معرّف الطلب غير صالح",
+  "order_notFound": "الطلب غير موجود",
+  "order_orderRetrieved": "تم استرجاع الطلب بنجاح"
 }

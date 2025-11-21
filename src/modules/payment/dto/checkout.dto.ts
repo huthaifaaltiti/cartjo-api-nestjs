@@ -11,9 +11,17 @@ import { Currency } from 'src/enums/currency.enum';
 import { Locale } from 'src/types/Locale';
 
 export class MapLocation {
-  lang: number;
+  @IsNumber()
+  @IsNotEmpty()
   lat: number;
-  name: string
+
+  @IsNumber()
+  @IsNotEmpty()
+  lang: number;
+
+  @IsString()
+  @IsNotEmpty()
+  name: string;
 }
 
 export class ShippingAddressDto {

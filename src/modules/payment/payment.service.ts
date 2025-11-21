@@ -12,6 +12,7 @@ import { Currency } from 'src/enums/currency.enum';
 import { Locale } from 'src/types/Locale';
 import { PaymentMethod } from 'src/enums/paymentMethod.enum';
 import { OrderService } from '../order/order.service';
+import { CreateCashOrderDto } from './dto/createCashOrder.dto';
 
 interface TokenizationPayload {
   service_command: string;
@@ -211,7 +212,7 @@ export class PaymentService {
       amount,
       customer_email,
       merchant_reference,
-      shippingAddress
+      shippingAddress,
     } = dto;
 
     const check = await this.validateUser(requestingUser, true, language);
@@ -260,7 +261,7 @@ export class PaymentService {
 
     // Create order
     const order = await this.orderService.createOrderAndClearCart(
-      requestingUser.userId,
+      requestingUser,
       cart,
       amount,
       currency,
@@ -268,7 +269,7 @@ export class PaymentService {
       merchant_reference,
       result.fort_id,
       PaymentMethod.CARD,
-      shippingAddress
+      shippingAddress,
     );
 
     return {
@@ -280,6 +281,42 @@ export class PaymentService {
         currency: result.currency,
         customer_email,
         merchant_reference,
+        order,
+      },
+    };
+  }
+
+  async payWithCash(requestingUser: any, dto: CreateCashOrderDto) {
+    const { language, currency, amount, customer_email, shippingAddress } = dto;
+
+    const check = await this.validateUser(requestingUser, true, language);
+
+    if (!check.valid) {
+      return { isSuccess: false, message: check.message, data: null };
+    }
+
+    const cart = check.cart!;
+
+    const order = await this.orderService.createOrderAndClearCart(
+      requestingUser,
+      cart,
+      amount,
+      currency,
+      customer_email,
+      generateRandomString(8),
+      null,
+      PaymentMethod.CASH,
+      shippingAddress,
+    );
+
+    return {
+      isSuccess: true,
+      message: getMessage('payment_cashOrderCreated', language),
+      data: {
+        payment_method: PaymentMethod.CASH,
+        amount,
+        currency,
+        customer_email,
         order,
       },
     };

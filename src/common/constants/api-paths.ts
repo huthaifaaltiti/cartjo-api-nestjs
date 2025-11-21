@@ -159,6 +159,16 @@ export const ApiPaths = {
     Root: '/api/v1/payment',
     ProcessPayment: 'process',
     VerifyPayment: 'verify',
+    PayWithCash: 'cash',
     Checkout: 'checkout',
+  },
+  Order: {
+    Root: '/api/v1/order',
+    ChangePaymentStatus: '/:id/change-payment-status',
+    Delete: 'delete/:id',
+    UnDelete: 'un-delete/:id',
+    GetAll: 'all',
+    Create: 'create',
+    GetOne: '/:id'
   },
 };

@@ -2,24 +2,34 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document } from 'mongoose';
 import { PaymentStatus } from 'src/enums/paymentStatus.enum';
 import { DefaultShippingAddress } from './user.schema';
+import { NameRef } from './common.schema';
 
 export type OrderDocument = Order & Document;
+
+@Schema({ _id: false })
+export class OrderCartItem {
+  @Prop({ type: mongoose.Types.ObjectId, ref: 'Product', required: true })
+  productId: mongoose.Types.ObjectId;
+
+  @Prop({ required: true })
+  price: number;
+
+  @Prop({ default: 1 })
+  quantity: number;
+
+  @Prop({ type: NameRef, required: true })
+  name: NameRef;
+}
+
+export const OrderCartItemSchema = SchemaFactory.createForClass(OrderCartItem);
 
 @Schema({ timestamps: true })
 export class Order extends Document {
   @Prop({ type: mongoose.Types.ObjectId, ref: 'User', required: true })
   userId: mongoose.Types.ObjectId;
 
-  @Prop({
-    type: [
-      { productId: String, name: String, price: Number, quantity: Number },
-    ],
-  })
-  items: {
-    productId: mongoose.Types.ObjectId;
-    price: number;
-    quantity: number;
-  }[];
+  @Prop({ type: [OrderCartItemSchema], required: true, default: [] })
+  items: OrderCartItem[];
 
   @Prop({ required: true })
   amount: number;
@@ -42,14 +52,20 @@ export class Order extends Document {
   @Prop()
   merchantReference: string;
 
-  @Prop({
-    type: DefaultShippingAddress,
-    required: true,
-  })
+  @Prop({ type: DefaultShippingAddress, required: true })
   shippingAddress: DefaultShippingAddress;
+
+  @Prop({ default: false })
+  isDeleted: boolean;
+
+  @Prop({ default: false })
+  isUpdated: boolean;
 
   @Prop({ type: Date, default: null })
   deletedAt?: Date;
+
+  @Prop({ type: Date, default: null })
+  updatedAt?: Date;
 
   @Prop({ type: Date, default: null })
   restoredAt?: Date;

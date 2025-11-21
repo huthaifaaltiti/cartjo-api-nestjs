@@ -223,5 +223,16 @@
   "payment_verifyPayment": "Verify order payment successfully",
   "payment_processPayment": "Process Payment done successfully",
   "payment_notFoundUserOrUnauthorized": "User not found or unauthorized",
-  "payment_successPayment": "Payment completed and order created successfully"
+  "payment_successPayment": "Payment completed and order created successfully",
+  "payment_cashOrderCreated": "Order is created, Cash payment is pending",
+  "order_orderNotFound": "Order not found",
+  "order_orderMarkedPaid": "Order already marked as paid",
+  "order_orderMarkedPaidSuccessfully": "Order already marked as paid successfully",
+  "order_orderMarkedUnPaidSuccessfully": "Order already marked as pending-paid successfully",
+  "order_notDeleted": "Order not deleted",
+  "order_restoredSuccessfully": "Order restored successfully",
+  "order_ordersRetrievedSuccessfully": "Orders Retrieved Successfully",
+  "order_invalidId": "Invalid order ID",
+  "order_notFound": "Order not found",
+  "order_orderRetrieved": "Order retrieved successfully"
 }

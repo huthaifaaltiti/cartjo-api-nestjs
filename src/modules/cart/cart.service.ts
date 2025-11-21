@@ -144,7 +144,7 @@ export class CartService {
       cart = await this.cartModel.create({
         userId: requestingUser.userId,
         createdBy: requestingUser.userId,
-        items: [{ productId, quantity, price }],
+        items: [{ productId, quantity, price, name: product.name }],
         totalAmount: price * quantity,
       });
     } else {
@@ -153,7 +153,7 @@ export class CartService {
       if (existingItem) {
         existingItem.quantity += quantity;
       } else {
-        cart.items.push({ productId, quantity, price });
+        cart.items.push({ productId, quantity, price, name: product.name });
       }
 
       cart.totalAmount = cart.items.reduce(
