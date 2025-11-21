@@ -3,6 +3,8 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { EmailTemplateSeeder } from './modules/email/seeders/email-template.seeder';
+import { LoggingPipe } from './pipes/logging.pipe';
+import { CustomValidationPipe } from './pipes/customValidation.pipe';
 // import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 
 async function server() {
@@ -24,27 +26,8 @@ async function server() {
     credentials: true,
   });
 
-  app.useGlobalPipes(
-    new ValidationPipe({
-      transform: true,
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      exceptionFactory: errors => {
-        const messages = errors.map(error => {
-          return {
-            property: error.property,
-            message: Object.values(error.constraints).join(', '),
-          };
-        });
-        return new BadRequestException({
-          isSuccess: false,
-          statusCode: 400,
-          message: 'Validation Failed',
-          details: messages,
-        });
-      },
-    }),
-  );
+  app.useGlobalPipes(new LoggingPipe());
+  app.useGlobalPipes(new CustomValidationPipe());
 
   // NestJS-style global exception filter
   // app.useGlobalFilters(new AllExceptionsFilter());
