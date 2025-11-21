@@ -148,7 +148,9 @@ export class CartService {
         totalAmount: price * quantity,
       });
     } else {
-      const existingItem = cart.items.find(i => i.productId.equals(productId));
+      const existingItem = cart?.items.find(
+        i => i?.productId?.toString() === productId.toString(),
+      );
 
       if (existingItem) {
         existingItem.quantity += quantity;

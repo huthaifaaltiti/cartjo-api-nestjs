@@ -30,15 +30,18 @@ import { GetOrdersQueryDto } from './dto/getOrders.dto';
 import { GetOrderParamDto, GetOrderQueryDto } from './dto/getOrder.dto';
 import { checkUserRole } from 'src/common/utils/checkUserRole';
 import { UserRole } from 'src/enums/user-role.enum';
+import { EmailService } from '../email/email.service';
+import { EmailTemplates } from 'src/enums/emailTemplates.enum';
+import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
 
 @Injectable()
 export class OrderService {
   constructor(
     @InjectModel(Order.name)
     private readonly orderModel: Model<OrderDocument>,
-
     @InjectModel(Cart.name)
     private readonly cartModel: Model<CartDocument>,
+    private readonly emailService: EmailService,
   ) {}
 
   async getUserCart(requestingUser: any) {
@@ -84,7 +87,7 @@ export class OrderService {
         : PaymentStatus.PENDING;
 
     const order = await this.orderModel.create({
-      userId: user?._id,
+      userId: user?.userId,
       items: cart.items.map(item => ({
         productId: item.productId,
         price: item.price,
@@ -101,6 +104,22 @@ export class OrderService {
       shippingAddress,
     });
 
+    if (user.email && order) {
+      await this.emailService.sendTemplateEmail({
+        to: user.email,
+        templateName: EmailTemplates.ORDER_ORDER_CREATED,
+        templateData: {
+          firstName: user.firstName,
+          orderId: order._id,
+          amount: order.amount,
+          currency: order.currency,
+          paymentMethod: order.paymentMethod,
+          orderUrl: `${process.env.APP_URL}/orders/${order._id}`,
+        },
+        prefLang: user.preferredLang || PreferredLanguage.ARABIC,
+      });
+    }
+
     // Clear the cart
     cart.items = [];
     await cart.save();
@@ -113,7 +132,7 @@ export class OrderService {
     dto: ChangePaymentStatusBodyDto,
   ): Promise<DataResponse<Order>> {
     const { orderId, lang, status } = dto;
-    
+
     validateUserRoleAccess(requestingUser, lang);
 
     const isStatusPaid = status === PaymentStatus.PAID;

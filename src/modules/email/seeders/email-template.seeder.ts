@@ -9,6 +9,7 @@ import {
   resendVerificationTemplate,
   resetPasswordTemplate,
   userRegistrationTemplate,
+  orderCreatedTemplate,
 } from './email-templates';
 
 @Injectable()
@@ -24,6 +25,7 @@ export class EmailTemplateSeeder {
     await this.seedResendVerificationEmail();
     await this.seedResetPasswordEmail();
     await this.seedPasswordResetSuccessEmail();
+    await this.seedOrderCreatedSuccessEmail();
   }
 
   private async seedUserRegistration() {
@@ -89,5 +91,19 @@ export class EmailTemplateSeeder {
     });
 
     Logger.log('✅ Password reset success Email template created (EN & AR)');
+  }
+
+  private async seedOrderCreatedSuccessEmail() {
+    const name = EmailTemplates.ORDER_ORDER_CREATED;
+    const exists = await this.templateModel.findOne({ name });
+
+    if (exists) return Logger.log(`✅ "${name}" template already exists`);
+
+    await this.templateModel.create({
+      name,
+      ...orderCreatedTemplate,
+    });
+
+    Logger.log('✅ Order-created email template created (EN & AR)');
   }
 }
