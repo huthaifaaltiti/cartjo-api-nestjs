@@ -247,7 +247,23 @@ export class OrderService {
     requestingUser: any,
     params: GetOrdersQueryDto,
   ): Promise<DataListResponse<Order>> {
-    const { lang = 'en', limit = 10, lastId, search } = params;
+    const {
+      lang = 'en',
+      limit = 10,
+      lastId,
+      search,
+      amountMin,
+      amountMax,
+      paymentStatus,
+      paymentMethod,
+      createdAfter,
+      createdBefore,
+      updatedAfter,
+      updatedBefore,
+    } = params;
+
+    console.log({  amountMin,
+      amountMax,})
 
     validateUserRoleAccess(requestingUser, lang);
 
@@ -267,6 +283,39 @@ export class OrderService {
         { userId: search }, // exact match because ObjectId cannot be regex-based
       ];
     }
+
+    // Filter by amount range
+    if (amountMin !== undefined || amountMax !== undefined) {
+      query.amount = {};
+      if (amountMin !== undefined) query.amount.$gte = Number(amountMin);
+      if (amountMax !== undefined) query.amount.$lte = Number(amountMax);
+    }
+
+    // Filter by paymentStatus
+    if (paymentStatus) {
+      query.paymentStatus = paymentStatus;
+    }
+
+    // Filter by paymentMethod
+    if (paymentMethod) {
+      query.paymentMethod = paymentMethod;
+    }
+
+    // Filter by creation time
+    if (createdAfter || createdBefore) {
+      query.createdAt = {};
+      if (createdAfter) query.createdAt.$gte = new Date(createdAfter);
+      if (createdBefore) query.createdAt.$lte = new Date(createdBefore);
+    }
+
+    // Filter by update time
+    if (updatedAfter || updatedBefore) {
+      query.updatedAt = {};
+      if (updatedAfter) query.updatedAt.$gte = new Date(updatedAfter);
+      if (updatedBefore) query.updatedAt.$lte = new Date(updatedBefore);
+    }
+
+    console.log({query})
 
     const orders = await this.orderModel
       .find(query)
