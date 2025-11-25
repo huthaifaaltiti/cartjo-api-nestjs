@@ -7,6 +7,7 @@ import {
   Param,
   Get,
   Query,
+  Res,
 } from '@nestjs/common';
 import { ApiPaths } from 'src/common/constants/api-paths';
 import { AuthGuard } from '@nestjs/passport';
@@ -23,6 +24,8 @@ import {
 import { GetOrdersQueryDto } from './dto/getOrders.dto';
 import { CreateOrderBodyDto } from './dto/createOrder.dto';
 import { GetOrderParamDto, GetOrderQueryDto } from './dto/getOrder.dto';
+import { ExportOrdersQueryDto } from './dto/exportOrders.dto';
+import { Response } from 'express';
 
 @Controller(ApiPaths.Order.Root)
 export class OrderController {
@@ -81,10 +84,21 @@ export class OrderController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get(ApiPaths.Order.GetAll)
-  async getOrders(@Request() req: any,@Query() query: GetOrdersQueryDto) {
+  async getOrders(@Request() req: any, @Query() query: GetOrdersQueryDto) {
     const { user } = req;
 
-    return this.orderService.getAll(user,query);
+    return this.orderService.getAll(user, query);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get(ApiPaths.Order.Export)
+  async exportOrders(
+    @Request() req: any,
+    @Query() query: ExportOrdersQueryDto,
+    @Res() res: Response,
+  ) {
+    const { user } = req;
+    return this.orderService.exportOrders(user, query, res);
   }
 
   @UseGuards(AuthGuard('jwt'))

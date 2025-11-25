@@ -22,7 +22,7 @@ export class GetOrdersQueryDto {
 
   @IsString()
   @IsOptional()
-  search: string;
+  search?: string;
 
   @IsString()
   @IsOptional()
@@ -30,19 +30,19 @@ export class GetOrdersQueryDto {
 
   @IsNumberString()
   @IsOptional()
-  amountMin: string;
+  amountMin?: string;
 
   @IsNumberString()
   @IsOptional()
-  amountMax: string;
+  amountMax?: string;
 
   @IsEnum(PaymentStatus)
   @IsOptional()
-  paymentStatus: PaymentStatus;
+  paymentStatus?: PaymentStatus;
 
   @IsEnum(PaymentMethod)
   @IsOptional()
-  paymentMethod: PaymentMethod;
+  paymentMethod?: PaymentMethod;
 
   @IsOptional()
   @IsISO8601()

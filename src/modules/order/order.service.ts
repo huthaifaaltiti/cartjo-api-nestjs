@@ -33,6 +33,11 @@ import { UserRole } from 'src/enums/user-role.enum';
 import { EmailService } from '../email/email.service';
 import { EmailTemplates } from 'src/enums/emailTemplates.enum';
 import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
+import { ExportFormat } from 'src/enums/ExportFormat.enum';
+import { ExportOrdersQueryDto } from './dto/exportOrders.dto';
+import * as ExcelJS from 'exceljs';
+import * as PDFDocument from 'pdfkit';
+import { Response } from 'express';
 
 @Injectable()
 export class OrderService {
@@ -262,9 +267,6 @@ export class OrderService {
       updatedBefore,
     } = params;
 
-    console.log({  amountMin,
-      amountMax,})
-
     validateUserRoleAccess(requestingUser, lang);
 
     const query: any = { isDeleted: false };
@@ -315,7 +317,7 @@ export class OrderService {
       if (updatedBefore) query.updatedAt.$lte = new Date(updatedBefore);
     }
 
-    console.log({query})
+    console.log({ query });
 
     const orders = await this.orderModel
       .find(query)
@@ -372,5 +374,237 @@ export class OrderService {
       message: getMessage('order_orderRetrieved', lang),
       data: order,
     };
+  }
+
+  async exportOrders(
+    requestingUser: any,
+    query: ExportOrdersQueryDto,
+    res: Response,
+  ): Promise<void> {
+    const { format, startDate, endDate, lang } = query;
+
+    validateUserRoleAccess(requestingUser, lang);
+
+    const queryFilter: any = { isDeleted: false };
+
+    if (startDate || endDate) {
+      queryFilter.createdAt = {};
+      if (startDate) queryFilter.createdAt.$gte = new Date(startDate);
+      if (endDate) queryFilter.createdAt.$lte = new Date(endDate);
+    }
+
+    const orders = await this.orderModel
+      .find(queryFilter)
+      .populate('updatedBy', 'firstName lastName')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    if (orders.length === 0) {
+      throw new BadRequestException(
+        getMessage('order_noOrdersFound', lang) || 'No orders found for export',
+      );
+    }
+
+    const dateRange = this.formatDateRange(startDate, endDate);
+    const filename = `Orders_${dateRange}`;
+
+    if (format === ExportFormat.EXCEL) {
+      await this.generateExcel(orders, filename, dateRange, res);
+    } else {
+      await this.generatePDF(orders, filename, dateRange, res);
+    }
+  }
+
+  private formatDateRange(startDate?: string, endDate?: string): string {
+    const format = (date: string) => {
+      const d = new Date(date);
+      return d.toISOString().split('T')[0];
+    };
+
+    if (startDate && endDate) {
+      return `${format(startDate)}_to_${format(endDate)}`;
+    } else if (startDate) {
+      return `from_${format(startDate)}`;
+    } else if (endDate) {
+      return `until_${format(endDate)}`;
+    }
+    return 'all_time';
+  }
+
+  private async generateExcel(
+    orders: any[],
+    filename: string,
+    dateRange: string,
+    res: Response,
+  ): Promise<void> {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Orders');
+
+    worksheet.columns = [
+      { header: 'Order ID', key: 'orderId', width: 25 },
+      { header: 'Transaction ID', key: 'transactionId', width: 25 },
+      { header: 'Customer Name', key: 'customerName', width: 25 },
+      { header: 'Email', key: 'email', width: 25 },
+      { header: 'Phone', key: 'phone', width: 15 },
+      { header: 'Number of Items', key: 'itemCount', width: 15 },
+      { header: 'Amount', key: 'amount', width: 12 },
+      { header: 'Currency', key: 'currency', width: 10 },
+      { header: 'Payment Status', key: 'paymentStatus', width: 15 },
+      { header: 'Payment Method', key: 'paymentMethod', width: 15 },
+      { header: 'City', key: 'city', width: 15 },
+      { header: 'Order Date', key: 'orderDate', width: 20 },
+      { header: 'Updated By', key: 'updatedBy', width: 20 },
+    ];
+
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF4472C4' },
+    };
+    worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+
+    orders.forEach(order => {
+      worksheet.addRow({
+        orderId: order._id.toString(),
+        transactionId: order.transactionId || 'N/A',
+        customerName: order.shippingAddress?.fullName || 'N/A',
+        email: order.email || 'N/A',
+        phone: order.shippingAddress?.phone || 'N/A',
+        itemCount: order.items?.length || 0,
+        amount: order.amount,
+        currency: order.currency,
+        paymentStatus: order.paymentStatus,
+        paymentMethod: order.paymentMethod,
+        city: order.shippingAddress?.city || 'N/A',
+        orderDate: new Date(order.createdAt).toLocaleString(),
+        updatedBy: order.updatedBy
+          ? `${order.updatedBy.firstName} ${order.updatedBy.lastName}`
+          : 'N/A',
+      });
+    });
+
+    worksheet.addRow({});
+    const summaryRow = worksheet.addRow({
+      orderId: 'TOTAL ORDERS:',
+      transactionId: orders.length,
+      customerName: '',
+      email: 'TOTAL AMOUNT:',
+      phone: orders.reduce((sum, o) => sum + (o.amount || 0), 0),
+    });
+    summaryRow.font = { bold: true };
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${filename}.xlsx"`,
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+  }
+
+  private async generatePDF(
+    orders: any[],
+    filename: string,
+    dateRange: string,
+    res: Response,
+  ): Promise<void> {
+    const doc = new PDFDocument({
+      margin: 50,
+      size: 'A4',
+      layout: 'landscape',
+    });
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${filename}.pdf"`,
+    );
+
+    doc.pipe(res);
+
+    doc.fontSize(20).text('Orders Export Report', { align: 'center' });
+    doc.fontSize(12).text(`Date Range: ${dateRange.replace(/_/g, ' ')}`, {
+      align: 'center',
+    });
+    doc.fontSize(10).text(`Generated on: ${new Date().toLocaleString()}`, {
+      align: 'center',
+    });
+    doc.moveDown(2);
+
+    const tableTop = 150;
+    const itemHeight = 30;
+    const colWidths = [100, 120, 80, 60, 80, 80, 60];
+    let y = tableTop;
+
+    const headers = [
+      'Transaction ID',
+      'Customer Name',
+      'Items',
+      'Amount',
+      'Status',
+      'Method',
+      'Date',
+    ];
+
+    doc.fontSize(9).font('Helvetica-Bold');
+    headers.forEach((header, i) => {
+      const x = 50 + colWidths.slice(0, i).reduce((a, b) => a + b, 0);
+      doc.text(header, x, y, { width: colWidths[i], align: 'left' });
+    });
+
+    doc
+      .moveTo(50, y + 15)
+      .lineTo(750, y + 15)
+      .stroke();
+
+    doc.font('Helvetica');
+    y += 25;
+
+    orders.forEach((order, index) => {
+      if (y > 500) {
+        doc.addPage();
+        y = 50;
+      }
+
+      const row = [
+        order.transactionId.toString(),
+        order.shippingAddress?.fullName || 'N/A',
+        order.items?.length.toString() || '0',
+        `${order.amount} ${order.currency}`,
+        order.paymentStatus,
+        order.paymentMethod,
+        new Date(order.createdAt).toLocaleString("en-US", { hour12: true }),
+      ];
+
+      row.forEach((cell, i) => {
+        const x = 50 + colWidths.slice(0, i).reduce((a, b) => a + b, 0);
+        doc.text(cell, x, y, { width: colWidths[i], align: 'left' });
+      });
+
+      y += itemHeight;
+
+      if (index < orders.length - 1) {
+        doc
+          .moveTo(50, y - 5)
+          .lineTo(750, y - 5)
+          .stroke();
+      }
+    });
+
+    doc.moveDown(2);
+    doc.fontSize(10).font('Helvetica-Bold');
+    doc.text(`Total Orders: ${orders.length}`, 50, y + 20);
+    doc.text(
+      `Total Amount: ${orders.reduce((sum, o) => sum + (o.amount || 0), 0)} JOD`,
+      50,
+      y + 35,
+    );
+
+    doc.end();
   }
 }

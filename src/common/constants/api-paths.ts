@@ -169,6 +169,7 @@ export const ApiPaths = {
     UnDelete: 'un-delete/:id',
     GetAll: 'all',
     Create: 'create',
-    GetOne: '/:id'
+    GetOne: '/:id',
+    Export: 'export',
   },
 };
