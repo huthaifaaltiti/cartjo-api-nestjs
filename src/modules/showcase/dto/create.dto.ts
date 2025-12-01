@@ -60,7 +60,7 @@ export class CreateDto {
   showAllButtonText_en: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MinLength(showAllButtonLinkMinChars)
   @MaxLength(showAllButtonLinkMaxChars)
   showAllButtonLink: string;

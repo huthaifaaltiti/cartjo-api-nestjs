@@ -21,6 +21,10 @@ export class SearchProductsQueryDto {
 
   @IsOptional()
   @IsString()
+  typeHint?: string;
+
+  @IsOptional()
+  @IsString()
   @IsMongoId()
   lastId?: string;
 

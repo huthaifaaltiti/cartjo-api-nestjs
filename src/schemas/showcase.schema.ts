@@ -27,8 +27,8 @@ export class ShowCase {
   showAllButtonText: NameRef;
 
   @Prop({
-    required: true,
-    type: String,
+    required: false,
+    default: ""
   })
   showAllButtonLink: string;
 

@@ -31,6 +31,7 @@ export class SearchService {
       createdFrom,
       createdTo,
       beforeNumOfDays,
+      typeHint,
     } = query;
 
     const queryMatch: any = {
@@ -38,7 +39,7 @@ export class SearchService {
       isDeleted: false,
     };
 
-    if (!q) {
+    if (!q && !typeHint) {
       return {
         isSuccess: true,
         message: getMessage('search_noSearchForItems', lang),
@@ -55,6 +56,8 @@ export class SearchService {
         { slug: searchRegex },
       ];
     }
+
+    if (typeHint) queryMatch.typeHint = typeHint;
 
     if (lastId) {
       queryMatch._id = { $lt: new Types.ObjectId(lastId) };
