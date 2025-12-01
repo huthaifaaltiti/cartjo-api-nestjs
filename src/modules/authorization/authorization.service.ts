@@ -3,11 +3,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-
 import { User, UserDocument } from '../../schemas/user.schema';
 import { getMessage } from 'src/common/utils/translator';
 import { validateUserActiveStatus } from 'src/common/utils/validateUserActiveStatus';
-import { Locale } from 'src/types/Locale';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthorizationService {
@@ -36,11 +35,10 @@ export class AuthorizationService {
   }
 
   async login(
-    identifier: string,
-    password: string,
-    rememberMe: boolean,
-    lang: Locale = 'en',
+    body: LoginDto,
   ): Promise<{ isSuccess?: boolean; message?: string; token?: string | null }> {
+    const { identifier, password, rememberMe, lang } = body;
+
     const user = await this.validateUser(identifier, password);
 
     validateUserActiveStatus(user, lang);
@@ -78,6 +76,9 @@ export class AuthorizationService {
       expiresIn,
     });
 
-    return { token };
+    return {
+      token,
+      message: getMessage('authorization_loginSuccessful', lang),
+    };
   }
 }

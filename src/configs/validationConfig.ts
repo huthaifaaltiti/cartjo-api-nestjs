@@ -1,4 +1,10 @@
 export const validationConfig = {
+  password: {
+    min: 8,
+    max: 30,
+    minMessage: 'Password must be at least 8 characters long',
+    maxMessage: 'Password cannot exceed 30 characters',
+  },
   category: {
     nameMinChars: 3,
     nameMaxChars: 50,

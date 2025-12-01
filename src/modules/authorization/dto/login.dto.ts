@@ -1,20 +1,20 @@
 import {
   IsBoolean,
-  IsIn,
   IsNotEmpty,
   IsString,
   MaxLength,
   MinLength,
   Matches,
   IsOptional,
+  IsEnum,
 } from 'class-validator';
+import { validationConfig } from 'src/configs/validationConfig';
+import { Locale as LocaleEnum } from 'src/enums/locale.enum';
+import { Locale } from 'src/types/Locale';
 
 export class LoginDto {
   @IsString()
   @IsNotEmpty({ message: 'Identifier is required' })
-  // @Matches(/^(\d{9,15}|\S+@\S+\.\S+)$/, {
-  //   message: 'Identifier must be a valid phone number or email address',
-  // })
   @Matches(
     /^((\d{9,15})|([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})|([a-zA-Z0-9_.-]{3,30}))$/,
     {
@@ -26,14 +26,20 @@ export class LoginDto {
 
   @IsString()
   @IsNotEmpty({ message: 'Password is required' })
-  @MinLength(6, { message: 'Password must be at least 6 characters long' })
-  @MaxLength(20, { message: 'Password cannot exceed 20 characters' })
+  @MinLength(validationConfig.password.min, {
+    message: validationConfig.password.minMessage,
+  })
+  @MaxLength(validationConfig.password.max, {
+    message: validationConfig.password.maxMessage,
+  })
   password: string;
 
-  @IsBoolean({ message: 'Remember me must be a boolean value' })
+  @IsBoolean()
   @IsOptional()
   rememberMe: boolean;
 
-  @IsIn(['en', 'ar'], { message: 'Language must be either "en" or "ar"' })
-  lang: 'en' | 'ar';
+  @IsString()
+  @IsOptional()
+  @IsEnum(LocaleEnum)
+  lang: Locale;
 }
