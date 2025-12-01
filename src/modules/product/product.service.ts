@@ -62,6 +62,7 @@ export class ProductService {
       createdFrom,
       createdTo,
       beforeNumOfDays,
+      typeHint
     } = params;
 
     const query: any = {};
@@ -69,6 +70,8 @@ export class ProductService {
     if (lastId) {
       query._id = { $lt: new Types.ObjectId(lastId) };
     }
+
+    if (typeHint) query.typeHint = typeHint;
 
     if (categoryId) {
       query.categoryId = new Types.ObjectId(categoryId);

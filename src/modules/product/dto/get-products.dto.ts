@@ -24,6 +24,10 @@ export class GetProductsQueryDto {
 
   @IsString()
   @IsOptional()
+  typeHint: string;
+
+  @IsString()
+  @IsOptional()
   lang: Locale = 'en';
 
   @IsOptional()
