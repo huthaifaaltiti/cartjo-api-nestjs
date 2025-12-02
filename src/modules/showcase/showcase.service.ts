@@ -205,6 +205,12 @@ export class ShowcaseService {
       if (wishList) {
         wishListProducts = wishList.products.map(p => p.toString());
       }
+
+      // if (wishList) {
+      //   wishListProducts = wishList.products.map(p => {
+      //     return p._id ? p._id.toString() : String(p);
+      //   });
+      // }
     }
 
     const usedProductIds = new Set<string>();
@@ -233,11 +239,62 @@ export class ShowcaseService {
       // Add product IDs to the used set
       products.forEach(p => usedProductIds.add(p._id.toString()));
 
+      /*
+         You're very close, but the bug is coming from this line:
+
+         isWishListed: wishListProducts.includes(p._id.toString())
+
+         ⚠️ WHY SOME ITEMS SHOW isWishListed: false EVEN IF THEY ARE WISHLISTED?
+          
+          Because when you use MongoDB aggregation:
+
+            const products = await this.productModel.aggregate([...])
+
+
+           MongoDB returns plain objects, not full Mongoose documents.
+           The _id inside an aggregation result may be an ObjectId OR a nested object, depending on your pipeline.
+
+           Most commonly when the bug appears, _id inside aggregate() looks like this:
+
+           { _id: { $oid: "6742ea..." } }
+
+
+           or:
+
+           _id: new ObjectId("6742ea...")
+
+
+           But your wishListProducts array contains only string IDs:
+
+           wishListProducts = ["6742ea...", "673bf..."]
+
+
+           So this comparison fails:
+
+           wishListProducts.includes(p._id.toString())
+
+
+           Because p._id.toString() from aggregation often returns:
+
+           "new ObjectId(\"6742ea...\")"
+
+
+           Not "6742ea...".
+      */
+
       // enrichedProducts
-      const enrichedProducts = products.map(p => ({
-        ...p,
-        isWishListed: wishListProducts.includes(p._id.toString()),
-      }));
+      // const enrichedProducts = products.map(p => ({
+      //   ...p,
+      //   isWishListed: wishListProducts.includes(p._id.toString()),
+      // }));
+
+      const enrichedProducts = products.map(p => {
+        const productId = String(p._id); // SAFE for any aggregation result
+        return {
+          ...p,
+          isWishListed: wishListProducts.includes(productId),
+        };
+      });
 
       populatedShowcases.push({
         ...showcase,

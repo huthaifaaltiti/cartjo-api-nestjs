@@ -127,10 +127,19 @@ export class SearchService {
       }
     }
 
-    const enrichedProducts = products.map(p => ({
-      ...p,
-      isWishListed: wishListProducts.includes(p._id.toString()),
-    }));
+    // const enrichedProducts = products.map(p => ({
+    //   ...p,
+    //   isWishListed: wishListProducts.includes(p._id.toString()),
+    // }));
+
+    const enrichedProducts = products.map(p => {
+      const productId = String(p._id);
+
+      return {
+        ...p,
+        isWishListed: wishListProducts.includes(productId),
+      };
+    });
 
     return {
       isSuccess: true,
