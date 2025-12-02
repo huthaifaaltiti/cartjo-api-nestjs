@@ -9,6 +9,7 @@ import { CategoryModule } from '../category/category.module';
 
 import { SubCategory, SubCategorySchema } from 'src/schemas/subCategory.schema';
 import { Category, CategorySchema } from 'src/schemas/category.schema';
+import { RevalidationModule } from '../revalidation/revalidation.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { Category, CategorySchema } from 'src/schemas/category.schema';
     MediaModule,
     CategoryModule,
     JwtModule,
+    RevalidationModule,
   ],
   providers: [SubCategoryService],
   controllers: [SubCategoryController],

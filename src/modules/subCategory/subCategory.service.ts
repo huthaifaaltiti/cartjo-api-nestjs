@@ -6,14 +6,11 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
-
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
 import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
-
 import { MediaService } from '../media/media.service';
-
 import {
   SubCategory,
   SubCategoryDocument,
@@ -33,6 +30,9 @@ import { UnDeleteSubCategoryBodyDto } from './dto/unDelete-subCategory.dto';
 import { MediaPreview } from 'src/schemas/common.schema';
 import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
 import slugify from 'slugify';
+import { revalidateTag } from 'src/common/utils/revalidate';
+import { REVALIDATION_TAGS } from 'src/common/constants/revalidation-tags';
+import { RevalidationService } from '../revalidation/revalidation.service';
 
 @Injectable()
 export class SubCategoryService {
@@ -43,6 +43,8 @@ export class SubCategoryService {
 
     @InjectModel(Category.name)
     private categoryModel: Model<CategoryDocument>,
+
+    private revalidationService: RevalidationService,
   ) {}
 
   async create(
@@ -126,6 +128,12 @@ export class SubCategoryService {
     await this.categoryModel.findByIdAndUpdate(categoryId, {
       $addToSet: { subCategories: subCategory._id },
     });
+
+    // Revalidate active categories
+    await revalidateTag(
+      this.revalidationService,
+      REVALIDATION_TAGS.ACTIVE_CATEGORIES,
+    );
 
     return {
       isSuccess: true,
@@ -260,6 +268,12 @@ export class SubCategoryService {
       { new: true },
     );
 
+    // Revalidate active categories
+    await revalidateTag(
+      this.revalidationService,
+      REVALIDATION_TAGS.ACTIVE_CATEGORIES,
+    );
+
     return {
       isSuccess: true,
       message: getMessage('subcategories_subCategoryUpdatedSuccessfully', lang),
@@ -292,6 +306,12 @@ export class SubCategoryService {
 
     await subCategory.save();
 
+    // Revalidate active categories
+    await revalidateTag(
+      this.revalidationService,
+      REVALIDATION_TAGS.ACTIVE_CATEGORIES,
+    );
+
     return {
       isSuccess: true,
       message: getMessage('subcategories_subCategoryDeletedSuccessfully', lang),
@@ -322,6 +342,12 @@ export class SubCategoryService {
     subCategory.unDeletedAt = new Date();
 
     await subCategory.save();
+
+    // Revalidate active categories
+    await revalidateTag(
+      this.revalidationService,
+      REVALIDATION_TAGS.ACTIVE_CATEGORIES,
+    );
 
     return {
       isSuccess: true,
@@ -356,6 +382,12 @@ export class SubCategoryService {
     subCategory.isActive = isActive;
 
     await subCategory.save();
+
+    // Revalidate active categories
+    await revalidateTag(
+      this.revalidationService,
+      REVALIDATION_TAGS.ACTIVE_CATEGORIES,
+    );
 
     return {
       isSuccess: true,
