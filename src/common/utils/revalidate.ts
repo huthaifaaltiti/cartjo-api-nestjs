@@ -5,7 +5,8 @@ export async function revalidatePath(
   paths: string[],
 ) {
   try {
-    if (paths.length === 0 || !revalidationService) return;
+    if (!Array.isArray(paths) || paths.length === 0 || !revalidationService)
+      return;
     await revalidationService.revalidatePaths(paths);
   } catch (err) {
     console.error('Revalidation failed:', err);
