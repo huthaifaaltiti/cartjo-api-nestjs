@@ -196,9 +196,16 @@ export class ProductService {
       .exec();
 
     if (!products.length) {
-      throw new NotFoundException(
-        getMessage('products_productsNotFound', lang),
-      );
+      // throw new NotFoundException(
+      //   getMessage('products_productsNotFound', lang),
+      // );
+
+      return {
+        isSuccess: true,
+        message: getMessage('products_noProductsForCategory', lang),
+        dataCount: 0,
+        data: [],
+      };
     }
 
     // ✅ Fetch wishlist for user

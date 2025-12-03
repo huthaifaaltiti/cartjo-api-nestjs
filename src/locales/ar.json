@@ -97,6 +97,7 @@
   "products_productDeletedSuccessfully": "تم حذف المنتج بنجاح",
   "products_productUnDeletedSuccessfully": "تم استرجاع المنتج بنجاح",
   "products_invalidTypeHint": "دليل المنتج غير صحيح",
+  "products_noProductsForCategory": "لا توجد منتجات لهذه الفئة",
   "logo_logoAlreadyExists": "اللجو موجود بالفعل",
   "logo_logoCreatedSuccessfully": "تم إنشاء الشعار بنجاح",
   "logo_logoNotFound": "لم يتم إيجاد الشعار",
