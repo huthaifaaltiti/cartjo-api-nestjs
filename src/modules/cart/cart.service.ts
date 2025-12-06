@@ -189,7 +189,7 @@ export class CartService {
 
     if (!cart) throw new NotFoundException(getMessage('cart_notFound', lang));
 
-    const itemIndex = cart.items.findIndex(i => i.productId.equals(productId));
+    const itemIndex = cart.items.findIndex(i => i.productId.toString() === productId.toString());
     const item = cart.items.at(itemIndex);
 
     if (itemIndex === -1)
