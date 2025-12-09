@@ -5,6 +5,7 @@ import { AppModule } from './app.module';
 import { EmailTemplateSeeder } from './modules/email/seeders/email-template.seeder';
 import { LoggingPipe } from './pipes/logging.pipe';
 import { CustomValidationPipe } from './pipes/customValidation.pipe';
+import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 // import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 
 async function server() {
@@ -26,11 +27,13 @@ async function server() {
     credentials: true,
   });
 
+  // General logging pipe for incoming requests
   app.useGlobalPipes(new LoggingPipe());
+
   app.useGlobalPipes(new CustomValidationPipe());
 
   // NestJS-style global exception filter
-  // app.useGlobalFilters(new AllExceptionsFilter());
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   // Seed email templates
   const seeder = app.get(EmailTemplateSeeder);
