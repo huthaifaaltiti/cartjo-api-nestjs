@@ -2,7 +2,7 @@ import { Connection } from 'mongoose';
 import { appEnvsHosts } from 'src/configs/appEnvsPaths';
 import { AppEnvironments } from 'src/enums/appEnvs.enum';
 
-export const updateBannerMediaUrls = async (
+const updateBannerMediaUrls = async (
   mongo: Connection,
   oldHost: string,
   newHost: string,
@@ -37,7 +37,7 @@ export const updateBannerMediaUrls = async (
   console.log(`🟢 Updated ${updatedCount} banners`);
 };
 
-export const updateCategoryMediaUrls = async (
+const updateCategoryMediaUrls = async (
   mongo: Connection,
   oldHost: string,
   newHost: string,
@@ -72,7 +72,7 @@ export const updateCategoryMediaUrls = async (
   console.log(`🟢 Updated ${updatedCount} categories`);
 };
 
-export const updateSubCategoryMediaUrls = async (
+const updateSubCategoryMediaUrls = async (
   mongo: Connection,
   oldHost: string,
   newHost: string,
@@ -107,7 +107,7 @@ export const updateSubCategoryMediaUrls = async (
   console.log(`🟢 Updated ${updatedCount} sub-categories`);
 };
 
-export const updateLogoMediaUrls = async (
+const updateLogoMediaUrls = async (
   mongo: Connection,
   oldHost: string,
   newHost: string,
@@ -137,7 +137,7 @@ export const updateLogoMediaUrls = async (
   console.log(`🟢 Updated ${updatedCount} logos`);
 };
 
-export const updateProductMediaUrls = async (
+const updateProductMediaUrls = async (
   mongo: Connection,
   oldHost: string,
   newHost: string,
@@ -175,7 +175,7 @@ export const updateProductMediaUrls = async (
   console.log(`🟢 Updated ${updatedCount} products`);
 };
 
-export const updateMediaUrls = async (
+const updateMediaUrls = async (
   mongo: Connection,
   oldHost: string,
   newHost: string,
@@ -226,7 +226,7 @@ export default async function updateModulesMediaUrls(mongo: Connection) {
   await updateSubCategoryMediaUrls(mongo, config.old, config.new);
   await updateLogoMediaUrls(mongo, config.old, config.new);
   await updateProductMediaUrls(mongo, config.old, config.new);
-  // await updateMediaUrls(mongo, config.old, config.new);
+  await updateMediaUrls(mongo, config.old, config.new);
 
   console.log('✅ Media URL migration completed successfully.');
 }
