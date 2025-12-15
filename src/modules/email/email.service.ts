@@ -56,6 +56,7 @@ export class EmailService {
         Logger.log(`✅ SMTP transporter ready`);
       }
     } catch (error) {
+      console.log({error})
       Logger.error('❌ Failed to initialize transporter', error);
     }
   }
