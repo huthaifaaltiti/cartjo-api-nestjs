@@ -1,10 +1,9 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import * as nodemailer from 'nodemailer';
 import { InjectModel } from '@nestjs/mongoose';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { Model } from 'mongoose';
-import * as nodemailer from 'nodemailer';
-import * as sgMail from '@sendgrid/mail';
 import {
   EmailTemplate,
   EmailTemplateDocument,
@@ -15,9 +14,9 @@ import { Processors } from 'src/enums/processors.enum';
 import { AppEnvironments } from 'src/enums/appEnvs.enum';
 
 @Injectable()
-export class EmailService implements OnModuleInit {
-  private readonly isDev: boolean;
+export class EmailService {
   private transporter: nodemailer.Transporter | null = null;
+  private readonly isDev: boolean;
 
   constructor(
     @InjectModel(EmailTemplate.name)
@@ -26,34 +25,43 @@ export class EmailService implements OnModuleInit {
     private readonly emailQueue: Queue,
   ) {
     this.isDev = process.env.NODE_ENV === AppEnvironments.DEVELOPMENT;
+    this.initializeTransporter();
   }
 
-  async onModuleInit() {
-    if (this.isDev) {
-      const testAccount = await nodemailer.createTestAccount();
+  private async initializeTransporter() {
+    try {
+      if (this.isDev) {
+        const testAccount = await nodemailer.createTestAccount();
 
-      this.transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST_DIV_ENV,
-        port: Number(process.env.SMTP_PORT_DIV_ENV),
-        secure: false,
-        auth: {
-          user: testAccount.user,
-          pass: testAccount.pass,
-        },
-      });
-
-      Logger.log(`✅ Ethereal account created: ${testAccount.user}`);
-    } else {
-      if (!process.env.SENDGRID_API_KEY) {
-        Logger.error('❌ SENDGRID_API_KEY is missing');
-        return;
+        this.transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST_DIV_ENV,
+          port: process.env.SMTP_PORT_DIV_ENV,
+          secure: false,
+          auth: { user: testAccount.user, pass: testAccount.pass },
+        });
+        Logger.log(`✅ Ethereal account created: ${testAccount.user}`);
+      } else {
+        this.transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST_PROD_ENV,
+          port: Number(process.env.SMTP_PORT_PROD_ENV),
+          secure: Number(process.env.SMTP_PORT_PROD_ENV) === 465,
+          auth: {
+            user: process.env.SMTP_USER_PROD_ENV,
+            pass: process.env.SMTP_PASS_PROD_ENV,
+          },
+          connectionTimeout: 10000, // 10s
+          greetingTimeout: 5000,
+          socketTimeout: 10000,
+        });
+        Logger.log(`✅ SMTP transporter ready`);
       }
-
-      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-      Logger.log('✅ SendGrid API initialized');
+    } catch (error) {
+      console.log({error})
+      Logger.error('❌ Failed to initialize transporter', error);
     }
   }
 
+  // Helper function to replace variables in {{ }}
   private renderTemplate(html: string, data: Record<string, any>): string {
     return html.replace(/{{(.*?)}}/g, (_, key) => {
       const value = data[key.trim()];
@@ -89,47 +97,42 @@ export class EmailService implements OnModuleInit {
       template.subject?.[prefLang],
       templateData,
     );
-
-    const html = this.renderTemplate(
-      template.html?.[prefLang],
-      templateData,
-    );
+    const html = this.renderTemplate(template.html?.[prefLang], templateData);
 
     await this.sendEmail(to, subject, html);
   }
 
   async sendEmail(to: string, subject: string, html: string) {
+    if (!this.transporter) {
+      Logger.warn('⚠️ Transporter not ready. Reinitializing...');
+      await this.initializeTransporter();
+    }
+
+    if (!this.transporter) {
+      Logger.error('🚨 Unable to send email — transporter not initialized');
+      return;
+    }
+
     try {
+      const info = await this.transporter.sendMail({
+        from: process.env.EMAIL_FROM_PROD_ENV || 'CartJO <support@cartjo.com>',
+        to,
+        subject,
+        html,
+      });
+
       if (this.isDev) {
-        if (!this.transporter) {
-          Logger.error('❌ Dev transporter not initialized');
-          return;
-        }
-
-        const info = await this.transporter.sendMail({
-          from: 'CartJO <dev@cartjo.com>',
-          to,
-          subject,
-          html,
-        });
-
-        Logger.log(`📨 DEV email sent to ${to}`);
-        Logger.log(`🔗 Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+        Logger.log(`📨 Email sent to ${to}`);
+        Logger.log(`🔗 Preview: ${nodemailer.getTestMessageUrl(info)}`);
       } else {
-        await sgMail.send({
-          to,
-          from: process.env.EMAIL_FROM_PROD_ENV || 'support@cartjo.com',
-          subject,
-          html,
-        });
-
-        Logger.log(`📧 PROD email sent via SendGrid → ${to}`);
+        Logger.log(`📧 Email sent to ${to}`);
       }
-    } catch (error) {
-      Logger.error(`❌ Failed to send email to ${to}`, error);
+    } catch (err) {
+      Logger.error(`❌ Failed to send email to ${to}`, err);
     }
   }
 
+  // enqueue template email in production
   async enqueueTemplateEmail({ to, templateName, templateData, prefLang }) {
     if (this.isDev) {
       return this.sendTemplateEmail({
@@ -144,7 +147,6 @@ export class EmailService implements OnModuleInit {
       to,
       templateName,
       templateData,
-      prefLang,
     });
 
     Logger.log(`📬 Template email enqueued for ${to}`);

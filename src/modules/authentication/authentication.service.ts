@@ -160,13 +160,6 @@ export class AuthService {
       });
 
       if (user.email) {
-
-        console.log(process.env.NODE_ENV)
-          console.log('process.env.SMTP_HOST_PROD_ENV',process.env.SMTP_HOST_PROD_ENV)
-        console.log('process.env.SMTP_PORT_PROD_ENV',process.env.SMTP_PORT_PROD_ENV)
-        console.log('process.env.SMTP_USER_PROD_ENV',process.env.SMTP_USER_PROD_ENV)
-        console.log('process.env.SMTP_PASS_PROD_ENV',process.env.SMTP_PASS_PROD_ENV)
-
         await this.emailService.sendTemplateEmail({
           to: user.email,
           templateName: EmailTemplates.USER_REGISTRATION_CONFIRMATION,
