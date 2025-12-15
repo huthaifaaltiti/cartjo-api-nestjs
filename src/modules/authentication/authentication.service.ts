@@ -36,14 +36,19 @@ import { AppEnvironments } from 'src/enums/appEnvs.enum';
 
 @Injectable()
 export class AuthService {
+  private readonly isProd: boolean;
+  private readonly emailLogoHostUrl: string;
+
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private jwtService: JwtService,
     private mediaService: MediaService,
     private emailService: EmailService,
-    private readonly isProd = process.env.NODE_ENV === AppEnvironments.PRODUCTION,
-    private readonly emailLogoHostUrl = this.isProd ? process.env.API_HOST_PRODUCTION : process.env.API_HOST_PREVIEW
   ) {
+    this.isProd = process.env.NODE_ENV === AppEnvironments.PRODUCTION;
+    this.emailLogoHostUrl = this.isProd
+      ? process.env.API_HOST_PRODUCTION
+      : process.env.API_HOST_PREVIEW;
   }
 
   async register(
