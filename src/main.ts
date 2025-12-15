@@ -1,14 +1,16 @@
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { EmailTemplateSeeder } from './modules/email/seeders/email-template.seeder';
 import { LoggingPipe } from './pipes/logging.pipe';
 import { CustomValidationPipe } from './pipes/customValidation.pipe';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
-// import { AllExceptionsFilter } from './filters/all-exceptions.filter';
+import { AppEnvironments } from './enums/appEnvs.enum';
+import { join } from 'path';
 
 async function server() {
+  const isDev = process.env.NODE_ENV !== AppEnvironments.PRODUCTION;
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   const allowedOrigins = process.env.CORS_ORIGINS_DOMAINS?.split(',') ?? [];
@@ -27,13 +29,20 @@ async function server() {
     credentials: true,
   });
 
-  // General logging pipe for incoming requests
-  app.useGlobalPipes(new LoggingPipe());
+  // serve static files
+  app.useStaticAssets(join(__dirname, '..', 'public'), {
+    prefix: '/public',
+  });
 
   app.useGlobalPipes(new CustomValidationPipe());
 
-  // NestJS-style global exception filter
-  app.useGlobalFilters(new AllExceptionsFilter());
+  if (isDev) {
+    // General logging pipe for incoming requests
+    app.useGlobalPipes(new LoggingPipe());
+  } else {
+    // NestJS-style global exception filter
+    app.useGlobalFilters(new AllExceptionsFilter());
+  }
 
   // Seed email templates
   const seeder = app.get(EmailTemplateSeeder);

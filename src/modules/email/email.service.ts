@@ -11,6 +11,7 @@ import {
 import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
 import { Queues } from 'src/enums/queues.enum';
 import { Processors } from 'src/enums/processors.enum';
+import { AppEnvironments } from 'src/enums/appEnvs.enum';
 
 @Injectable()
 export class EmailService {
@@ -23,7 +24,7 @@ export class EmailService {
     @InjectQueue(Queues.EMAIL_QUEUE)
     private readonly emailQueue: Queue,
   ) {
-    this.isDev = process.env.NODE_ENV !== 'production';
+    this.isDev = process.env.NODE_ENV === AppEnvironments.DEVELOPMENT;
     this.initializeTransporter();
   }
 
@@ -41,12 +42,12 @@ export class EmailService {
         Logger.log(`✅ Ethereal account created: ${testAccount.user}`);
       } else {
         this.transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST,
-          port: Number(process.env.SMTP_PORT),
-          secure: Number(process.env.SMTP_PORT) === 465,
+          host: process.env.SMTP_HOST_PROD_ENV,
+          port: Number(process.env.SMTP_PORT_PROD_ENV),
+          secure: Number(process.env.SMTP_PORT_PROD_ENV) === 465,
           auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
+            user: process.env.SMTP_USER_PROD_ENV,
+            pass: process.env.SMTP_PASS_PROD_ENV,
           },
         });
         Logger.log(`✅ SMTP transporter ready`);
@@ -110,7 +111,7 @@ export class EmailService {
 
     try {
       const info = await this.transporter.sendMail({
-        from: process.env.EMAIL_FROM || 'no-reply@cartjo.com',
+        from: process.env.EMAIL_FROM_PROD_ENV || 'CartJO <support@cartjo.com>',
         to,
         subject,
         html,

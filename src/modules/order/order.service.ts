@@ -38,6 +38,7 @@ import { ExportOrdersQueryDto } from './dto/exportOrders.dto';
 import * as ExcelJS from 'exceljs';
 import * as PDFDocument from 'pdfkit';
 import { Response } from 'express';
+import { getAppUrl } from 'src/common/utils/getAppUrl';
 
 @Injectable()
 export class OrderService {
@@ -119,7 +120,7 @@ export class OrderService {
           amount: order.amount,
           currency: order.currency,
           paymentMethod: order.paymentMethod,
-          orderUrl: `${process.env.APP_URL}/orders/${order._id}`,
+          orderUrl: `${getAppUrl()}/orders/${order._id}`,
         },
         prefLang: user.preferredLang || PreferredLanguage.ARABIC,
       });
