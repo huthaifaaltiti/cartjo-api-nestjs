@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import { InjectModel } from '@nestjs/mongoose';
 import { InjectQueue } from '@nestjs/bull';
@@ -14,7 +14,7 @@ import { Processors } from 'src/enums/processors.enum';
 import { AppEnvironments } from 'src/enums/appEnvs.enum';
 
 @Injectable()
-export class EmailService {
+export class EmailService implements OnModuleInit {
   private transporter: nodemailer.Transporter | null = null;
   private readonly isDev: boolean;
 
@@ -25,18 +25,26 @@ export class EmailService {
     private readonly emailQueue: Queue,
   ) {
     this.isDev = process.env.NODE_ENV === AppEnvironments.DEVELOPMENT;
-    this.initializeTransporter();
+    // this.initializeTransporter();
   }
+
+   async onModuleInit() {
+    Logger.log('📌 EmailService module initializing...');
+    await this.initializeTransporter();
+  }
+  
 
   private async initializeTransporter() {
     try {
-              console.log(this.isDev)
-              
+                  Logger.log('Initializing transporter...');
+      Logger.log('isDev: ' + this.isDev);
+
+
       if (this.isDev) {
         const testAccount = await nodemailer.createTestAccount();
 
 
-         console.log('inside if to create email for dev')
+        Logger.log('inside if to create email for dev');
 
         this.transporter = nodemailer.createTransport({
           host: process.env.SMTP_HOST_DIV_ENV,
@@ -46,7 +54,7 @@ export class EmailService {
         });
         Logger.log(`✅ Ethereal account created: ${testAccount.user}`);
       } else {
-        console.log('inside else to create email for prod')
+        Logger.log('inside else to create email for prod');
         this.transporter = nodemailer.createTransport({
           host: process.env.SMTP_HOST_PROD_ENV,
           port: Number(process.env.SMTP_PORT_PROD_ENV),
