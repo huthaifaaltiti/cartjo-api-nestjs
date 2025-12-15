@@ -40,6 +40,7 @@ export class EmailService {
           auth: { user: testAccount.user, pass: testAccount.pass },
         });
         Logger.log(`✅ Ethereal account created: ${testAccount.user}`);
+        console.log(this.transporter)
       } else {
         this.transporter = nodemailer.createTransport({
           host: process.env.SMTP_HOST_PROD_ENV,
@@ -51,6 +52,7 @@ export class EmailService {
           },
         });
         Logger.log(`✅ SMTP transporter ready`);
+           console.log(this.transporter)
       }
     } catch (error) {
       Logger.error('❌ Failed to initialize transporter', error);
