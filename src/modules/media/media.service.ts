@@ -9,6 +9,7 @@ import { getMessage } from 'src/common/utils/translator';
 import { Locale } from 'src/types/Locale';
 import { User, UserDocument } from '../../schemas/user.schema';
 import { Media, MediaDocument } from 'src/schemas/media.schema';
+import { getAppHostName } from 'src/common/utils/getAppHostName';
 
 @Injectable()
 export class MediaService {
@@ -21,7 +22,7 @@ export class MediaService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Media.name) private mediaModel: Model<MediaDocument>,
   ) {
-    this.hostName = process.env.HOST_NAME;
+    this.hostName = getAppHostName();
     this.initializeMediaDatabase();
   }
 

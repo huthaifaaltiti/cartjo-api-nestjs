@@ -21,7 +21,7 @@
   "users_errWhileCreatingUser": "حدث خطأ غير متوقع أثناء إنشاء المستخدم",
   "authorization_accountDeleted": "تم حذف حسابك. يرجى التواصل مع الدعم.",
   "authorization_accountInactive": "حسابك غير مفعل. يرجى التواصل مع الدعم.",
-  "users_userCreatedSuccessfully": "تم إنشاء المستخدم بنجاح",
+  "users_userCreatedSuccessfully": "تم إنشاء المستخدم نبجاح. سيتم إرسال رسالة إلى بريدك الإلكتروني لغايات التوثيق.",
   "authorization_loginSuccessful": "تم تسجيل الدخول بنجاح",
   "authorization_InvalidCredentials": "بيانات الاعتماد غير صحيحة",
   "authorization_noAccess": "تم رفض الوصول",

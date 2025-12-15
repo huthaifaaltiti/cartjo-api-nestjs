@@ -21,7 +21,7 @@
   "users_errWhileCreatingUser": "An unexpected error occurred while creating the user",
   "authorization_accountDeleted": "Your account has been deleted. Please contact support.",
   "authorization_accountInactive": "Your account is inactive. Please contact support.",
-  "users_userCreatedSuccessfully": "User created successfully",
+  "users_userCreatedSuccessfully": "User created successfully. A verification email has been sent to you.",
   "authorization_loginSuccessful": "Login Successful",
   "authorization_InvalidCredentials": "Invalid Credentials",
   "authorization_noAccess": "Access denied",
