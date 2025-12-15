@@ -32,6 +32,7 @@ import { EmailTemplates } from 'src/enums/emailTemplates.enum';
 import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
 import { BaseResponse } from 'src/types/service-response.type';
 import { getAppUrl } from 'src/common/utils/getAppUrl';
+import { AppEnvironments } from 'src/enums/appEnvs.enum';
 
 @Injectable()
 export class AuthService {
@@ -40,7 +41,10 @@ export class AuthService {
     private jwtService: JwtService,
     private mediaService: MediaService,
     private emailService: EmailService,
-  ) {}
+    private readonly isProd = process.env.NODE_ENV === AppEnvironments.PRODUCTION,
+    private readonly emailLogoHostUrl = this.isProd ? process.env.API_HOST_PRODUCTION : process.env.API_HOST_PREVIEW
+  ) {
+  }
 
   async register(
     dto: RegisterDto,
@@ -155,6 +159,7 @@ export class AuthService {
           to: user.email,
           templateName: EmailTemplates.USER_REGISTRATION_CONFIRMATION,
           templateData: {
+            logoUrl: `${this.emailLogoHostUrl}/public/assets/images/cartJOLogo.png`,
             firstName: user.firstName,
             confirmationUrl: `${getAppUrl()}/verify-email?token=${emailVerificationToken}`,
           },

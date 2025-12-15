@@ -6,6 +6,7 @@ import { LoggingPipe } from './pipes/logging.pipe';
 import { CustomValidationPipe } from './pipes/customValidation.pipe';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 import { AppEnvironments } from './enums/appEnvs.enum';
+import { join } from 'path';
 
 async function server() {
   const isDev = process.env.NODE_ENV !== AppEnvironments.PRODUCTION;
@@ -26,6 +27,11 @@ async function server() {
       return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
+  });
+
+  // serve static files
+  app.useStaticAssets(join(__dirname, '..', 'public'), {
+    prefix: '/public',
   });
 
   app.useGlobalPipes(new CustomValidationPipe());
