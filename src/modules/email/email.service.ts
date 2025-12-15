@@ -30,8 +30,13 @@ export class EmailService {
 
   private async initializeTransporter() {
     try {
+              console.log(this.isDev)
+              
       if (this.isDev) {
         const testAccount = await nodemailer.createTestAccount();
+
+
+         console.log('inside if to create email for dev')
 
         this.transporter = nodemailer.createTransport({
           host: process.env.SMTP_HOST_DIV_ENV,
