@@ -42,6 +42,11 @@ export class EmailService {
         Logger.log(`✅ Ethereal account created: ${testAccount.user}`);
         console.log(this.transporter)
       } else {
+        console.log('process.env.SMTP_HOST_PROD_ENV',process.env.SMTP_HOST_PROD_ENV)
+        console.log('process.env.SMTP_PORT_PROD_ENV',process.env.SMTP_PORT_PROD_ENV)
+        console.log('process.env.SMTP_USER_PROD_ENV',process.env.SMTP_USER_PROD_ENV)
+        console.log('process.env.SMTP_PASS_PROD_ENV',process.env.SMTP_PASS_PROD_ENV)
+      
         this.transporter = nodemailer.createTransport({
           host: process.env.SMTP_HOST_PROD_ENV,
           port: Number(process.env.SMTP_PORT_PROD_ENV),
