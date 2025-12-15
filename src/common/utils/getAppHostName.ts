@@ -5,11 +5,11 @@ export function getAppHostName(): string {
 
   switch (env) {
     case AppEnvironments.PRODUCTION:
-      return process.env.HOST_NAME_PRODUCTION!;
+      return process.env.API_HOST_PRODUCTION!;
     case AppEnvironments.PREVIEW:
-      return process.env.HOST_NAME_PREVIEW!;
+      return process.env.API_HOST_PREVIEW!;
     case AppEnvironments.DEVELOPMENT:
     default:
-      return process.env.HOST_NAME_DEVELOPMENT!;
+      return process.env.API_HOST_DEVELOPMENT!;
   }
 }
