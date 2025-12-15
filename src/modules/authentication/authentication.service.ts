@@ -165,7 +165,7 @@ export class AuthService {
         console.log('process.env.SMTP_PORT_PROD_ENV',process.env.SMTP_PORT_PROD_ENV)
         console.log('process.env.SMTP_USER_PROD_ENV',process.env.SMTP_USER_PROD_ENV)
         console.log('process.env.SMTP_PASS_PROD_ENV',process.env.SMTP_PASS_PROD_ENV)
-        
+
         await this.emailService.sendTemplateEmail({
           to: user.email,
           templateName: EmailTemplates.USER_REGISTRATION_CONFIRMATION,
@@ -198,6 +198,7 @@ export class AuthService {
         token,
       };
     } catch (err) {
+      console.log({err})
       if (err instanceof MongoError && err.code === 11000) {
         throw new BadRequestException(
           getMessage('users_userAlreadyExists', lang),
