@@ -50,6 +50,9 @@ export class EmailService {
             user: process.env.SMTP_USER_PROD_ENV,
             pass: process.env.SMTP_PASS_PROD_ENV,
           },
+          connectionTimeout: 10000, // 10s
+          greetingTimeout: 5000,
+          socketTimeout: 10000,
         });
         Logger.log(`✅ SMTP transporter ready`);
            console.log(this.transporter)
