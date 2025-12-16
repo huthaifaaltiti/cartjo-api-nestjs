@@ -13,6 +13,10 @@ import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
 import { Queues } from 'src/enums/queues.enum';
 import { Processors } from 'src/enums/processors.enum';
 import { AppEnvironments } from 'src/enums/appEnvs.enum';
+import { EmailLogService } from './EmailLogService.service';
+import { EmailSendingStatus } from 'src/enums/emailSendingStatus.enum';
+import { EmailTemplates } from 'src/enums/emailTemplates.enum';
+import { getEmailFromMapping } from 'src/common/utils/getEmailFromMapping';
 
 @Injectable()
 export class EmailService implements OnModuleInit {
@@ -24,6 +28,7 @@ export class EmailService implements OnModuleInit {
     private readonly templateModel: Model<EmailTemplateDocument>,
     @InjectQueue(Queues.EMAIL_QUEUE)
     private readonly emailQueue: Queue,
+    private readonly emailLogService: EmailLogService,
   ) {
     this.isDev = process.env.NODE_ENV === AppEnvironments.DEVELOPMENT;
   }
@@ -54,6 +59,16 @@ export class EmailService implements OnModuleInit {
     }
   }
 
+  private getEmailFrom(templateName: EmailTemplates): string {
+    const mapping = getEmailFromMapping();
+    let baseEmail = mapping[templateName];
+
+    if (!baseEmail) baseEmail = process.env.EMAIL_FROM_NO_REPLY!;
+    if (baseEmail.includes('@')) return baseEmail;
+
+    return `CartJO <${baseEmail}@cartjo.com>`;
+  }
+
   private renderTemplate(html: string, data: Record<string, any>): string {
     return html.replace(/{{(.*?)}}/g, (_, key) => {
       const value = data[key.trim()];
@@ -74,7 +89,7 @@ export class EmailService implements OnModuleInit {
     prefLang,
   }: {
     to: string;
-    templateName: string;
+    templateName: EmailTemplates;
     templateData: Record<string, any>;
     prefLang: PreferredLanguage;
   }) {
@@ -90,15 +105,27 @@ export class EmailService implements OnModuleInit {
       templateData,
     );
 
-    const html = this.renderTemplate(
-      template.html?.[prefLang],
-      templateData,
-    );
+    const html = this.renderTemplate(template.html?.[prefLang], templateData);
 
-    await this.sendEmail(to, subject, html);
+    const log = await this.emailLogService.create({
+      to,
+      template: templateName,
+      subject,
+      status: EmailSendingStatus.QUEUED,
+    });
+
+    await this.sendEmail(to, subject, html, log?._id?.toString(), templateName);
   }
 
-  async sendEmail(to: string, subject: string, html: string) {
+  async sendEmail(
+    to: string,
+    subject: string,
+    html: string,
+    logId: string,
+    templateName: EmailTemplates,
+  ) {
+    const emailFrom = this.getEmailFrom(templateName);
+
     try {
       if (this.isDev) {
         if (!this.transporter) {
@@ -116,16 +143,49 @@ export class EmailService implements OnModuleInit {
         Logger.log(`📨 DEV email sent to ${to}`);
         Logger.log(`🔗 Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
       } else {
-        await sgMail.send({
+        const [response] = await sgMail.send({
           to,
-          from: process.env.EMAIL_FROM_PROD_ENV || 'support@cartjo.com',
+          from: emailFrom,
           subject,
           html,
         });
 
-        Logger.log(`📧 PROD email sent via SendGrid → ${to}`);
+        /*
+        response: Response {
+          statusCode: 202,
+          body: '',
+          headers: Object [AxiosHeaders] {
+          date: 'Tue, 16 Dec 2025 06:37:51 GMT',
+          'content-length': '0',
+          connection: 'keep-alive',
+          server: 'nginx',
+          'x-message-id': 'vxHisR_1TwyLYt2wVcNlfw',
+          'access-control-allow-origin': 'https://sendgrid.    api-docs.io',
+          'access-control-allow-methods': 'POST',
+          'access-control-allow-headers': 'Authorization,     Content-Type, On-behalf-of, x-sg-elas-acl',
+          'access-control-max-age': '600',
+          'x-no-cors-reason': 'https://sendgrid.com/docs/    Classroom/Basics/API/cors.html',
+          'strict-transport-security': 'max-age=31536000;     includeSubDomains',
+          'content-security-policy': "frame-ancestors 'none'",
+          'cache-control': 'no-cache',
+          'x-content-type-options': 'no-sniff',
+          'referrer-policy': 'strict-origin-when-cross-origin'
+         }
+        }
+        */
+
+        if (response.statusCode === 202) {
+          await this.emailLogService.markSent(
+            logId,
+            response.headers['x-message-id'],
+          );
+
+          Logger.log(`📧 PROD email sent via SendGrid → ${to}`);
+        }
       }
     } catch (error) {
+      await this.emailLogService.markFailed(logId, error.message);
+
       Logger.error(`❌ Failed to send email to ${to}`, error);
     }
   }
