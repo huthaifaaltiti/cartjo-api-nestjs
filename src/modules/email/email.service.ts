@@ -15,6 +15,8 @@ import { Processors } from 'src/enums/processors.enum';
 import { AppEnvironments } from 'src/enums/appEnvs.enum';
 import { EmailLogService } from './EmailLogService.service';
 import { EmailSendingStatus } from 'src/enums/emailSendingStatus.enum';
+import { EmailTemplates } from 'src/enums/emailTemplates.enum';
+import { getEmailFromMapping } from 'src/common/utils/getEmailFromMapping';
 
 @Injectable()
 export class EmailService implements OnModuleInit {
@@ -57,6 +59,16 @@ export class EmailService implements OnModuleInit {
     }
   }
 
+  private getEmailFrom(templateName: EmailTemplates): string {
+    const mapping = getEmailFromMapping();
+    let baseEmail = mapping[templateName];
+
+    if (!baseEmail) baseEmail = process.env.EMAIL_FROM_NO_REPLY!;
+    if (baseEmail.includes('@')) return baseEmail;
+
+    return `CartJO <${baseEmail}@cartjo.com>`;
+  }
+
   private renderTemplate(html: string, data: Record<string, any>): string {
     return html.replace(/{{(.*?)}}/g, (_, key) => {
       const value = data[key.trim()];
@@ -77,7 +89,7 @@ export class EmailService implements OnModuleInit {
     prefLang,
   }: {
     to: string;
-    templateName: string;
+    templateName: EmailTemplates;
     templateData: Record<string, any>;
     prefLang: PreferredLanguage;
   }) {
@@ -102,10 +114,18 @@ export class EmailService implements OnModuleInit {
       status: EmailSendingStatus.QUEUED,
     });
 
-    await this.sendEmail(to, subject, html, log?._id?.toString());
+    await this.sendEmail(to, subject, html, log?._id?.toString(), templateName);
   }
 
-  async sendEmail(to: string, subject: string, html: string, logId: string) {
+  async sendEmail(
+    to: string,
+    subject: string,
+    html: string,
+    logId: string,
+    templateName: EmailTemplates,
+  ) {
+    const emailFrom = this.getEmailFrom(templateName);
+
     try {
       if (this.isDev) {
         if (!this.transporter) {
@@ -125,7 +145,7 @@ export class EmailService implements OnModuleInit {
       } else {
         const [response] = await sgMail.send({
           to,
-          from: process.env.EMAIL_FROM_PROD_ENV || 'support@cartjo.com',
+          from: emailFrom,
           subject,
           html,
         });

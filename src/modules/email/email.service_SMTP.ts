@@ -115,7 +115,7 @@ export class EmailService {
 
     try {
       const info = await this.transporter.sendMail({
-        from: process.env.EMAIL_FROM_PROD_ENV || 'CartJO <support@cartjo.com>',
+        from: process.env.EMAIL_FROM_NO_REPLY || 'CartJO <no-reply@cartjo.com>',
         to,
         subject,
         html,
