@@ -33,6 +33,7 @@ import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
 import { BaseResponse } from 'src/types/service-response.type';
 import { getAppUrl } from 'src/common/utils/getAppUrl';
 import { AppEnvironments } from 'src/enums/appEnvs.enum';
+import { getSocialMediaLinks } from 'src/configs/social-media.config';
 
 @Injectable()
 export class AuthService {
@@ -167,6 +168,7 @@ export class AuthService {
             logoUrl: `${this.emailLogoHostUrl}/public/assets/images/cartJOLogo.png`,
             firstName: user.firstName,
             confirmationUrl: `${getAppUrl()}/verify-email?token=${emailVerificationToken}`,
+            ...getSocialMediaLinks()
           },
           prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
         });
