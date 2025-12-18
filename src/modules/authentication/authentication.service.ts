@@ -32,24 +32,16 @@ import { EmailTemplates } from 'src/enums/emailTemplates.enum';
 import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
 import { BaseResponse } from 'src/types/service-response.type';
 import { getAppUrl } from 'src/common/utils/getAppUrl';
-import { AppEnvironments } from 'src/enums/appEnvs.enum';
+import commonEmailTemplateData from 'src/common/utils/commonEmailTemplateData';
 
 @Injectable()
 export class AuthService {
-  private readonly isProd: boolean;
-  private readonly emailLogoHostUrl: string;
-
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private jwtService: JwtService,
     private mediaService: MediaService,
     private emailService: EmailService,
-  ) {
-    this.isProd = process.env.NODE_ENV === AppEnvironments.PRODUCTION;
-    this.emailLogoHostUrl = this.isProd
-      ? process.env.API_HOST_PRODUCTION
-      : process.env.API_HOST_PREVIEW;
-  }
+  ) {}
 
   async register(
     dto: RegisterDto,
@@ -164,9 +156,9 @@ export class AuthService {
           to: user.email,
           templateName: EmailTemplates.USER_REGISTRATION_CONFIRMATION,
           templateData: {
-            logoUrl: `${this.emailLogoHostUrl}/public/assets/images/cartJOLogo.png`,
             firstName: user.firstName,
             confirmationUrl: `${getAppUrl()}/verify-email?token=${emailVerificationToken}`,
+            ...commonEmailTemplateData(),
           },
           prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
         });
@@ -192,7 +184,7 @@ export class AuthService {
         token,
       };
     } catch (err) {
-      console.log({err})
+      console.log({ err });
       if (err instanceof MongoError && err.code === 11000) {
         throw new BadRequestException(
           getMessage('users_userAlreadyExists', lang),
@@ -278,6 +270,7 @@ export class AuthService {
       templateData: {
         firstName: user.firstName,
         confirmationUrl: `${getAppUrl()}/verify-email?token=${emailVerificationToken}`,
+        ...commonEmailTemplateData(),
       },
       prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
     });
@@ -323,6 +316,7 @@ export class AuthService {
         templateData: {
           firstName: user.firstName,
           resetCode,
+          ...commonEmailTemplateData(),
         },
         prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
       });
@@ -428,6 +422,7 @@ export class AuthService {
         templateData: {
           firstName: user.firstName,
           loginUrl: `${getAppUrl()}/auth`,
+          ...commonEmailTemplateData(),
         },
         prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
       });
