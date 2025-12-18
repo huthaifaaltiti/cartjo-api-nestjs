@@ -39,6 +39,7 @@ import * as ExcelJS from 'exceljs';
 import * as PDFDocument from 'pdfkit';
 import { Response } from 'express';
 import { getAppUrl } from 'src/common/utils/getAppUrl';
+import commonEmailTemplateData from 'src/common/utils/commonEmailTemplateData';
 
 @Injectable()
 export class OrderService {
@@ -121,6 +122,7 @@ export class OrderService {
           currency: order.currency,
           paymentMethod: order.paymentMethod,
           orderUrl: `${getAppUrl()}/orders/${order._id}`,
+          ...commonEmailTemplateData(),
         },
         prefLang: user.preferredLang || PreferredLanguage.ARABIC,
       });

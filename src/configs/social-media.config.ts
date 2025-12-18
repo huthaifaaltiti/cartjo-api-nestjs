@@ -7,5 +7,4 @@ export const getSocialMediaLinks = () => ({
   snapchatLink: process.env.SOCIAL_MEDIA_SNAPCHAT_LINK,
   linkedInLink: process.env.SOCIAL_MEDIA_LINKEDIN_LINK,
   tiktokLink: process.env.SOCIAL_MEDIA_TIKTOK_LINK,
-  appUsersSupportEmail: process.env.APP_USERS_SUPPORT_EMAIL,
 });
