@@ -1,7 +1,7 @@
 export const userRegistrationTemplate = {
   subject: {
-    en: '🎉 Welcome to CartJO - Verify Your Email & Start Shopping!',
-    ar: '🎉 مرحبًا بك في كارت جو - قم بتفعيل حسابك وابدأ التسوق!',
+    en: 'Welcome to CartJO 👋 - Verify Your Email & Start Shopping!',
+    ar: 'مرحبًا بك في كارت جو 👋 - قم بتفعيل حسابك وابدأ التسوق!',
   },
   html: {
     en: `<div style="max-width:600px;margin:0 auto;font-family:'Segoe UI',Arial,sans-serif;background-color:#f8f9fa;direction:ltr;">
@@ -220,7 +220,6 @@ export const userRegistrationTemplate = {
                 style="display:block;margin:0;border:0;outline:none;"
               />
             </a>
-            
             <a href="{{instagramLink}}" style="margin:0 5px;text-decoration:none;">
               <img
                 src="{{instagramIconPath}}"

@@ -1,23 +1,25 @@
+const ICONS_BASE_PATH = '/public/assets/icons';
+
 export const getSocialMediaLinks = (hostUrl: string) => ({
   whatsappNumber: process.env.SOCIAL_MEDIA_WHATSAPP_NUMBER,
-  whatsappIconPath: `${hostUrl}/public/assets/icons/whatsapp.png`,
+  whatsappIconPath: `${hostUrl}${ICONS_BASE_PATH}/whatsapp.png`,
   whatsappLink: process.env.SOCIAL_MEDIA_WHATSAPP_LINK,
-  
-  xIconPath: `${hostUrl}/public/assets/icons/x.png`,
+
+  xIconPath: `${hostUrl}${ICONS_BASE_PATH}/x.png`,
   xLink: process.env.SOCIAL_MEDIA_X_LINK,
 
-  facebookIconPath: `${hostUrl}/public/assets/icons/facebook.png`,
+  facebookIconPath: `${hostUrl}${ICONS_BASE_PATH}/facebook.png`,
   facebookLink: process.env.SOCIAL_MEDIA_FACEBOOK_LINK,
 
-  instagramIconPath: `${hostUrl}/public/assets/icons/instagram.png`,
+  instagramIconPath: `${hostUrl}${ICONS_BASE_PATH}/instagram.png`,
   instagramLink: process.env.SOCIAL_MEDIA_INSTAGRAM_LINK,
 
-  snapchatIconPath: `${hostUrl}/public/assets/icons/snapchat.png`,
+  snapchatIconPath: `${hostUrl}${ICONS_BASE_PATH}/snapchat.png`,
   snapchatLink: process.env.SOCIAL_MEDIA_SNAPCHAT_LINK,
 
-  linkedinIconPath: `${hostUrl}/public/assets/icons/linkedin.png`,
+  linkedinIconPath: `${hostUrl}${ICONS_BASE_PATH}/linkedin.png`,
   linkedInLink: process.env.SOCIAL_MEDIA_LINKEDIN_LINK,
 
-  tiktokIconPath: `${hostUrl}/public/assets/icons/tiktok.png`,
+  tiktokIconPath: `${hostUrl}${ICONS_BASE_PATH}/tiktok.png`,
   tiktokLink: process.env.SOCIAL_MEDIA_TIKTOK_LINK,
 });
