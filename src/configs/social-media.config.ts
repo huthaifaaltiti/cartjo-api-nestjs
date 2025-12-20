@@ -1,4 +1,16 @@
-export const getSocialMediaLinks = (hostUrl: string) => ({
+const ICONS_BASE_PATH = '/public/assets/icons';
+
+export const getSocialMediaIconsPaths = (hostUrl: string) => ({
+  whatsappIconPath: `${hostUrl}${ICONS_BASE_PATH}/whatsapp.png`,
+  xIconPath: `${hostUrl}${ICONS_BASE_PATH}/x.png`,
+  facebookIconPath: `${hostUrl}${ICONS_BASE_PATH}/facebook.png`,
+  instagramIconPath: `${hostUrl}${ICONS_BASE_PATH}/instagram.png`,
+  snapchatIconPath: `${hostUrl}${ICONS_BASE_PATH}/snapchat.png`,
+  linkedinIconPath: `${hostUrl}${ICONS_BASE_PATH}/linkedin.png`,
+  tiktokIconPath: `${hostUrl}${ICONS_BASE_PATH}/tiktok.png`,
+});
+
+export const getSocialMediaLinks = () => ({
   whatsappNumber: process.env.SOCIAL_MEDIA_WHATSAPP_NUMBER,
   whatsappIconPath: `${hostUrl}/public/assets/icons/whatsapp.png`,
   whatsappLink: process.env.SOCIAL_MEDIA_WHATSAPP_LINK,

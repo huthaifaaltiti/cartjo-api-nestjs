@@ -112,7 +112,7 @@ export class OrderService {
     });
 
     if (user.email && order) {
-      await this.emailService.sendTemplateEmail({
+      this.emailService.sendTemplateEmail({
         to: user.email,
         templateName: EmailTemplates.ORDER_ORDER_CREATED,
         templateData: {
