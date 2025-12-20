@@ -1,4 +1,7 @@
-import { getSocialMediaLinks } from 'src/configs/social-media.config';
+import {
+  getSocialMediaIconsPaths,
+  getSocialMediaLinks,
+} from 'src/configs/social-media.config';
 import { AppEnvironments } from 'src/enums/appEnvs.enum';
 
 const commonEmailTemplateData = () => {
@@ -12,7 +15,8 @@ const commonEmailTemplateData = () => {
   return {
     logoUrl: `${hostUrl}/public/assets/images/cartJOLogo.png`,
     appUsersSupportEmail,
-    ...getSocialMediaLinks(hostUrl),
+    ...getSocialMediaLinks(),
+    ...getSocialMediaIconsPaths(hostUrl),
   };
 };
 
