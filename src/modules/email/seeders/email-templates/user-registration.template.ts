@@ -245,6 +245,7 @@ export const userRegistrationTemplate = {
                 style="display:block;margin:0;border:0;outline:none;"
               />
             </a>
+            
             <a href="{{instagramLink}}" style="margin:0 5px;text-decoration:none;">
               <img
                 src="{{instagramIconPath}}"
