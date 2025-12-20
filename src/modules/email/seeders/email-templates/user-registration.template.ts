@@ -36,12 +36,33 @@ export const userRegistrationTemplate = {
          </p>
       </div>
       <div style="text-align:center;margin:30px 0;">
-         <a
-            href="{{confirmationUrl}}"
-            style="display:inline-block;padding:16px 40px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#ffffff;text-decoration:none;border-radius:8px;font-size:16px;font-weight:600;box-shadow:0 4px 12px rgba(102,126,234,0.4);"
-            >
-         Confirm Email Address
-         </a>
+         <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
+  <tr>
+    <td
+      bgcolor="#667eea"
+      style="
+        border-radius:8px;
+        text-align:center;
+      "
+    >
+      <a
+        href="{{confirmationUrl}}"
+        style="
+          display:inline-block;
+          padding:16px 40px;
+          font-size:16px;
+          font-weight:600;
+          font-family:'Cairo','Segoe UI',Arial,sans-serif;
+          color:#ffffff;
+          text-decoration:none;
+          line-height:1.2;
+        "
+      >
+Confirm Email Address      </a>
+    </td>
+  </tr>
+</table>
+
       </div>
       <p style="color:#999;font-size:13px;line-height:1.7;margin:25px 0 0 0;">
          If the button doesn’t work, copy and paste this link into your browser:<br />
@@ -184,12 +205,34 @@ export const userRegistrationTemplate = {
    </p>
 </div>
 <div style="text-align:center;margin:30px 0;">
-   <a
-      href="{{confirmationUrl}}"
-      style="display:inline-block;padding:16px 40px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#ffffff;text-decoration:none;border-radius:8px;font-size:16px;font-weight:600;box-shadow:0 4px 12px rgba(102,126,234,0.4);"
+   <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
+  <tr>
+    <td
+      bgcolor="#667eea"
+      style="
+        border-radius:8px;
+        text-align:center;
+      "
+    >
+      <a
+        href="{{confirmationUrl}}"
+        style="
+          display:inline-block;
+          padding:16px 40px;
+          font-size:16px;
+          font-weight:600;
+          font-family:'Cairo','Segoe UI',Arial,sans-serif;
+          color:#ffffff;
+          text-decoration:none;
+          line-height:1.2;
+        "
       >
-   تأكيد البريد الإلكتروني 
-   </a>
+        تأكيد البريد الإلكتروني
+      </a>
+    </td>
+  </tr>
+</table>
+
 </div>
 <p style="color:#999;font-size:13px;line-height:1.7;margin:25px 0 0 0;">
    إذا لم يعمل الزر، انسخ هذا الرابط وألصقه في المتصفح:<br />
