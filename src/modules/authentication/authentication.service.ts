@@ -264,7 +264,7 @@ export class AuthService {
 
     await user.save();
 
-    await this.emailService.sendTemplateEmail({
+    this.emailService.sendTemplateEmail({
       to: user.email,
       templateName: EmailTemplates.RESEND_VERIFICATION_EMAIL,
       templateData: {
@@ -310,7 +310,7 @@ export class AuthService {
     await user.save();
 
     if (user.email) {
-      await this.emailService.sendTemplateEmail({
+      this.emailService.sendTemplateEmail({
         to: user.email,
         templateName: EmailTemplates.RESET_PASSWORD_CODE,
         templateData: {
@@ -416,7 +416,7 @@ export class AuthService {
     await user.save();
 
     if (user.email) {
-      await this.emailService.sendTemplateEmail({
+      this.emailService.sendTemplateEmail({
         to: user.email,
         templateName: EmailTemplates.PASSWORD_RESET_SUCCESS,
         templateData: {
