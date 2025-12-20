@@ -152,7 +152,7 @@ export class AuthService {
       });
 
       if (user.email) {
-        await this.emailService.sendTemplateEmail({
+        this.emailService.sendTemplateEmail({
           to: user.email,
           templateName: EmailTemplates.USER_REGISTRATION_CONFIRMATION,
           templateData: {
