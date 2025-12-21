@@ -69,17 +69,7 @@ export class OrderController {
 
     const cart = await this.orderService.getUserCart(user);
 
-    return this.orderService.createOrderAndClearCart(
-      user,
-      cart,
-      body.amount,
-      body.currency,
-      body.email,
-      body.merchantReference,
-      body.transactionId,
-      body.paymentMethod,
-      body.shippingAddress,
-    );
+    return this.orderService.createOrderAndClearCart(user, cart, body);
   }
 
   @UseGuards(AuthGuard('jwt'))
