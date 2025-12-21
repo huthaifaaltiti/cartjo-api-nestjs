@@ -263,13 +263,13 @@ export class PaymentService {
     const order = await this.orderService.createOrderAndClearCart(
       requestingUser,
       cart,
-      amount,
-      currency,
-      customer_email,
-      merchant_reference,
-      result.fort_id,
-      PaymentMethod.CARD,
-      shippingAddress,
+      {
+        ...dto,
+        email: dto.customer_email,
+        merchantReference: dto.merchant_reference,
+        transactionId: dto.transactionId,
+        paymentMethod: PaymentMethod.CARD,
+      },
     );
 
     return {
@@ -287,9 +287,7 @@ export class PaymentService {
   }
 
   async payWithCash(requestingUser: any, dto: CreateCashOrderDto) {
-    const { language, currency, amount, customer_email, shippingAddress } = dto;
-
-    const check = await this.validateUser(requestingUser, true, language);
+    const check = await this.validateUser(requestingUser, true, dto.lang);
 
     if (!check.valid) {
       return { isSuccess: false, message: check.message, data: null };
@@ -300,23 +298,17 @@ export class PaymentService {
     const order = await this.orderService.createOrderAndClearCart(
       requestingUser,
       cart,
-      amount,
-      currency,
-      customer_email,
-      generateRandomString(8),
-      null,
-      PaymentMethod.CASH,
-      shippingAddress,
+      dto,
     );
 
     return {
       isSuccess: true,
-      message: getMessage('payment_cashOrderCreated', language),
+      message: getMessage('payment_cashOrderCreated', dto.lang),
       data: {
         payment_method: PaymentMethod.CASH,
-        amount,
-        currency,
-        customer_email,
+        amount: dto.amount,
+        currency: dto.currency,
+        customer_email: dto.email,
         order,
       },
     };

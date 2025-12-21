@@ -7,6 +7,7 @@ import {
   ValidateNested,
   IsOptional,
 } from 'class-validator';
+import { Currency } from 'src/enums/currency.enum';
 import { PaymentMethod } from 'src/enums/paymentMethod.enum';
 import { ShippingAddressDto } from 'src/modules/payment/dto/checkout.dto';
 import { Locale } from 'src/types/Locale';
@@ -16,9 +17,9 @@ export class CreateOrderBodyDto {
   @IsNotEmpty()
   amount: number;
 
-  @IsString()
+  @IsEnum(Currency)
   @IsNotEmpty()
-  currency: string;
+  currency: Currency;
 
   @IsString()
   @IsNotEmpty()

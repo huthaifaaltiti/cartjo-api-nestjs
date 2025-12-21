@@ -229,5 +229,8 @@
   "order_ordersRetrievedSuccessfully": "تم استرجاع الطلبات بنجاح",
   "order_invalidId": "معرّف الطلب غير صالح",
   "order_notFound": "الطلب غير موجود",
-  "order_orderRetrieved": "تم استرجاع الطلب بنجاح"
+  "order_orderRetrieved": "تم استرجاع الطلب بنجاح",
+  "order_cashOrderCreatedSuccessfully": "تم إنشاء طلب الدفع النقدي بنجاح،",
+  "orders_cardOrderCreatedSuccessfully": "تم إنشاء طلب الدفع بالبطاقة بنجاح،",
+  "orders_cantCreateOrder": "عذرًا! لا يمكن إنشاء هذا الطلب."
 }

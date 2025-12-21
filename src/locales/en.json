@@ -235,5 +235,8 @@
   "order_ordersRetrievedSuccessfully": "Orders Retrieved Successfully",
   "order_invalidId": "Invalid order ID",
   "order_notFound": "Order not found",
-  "order_orderRetrieved": "Order retrieved successfully"
+  "order_orderRetrieved": "Order retrieved successfully",
+  "order_cashOrderCreatedSuccessfully": "Cash Order Created Successfully",
+  "orders_cardOrderCreatedSuccessfully": "Card Order Created Successfully",
+  "orders_cantCreateOrder": "Oops! Can not create this order"
 }
