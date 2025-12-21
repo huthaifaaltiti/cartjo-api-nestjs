@@ -78,6 +78,10 @@ export class CheckoutBodyDto {
 
   @IsString()
   @IsNotEmpty()
+  transactionId: string;
+
+  @IsString()
+  @IsNotEmpty()
   return_url: string;
 
   @IsString()
