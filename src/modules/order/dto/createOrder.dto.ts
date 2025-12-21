@@ -5,9 +5,11 @@ import {
   IsString,
   IsEnum,
   ValidateNested,
+  IsOptional,
 } from 'class-validator';
 import { PaymentMethod } from 'src/enums/paymentMethod.enum';
 import { ShippingAddressDto } from 'src/modules/payment/dto/checkout.dto';
+import { Locale } from 'src/types/Locale';
 
 export class CreateOrderBodyDto {
   @IsNumber()
@@ -27,8 +29,8 @@ export class CreateOrderBodyDto {
   merchantReference: string;
 
   @IsString()
-  @IsNotEmpty()
-  transactionId: string;
+  @IsOptional()
+  transactionId: string | null;
 
   @IsEnum(PaymentMethod)
   @IsNotEmpty()
@@ -38,4 +40,8 @@ export class CreateOrderBodyDto {
   @Type(() => ShippingAddressDto)
   @IsNotEmpty()
   shippingAddress: ShippingAddressDto;
+
+  @IsOptional()
+  @IsString()
+  lang?: Locale = 'en';
 }

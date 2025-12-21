@@ -17,7 +17,7 @@ export class MapLocation {
 
   @IsNumber()
   @IsNotEmpty()
-  lang: number;
+  lng: number;
 
   @IsString()
   @IsNotEmpty()

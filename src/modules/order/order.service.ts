@@ -95,6 +95,7 @@ export class OrderService {
 
     const order = await this.orderModel.create({
       userId: user?.userId,
+      createdBy:user?.userId,
       items: cart.items.map(item => ({
         productId: item.productId,
         price: item.price,
@@ -117,7 +118,7 @@ export class OrderService {
         templateName: EmailTemplates.ORDER_ORDER_CREATED,
         templateData: {
           firstName: user.firstName,
-          orderId: order._id,
+          orderId: order?.merchantReference || order?.transactionId || order?._id,
           amount: order.amount,
           currency: order.currency,
           paymentMethod: order.paymentMethod,
