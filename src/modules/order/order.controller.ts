@@ -26,6 +26,12 @@ import { CreateOrderBodyDto } from './dto/createOrder.dto';
 import { GetOrderParamDto, GetOrderQueryDto } from './dto/getOrder.dto';
 import { ExportOrdersQueryDto } from './dto/exportOrders.dto';
 import { Response } from 'express';
+import {
+  GetMyOrdersParamDto,
+  GetMyOrdersQueryDto,
+} from './dto/getMyOrders.dto';
+import { GetMyOrderParamDto, GetMyOrderQueryDto } from './dto/getMyOrder.dto';
+import { ChangeDeliveryStatusBodyDto } from './dto/deliveryStatus.dto';
 
 @Controller(ApiPaths.Order.Root)
 export class OrderController {
@@ -40,6 +46,17 @@ export class OrderController {
     const { user } = req;
 
     return this.orderService.changePaidStatus(user, dto);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post(ApiPaths.Order.ChangeDeliveryStatus)
+  async changeDeliveryStatus(
+    @Body() dto: ChangeDeliveryStatusBodyDto,
+    @Request() req: any,
+  ) {
+    const { user } = req;
+
+    return this.orderService.changeDeliveryStatus(user, dto);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -78,6 +95,29 @@ export class OrderController {
     const { user } = req;
 
     return this.orderService.getAll(user, query);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get(ApiPaths.Order.MyOrders)
+  async getMyOrders(
+    @Request() req: any,
+    @Query() query: GetMyOrdersQueryDto,
+    @Param() param: GetMyOrdersParamDto,
+  ) {
+    const { user } = req;
+
+    return this.orderService.getMyOrders(user, query, param);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get(ApiPaths.Order.MyOrder)
+  async getMyOrder(
+    @Request() req: any,
+    @Query() query: GetMyOrderQueryDto,
+    @Param() param: GetMyOrderParamDto,
+  ) {
+    const { user } = req;
+    return this.orderService.getMyOrder(user, query, param);
   }
 
   @UseGuards(AuthGuard('jwt'))

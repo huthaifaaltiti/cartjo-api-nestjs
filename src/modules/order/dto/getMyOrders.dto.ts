@@ -2,16 +2,17 @@ import {
   IsEnum,
   IsISO8601,
   IsMongoId,
+  IsNotEmpty,
   IsNumberString,
   IsOptional,
   IsString,
 } from 'class-validator';
-import { OrderDeliveryStatus } from 'src/enums/orderDeliveryStatus.enum';
+import mongoose from 'mongoose';
 import { PaymentMethod } from 'src/enums/paymentMethod.enum';
 import { PaymentStatus } from 'src/enums/paymentStatus.enum';
 import { Locale } from 'src/types/Locale';
 
-export class GetOrdersQueryDto {
+export class GetMyOrdersQueryDto {
   @IsOptional()
   @IsString()
   limit?: string;
@@ -41,10 +42,6 @@ export class GetOrdersQueryDto {
   @IsOptional()
   paymentStatus?: PaymentStatus;
 
-  @IsEnum(OrderDeliveryStatus)
-  @IsOptional()
-  deliveryStatus?: OrderDeliveryStatus;
-
   @IsEnum(PaymentMethod)
   @IsOptional()
   paymentMethod?: PaymentMethod;
@@ -64,4 +61,10 @@ export class GetOrdersQueryDto {
   @IsOptional()
   @IsISO8601()
   updatedBefore?: string;
+}
+
+export class GetMyOrdersParamDto {
+  @IsNotEmpty()
+  @IsString()
+  uid?: mongoose.Types.ObjectId;
 }
