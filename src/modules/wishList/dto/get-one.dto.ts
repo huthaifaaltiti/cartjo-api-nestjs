@@ -1,12 +1,10 @@
 import { Transform } from 'class-transformer';
 import {
   IsMongoId,
-  IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
 } from 'class-validator';
-import mongoose from 'mongoose';
 import { Locale } from 'src/types/Locale';
 
 export class GetQueryDto {

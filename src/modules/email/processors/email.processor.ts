@@ -2,7 +2,6 @@ import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bull';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import * as Handlebars from 'handlebars';
 import {
   EmailTemplate,
   EmailTemplateDocument,

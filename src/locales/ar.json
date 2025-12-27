@@ -223,7 +223,7 @@
   "order_orderNotFound": "الطلب غير موجود",
   "order_orderMarkedPaid": "تم وضع علامة الدفع على الطلب بالفعل",
   "order_orderMarkedPaidSuccessfully": "تم وضع علامة الدفع على الطلب بنجاح",
-  "order_orderMarkedUnPaidSuccessfully": "تم وضع الطلب في حالة الدفع المعلق بنجاح",
+  "order_orderPaymentStatusChanged": "تم وضع الطلب في حالة الدفع المعلق بنجاح",
   "order_notDeleted": "لم يتم حذف الطلب",
   "order_restoredSuccessfully": "تم استعادة الطلب بنجاح",
   "order_ordersRetrievedSuccessfully": "تم استرجاع الطلبات بنجاح",
@@ -232,5 +232,9 @@
   "order_orderRetrieved": "تم استرجاع الطلب بنجاح",
   "order_cashOrderCreatedSuccessfully": "تم إنشاء طلب الدفع النقدي بنجاح،",
   "orders_cardOrderCreatedSuccessfully": "تم إنشاء طلب الدفع بالبطاقة بنجاح،",
-  "orders_cantCreateOrder": "عذرًا! لا يمكن إنشاء هذا الطلب."
+  "orders_cantCreateOrder": "عذرًا! لا يمكن إنشاء هذا الطلب.",
+  "order_deliveredOrder": "لا يمكن تعديل الطلب بعد تسليمه",
+  "order_canceledOrder": "لا يمكن تعديل الطلب بعد إلغائه",
+  "order_invalidDeliveryStatusTransition": "انتقال غير صالح لحالة التوصيل",
+  "order_deliveryStatusUpdatedSuccessfully": "تم تحديث حالة التوصيل بنجاح"
 }

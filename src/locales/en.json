@@ -229,7 +229,7 @@
   "order_orderNotFound": "Order not found",
   "order_orderMarkedPaid": "Order already marked as paid",
   "order_orderMarkedPaidSuccessfully": "Order already marked as paid successfully",
-  "order_orderMarkedUnPaidSuccessfully": "Order already marked as pending-paid successfully",
+  "order_orderPaymentStatusChanged": "Order payment status changed successfully",
   "order_notDeleted": "Order not deleted",
   "order_restoredSuccessfully": "Order restored successfully",
   "order_ordersRetrievedSuccessfully": "Orders Retrieved Successfully",
@@ -238,5 +238,9 @@
   "order_orderRetrieved": "Order retrieved successfully",
   "order_cashOrderCreatedSuccessfully": "Cash Order Created Successfully",
   "orders_cardOrderCreatedSuccessfully": "Card Order Created Successfully",
-  "orders_cantCreateOrder": "Oops! Can not create this order"
+  "orders_cantCreateOrder": "Oops! Can not create this order",
+  "order_deliveredOrder": "Orders with delivered status cant be edit",
+  "order_canceledOrder": "Orders with canceled status cant be edit",
+  "order_invalidDeliveryStatusTransition": "Invalid Delivery Status Transition",
+  "order_deliveryStatusUpdatedSuccessfully": "Delivery Status Updated Successfully"
 }

@@ -3,12 +3,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { MongoClient, GridFSBucket, ObjectId } from 'mongodb';
 import { Readable } from 'stream';
-
 import { getMessage } from 'src/common/utils/translator';
-
 import { Locale } from 'src/types/Locale';
 import { User, UserDocument } from '../../schemas/user.schema';
-import { Media, MediaDocument } from 'src/schemas/media.schema';
 import { getAppHostName } from 'src/common/utils/getAppHostName';
 
 @Injectable()
@@ -18,10 +15,7 @@ export class MediaService {
   private metadataCollection: any;
   private accessLogsCollection: any;
 
-  constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
-    @InjectModel(Media.name) private mediaModel: Model<MediaDocument>,
-  ) {
+  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {
     this.hostName = getAppHostName();
     this.initializeMediaDatabase();
   }
@@ -157,8 +151,7 @@ export class MediaService {
         relatedEntity: null, // You can set this when linking to products, locations, etc.
       };
 
-      const savedMetadata =
-        await this.metadataCollection.insertOne(metadataRecord);
+      await this.metadataCollection.insertOne(metadataRecord);
 
       // Log access (optional)
       await this.logAccess({

@@ -1,5 +1,5 @@
 import { FetchError } from 'src/types/common';
-import { Locale } from 'src/types/Locale';
+// import { Locale } from 'src/types/Locale';
 
 /**
  * General fetch wrapper
@@ -12,7 +12,7 @@ import { Locale } from 'src/types/Locale';
 export async function fetcher<T = any>(
   url: string | URL,
   options?: RequestInit,
-  lang?: string | Locale,
+  // lang?: string | Locale,
 ): Promise<T> {
   const resp = await fetch(url, options);
 

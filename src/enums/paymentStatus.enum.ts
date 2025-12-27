@@ -1,5 +1,8 @@
+import { Statuses } from './statuses.enum';
+
 export enum PaymentStatus {
-  PENDING = 'pending',
-  PAID = 'paid',
-  FAILED = 'failed',
+  PENDING = Statuses.PENDING,
+  PAID = Statuses.PAID,
+  FAILED = Statuses.FAILED,
+  REFUNDED = Statuses.REFUNDED,
 }

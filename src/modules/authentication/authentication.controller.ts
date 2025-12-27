@@ -18,16 +18,10 @@ import {
   VerifyResetPasswordCodeBodyDto,
 } from './dto/register.dto';
 import { ApiPaths } from 'src/common/constants/api-paths';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { User, UserDocument } from 'src/schemas/user.schema';
 
 @Controller(ApiPaths.Authentication.Root)
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Post(ApiPaths.Authentication.Register)
   @UseInterceptors(FileInterceptor('profilePic'))
@@ -54,7 +48,7 @@ export class AuthController {
   )
   async forgotPassword(@Body() dto: ForgotPasswordBodyDto) {
     return this.authService.forgotPassword(dto);
-  } 
+  }
 
   // Forgot Password (2- Verify Code)
   @Post(

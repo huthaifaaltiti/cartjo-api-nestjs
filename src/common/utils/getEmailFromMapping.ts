@@ -9,7 +9,13 @@ export const getEmailFromMapping = (): Record<string, string> => ({
   [EmailTemplates.PASSWORD_RESET_SUCCESS]: process.env.EMAIL_FROM_NO_REPLY!,
 
   // NOTIFICATIONS
-  [EmailTemplates.ORDER_ORDER_CREATED]: process.env.EMAIL_FROM_NOTIFICATIONS!,
+  [EmailTemplates.ORDER_CREATED]: process.env.EMAIL_FROM_NOTIFICATIONS!,
+  [EmailTemplates.ORDER_SHIPPED]: process.env.EMAIL_FROM_NOTIFICATIONS!,
+  [EmailTemplates.ORDER_CANCELED]: process.env.EMAIL_FROM_NOTIFICATIONS!,
+  [EmailTemplates.ORDER_DELIVERED]: process.env.EMAIL_FROM_NOTIFICATIONS!,
+  [EmailTemplates.ORDER_DELIVERY_FAILED]: process.env.EMAIL_FROM_NOTIFICATIONS!,
+  [EmailTemplates.ORDER_OUT_FOR_DELIVERY]: process.env.EMAIL_FROM_NOTIFICATIONS!,
+  [EmailTemplates.ORDER_RETURNED]: process.env.EMAIL_FROM_NOTIFICATIONS!,
 
   // SYSTEM
   [EmailTemplates.PRIVACY_POLICY_UPDATE]: process.env.EMAIL_FROM_SYSTEM!,
