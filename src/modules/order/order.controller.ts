@@ -32,6 +32,10 @@ import {
 } from './dto/getMyOrders.dto';
 import { GetMyOrderParamDto, GetMyOrderQueryDto } from './dto/getMyOrder.dto';
 import { ChangeDeliveryStatusBodyDto } from './dto/deliveryStatus.dto';
+import {
+  GetMyOrderReturnsParamDto,
+  GetMyOrderReturnsQueryDto,
+} from './dto/getMyOrderReturns.dto';
 
 @Controller(ApiPaths.Order.Root)
 export class OrderController {
@@ -107,6 +111,18 @@ export class OrderController {
     const { user } = req;
 
     return this.orderService.getMyOrders(user, query, param);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get(ApiPaths.Order.MyReturns)
+  async getMyOrderReturns(
+    @Request() req: any,
+    @Query() query: GetMyOrderReturnsQueryDto,
+    @Param() param: GetMyOrderReturnsParamDto,
+  ) {
+    const { user } = req;
+
+    return this.orderService.getMyOrderReturns(user, query, param);
   }
 
   @UseGuards(AuthGuard('jwt'))

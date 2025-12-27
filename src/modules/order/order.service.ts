@@ -51,6 +51,7 @@ import { GetMyOrderParamDto, GetMyOrderQueryDto } from './dto/getMyOrder.dto';
 import { ChangeDeliveryStatusBodyDto } from './dto/deliveryStatus.dto';
 import { OrderDeliveryStatus } from 'src/enums/orderDeliveryStatus.enum';
 import { User } from 'src/schemas/user.schema';
+import { GetMyOrderReturnsParamDto, GetMyOrderReturnsQueryDto } from './dto/getMyOrderReturns.dto';
 
 @Injectable()
 export class OrderService {
@@ -574,6 +575,107 @@ if (search) {
     return {
       isSuccess: true,
       message: getMessage('order_ordersRetrievedSuccessfully', lang),
+      dataCount: orders.length,
+      data: orders,
+    };
+  }
+
+  async getMyOrderReturns(
+    requestingUser: any,
+    query: GetMyOrderReturnsQueryDto,
+    param: GetMyOrderReturnsParamDto,
+  ): Promise<DataListResponse<Order>> {
+    const {
+      lang = 'en',
+      limit = 10,
+      lastId,
+      search,
+      amountMin,
+      amountMax,
+      paymentStatus,
+      paymentMethod,
+      createdAfter,
+      createdBefore,
+      updatedAfter,
+      updatedBefore,
+    } = query;
+    const { uid } = param;
+
+    validateSameUserAccess(
+      requestingUser?.userId?.toString(),
+      uid?.toString(),
+      lang,
+    );
+    validateUserRoleAccess(requestingUser, lang);
+
+    const dbQuery: any = {
+      isDeleted: false,
+      userId: uid,
+      deliveryStatus: OrderDeliveryStatus.RETURNED,
+    };
+
+    if (lastId) {
+      dbQuery._id = { $lt: new Types.ObjectId(lastId) };
+    }
+
+    if (search) {
+      const searchRegex = new RegExp(search, 'i');
+      dbQuery.$or = [
+        { transactionId: searchRegex },
+        { merchantReference: searchRegex },
+        {
+          _id: Types.ObjectId.isValid(search)
+            ? new Types.ObjectId(search)
+            : undefined,
+        },
+      ].filter(Boolean);
+    }
+
+    // Filter by amount range
+    if (amountMin !== undefined || amountMax !== undefined) {
+      dbQuery.amount = {};
+      if (amountMin !== undefined) dbQuery.amount.$gte = Number(amountMin);
+      if (amountMax !== undefined) dbQuery.amount.$lte = Number(amountMax);
+    }
+
+    // Filter by paymentStatus
+    if (paymentStatus) {
+      dbQuery.paymentStatus = paymentStatus;
+    }
+
+    // Filter by paymentMethod
+    if (paymentMethod) {
+      dbQuery.paymentMethod = paymentMethod;
+    }
+
+    // Filter by creation time
+    if (createdAfter || createdBefore) {
+      dbQuery.createdAt = {};
+      if (createdAfter) dbQuery.createdAt.$gte = new Date(createdAfter);
+      if (createdBefore) dbQuery.createdAt.$lte = new Date(createdBefore);
+    }
+
+    // Filter by update time
+    if (updatedAfter || updatedBefore) {
+      dbQuery.updatedAt = {};
+      if (updatedAfter) dbQuery.updatedAt.$gte = new Date(updatedAfter);
+      if (updatedBefore) dbQuery.updatedAt.$lte = new Date(updatedBefore);
+    }
+
+    const orders = await this.orderModel
+      .find(dbQuery)
+      .sort({ _id: -1 })
+      .limit(Number(limit))
+      .populate('deletedBy', 'firstName lastName email _id')
+      .populate('restoredBy', 'firstName lastName email _id')
+      .populate('createdBy', 'firstName lastName email _id')
+      .populate('updatedBy', 'firstName lastName email _id')
+      .select('-__v')
+      .lean();
+
+    return {
+      isSuccess: true,
+      message: getMessage('order_ordersReturnsRetrieved', lang),
       dataCount: orders.length,
       data: orders,
     };
