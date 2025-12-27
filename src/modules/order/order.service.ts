@@ -9,7 +9,6 @@ import { Cart, CartDocument } from 'src/schemas/cart.schema';
 import { Order, OrderDocument } from 'src/schemas/order.schema';
 import { PaymentStatus } from 'src/enums/paymentStatus.enum';
 import { PaymentMethod } from 'src/enums/paymentMethod.enum';
-import { ShippingAddressDto } from '../payment/dto/checkout.dto';
 import { generateRandomString } from 'src/common/utils/generateRandomString';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
@@ -38,6 +37,11 @@ import { ExportOrdersQueryDto } from './dto/exportOrders.dto';
 import * as ExcelJS from 'exceljs';
 import * as PDFDocument from 'pdfkit';
 import { Response } from 'express';
+import { getAppUrl } from 'src/common/utils/getAppUrl';
+import commonEmailTemplateData from 'src/common/utils/commonEmailTemplateData';
+import { CreateOrderBodyDto } from './dto/createOrder.dto';
+import getCurrencyLabel from 'src/common/utils/getCurrencyLabel';
+import getPaymentMethodLabel from 'src/common/utils/getPaymentMethodLabel';
 
 @Injectable()
 export class OrderService {
@@ -64,21 +68,26 @@ export class OrderService {
   async createOrderAndClearCart(
     user: any,
     cart: CartDocument,
-    amount: number,
-    currency: string,
-    customerEmail: string,
-    merchantReference: string,
-    transactionId: string | null,
-    paymentMethod: PaymentMethod,
-    shippingAddress: ShippingAddressDto,
-  ): Promise<Order> | null {
+    body: CreateOrderBodyDto,
+  ): Promise<DataResponse<Order>> {
+    const {
+      amount,
+      currency,
+      email,
+      merchantReference,
+      transactionId,
+      paymentMethod,
+      shippingAddress,
+      lang,
+    } = body;
+
     if (
       !checkUserRole({
         userRole: user?.role,
         requiredRole: UserRole.USER,
       })
     ) {
-      return null;
+      throw new BadRequestException(getMessage('orders_cantCreateOrder', lang));
     }
 
     const finalTransactionId =
@@ -93,6 +102,7 @@ export class OrderService {
 
     const order = await this.orderModel.create({
       userId: user?.userId,
+      createdBy: user?.userId,
       items: cart.items.map(item => ({
         productId: item.productId,
         price: item.price,
@@ -104,24 +114,33 @@ export class OrderService {
       paymentStatus: finalPaymentStatus,
       paymentMethod,
       transactionId: finalTransactionId,
-      email: customerEmail,
+      email,
       merchantReference,
       shippingAddress,
     });
 
-    if (user.email && order) {
-      await this.emailService.sendTemplateEmail({
+    if (user?.email && order) {
+      const { amount, _id, merchantReference, transactionId } = order;
+      const orderId = merchantReference || transactionId || _id;
+
+      const preferredLang = user.preferredLang ?? PreferredLanguage.ARABIC;
+
+      this.emailService.sendTemplateEmail({
         to: user.email,
         templateName: EmailTemplates.ORDER_ORDER_CREATED,
         templateData: {
           firstName: user.firstName,
-          orderId: order._id,
-          amount: order.amount,
-          currency: order.currency,
-          paymentMethod: order.paymentMethod,
-          orderUrl: `${process.env.APP_URL}/orders/${order._id}`,
+          orderId,
+          amount,
+          currency: getCurrencyLabel(preferredLang, body.currency),
+          paymentMethod: getPaymentMethodLabel(
+            preferredLang,
+            body.paymentMethod,
+          ),
+          orderUrl: `${getAppUrl()}/orders/${_id}`,
+          ...commonEmailTemplateData(),
         },
-        prefLang: user.preferredLang || PreferredLanguage.ARABIC,
+        prefLang: preferredLang,
       });
     }
 
@@ -129,7 +148,16 @@ export class OrderService {
     cart.items = [];
     await cart.save();
 
-    return order;
+    const responseMessage =
+      order.paymentMethod === PaymentMethod.CASH
+        ? 'order_cashOrderCreatedSuccessfully'
+        : 'order_cardOrderCreatedSuccessfully';
+
+    return {
+      isSuccess: true,
+      message: getMessage(responseMessage, lang),
+      data: order,
+    };
   }
 
   async changePaidStatus(

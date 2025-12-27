@@ -31,6 +31,8 @@ import { EmailService } from '../email/email.service';
 import { EmailTemplates } from 'src/enums/emailTemplates.enum';
 import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
 import { BaseResponse } from 'src/types/service-response.type';
+import { getAppUrl } from 'src/common/utils/getAppUrl';
+import commonEmailTemplateData from 'src/common/utils/commonEmailTemplateData';
 
 @Injectable()
 export class AuthService {
@@ -150,12 +152,13 @@ export class AuthService {
       });
 
       if (user.email) {
-        await this.emailService.sendTemplateEmail({
+        this.emailService.sendTemplateEmail({
           to: user.email,
           templateName: EmailTemplates.USER_REGISTRATION_CONFIRMATION,
           templateData: {
             firstName: user.firstName,
-            confirmationUrl: `${process.env.APP_URL}/verify-email?token=${emailVerificationToken}`,
+            confirmationUrl: `${getAppUrl()}/verify-email?token=${emailVerificationToken}`,
+            ...commonEmailTemplateData(),
           },
           prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
         });
@@ -181,6 +184,7 @@ export class AuthService {
         token,
       };
     } catch (err) {
+      console.log({ err });
       if (err instanceof MongoError && err.code === 11000) {
         throw new BadRequestException(
           getMessage('users_userAlreadyExists', lang),
@@ -260,12 +264,13 @@ export class AuthService {
 
     await user.save();
 
-    await this.emailService.sendTemplateEmail({
+    this.emailService.sendTemplateEmail({
       to: user.email,
       templateName: EmailTemplates.RESEND_VERIFICATION_EMAIL,
       templateData: {
         firstName: user.firstName,
-        confirmationUrl: `${process.env.APP_URL}/verify-email?token=${emailVerificationToken}`,
+        confirmationUrl: `${getAppUrl()}/verify-email?token=${emailVerificationToken}`,
+        ...commonEmailTemplateData(),
       },
       prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
     });
@@ -305,12 +310,13 @@ export class AuthService {
     await user.save();
 
     if (user.email) {
-      await this.emailService.sendTemplateEmail({
+      this.emailService.sendTemplateEmail({
         to: user.email,
         templateName: EmailTemplates.RESET_PASSWORD_CODE,
         templateData: {
           firstName: user.firstName,
           resetCode,
+          ...commonEmailTemplateData(),
         },
         prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
       });
@@ -410,12 +416,13 @@ export class AuthService {
     await user.save();
 
     if (user.email) {
-      await this.emailService.sendTemplateEmail({
+      this.emailService.sendTemplateEmail({
         to: user.email,
         templateName: EmailTemplates.PASSWORD_RESET_SUCCESS,
         templateData: {
           firstName: user.firstName,
-          loginUrl: `${process.env.APP_URL}/auth`,
+          loginUrl: `${getAppUrl()}/auth`,
+          ...commonEmailTemplateData(),
         },
         prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
       });
