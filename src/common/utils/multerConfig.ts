@@ -4,14 +4,14 @@ import { getMessage } from './translator';
 
 export function createMulterOptions(key: string) {
   return {
-    fileFilter: (req, file, cb) => {
+    fileFilter: (_req, file, cb) => {
       if (!file) {
         return cb(new Error(getMessage('media_noMediaFound', 'en')), false);
       }
       return cb(null, true);
     },
     storage: diskStorage({
-      destination: (req, file, cb) => {
+      destination: (_req, file, cb) => {
         let uploadPath = `./uploads/${key}`;
 
         if (file.mimetype.startsWith('image/')) {
@@ -40,7 +40,7 @@ export function createMulterOptions(key: string) {
           cb(new Error(getMessage('media_mediaUploadFailed', 'en')), null);
         }
       },
-      filename: (req, file, cb) => {
+      filename: (_req, file, cb) => {
         try {
           const filename = `${key}-${Date.now()}-${file.originalname.trim()}`;
           cb(null, filename);

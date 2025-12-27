@@ -37,8 +37,8 @@ export class PaymentService {
     process.env.APS_PAY_FORT_MERCHANT_IDENTIFIER;
   private readonly shaRequestPhrase =
     process.env.APS_PAY_FORT_SHA_REQUEST_PHRASE;
-  private readonly shaResponsePhrase =
-    process.env.APS_PAY_FORT_SHA_RESPONSE_PHRASE;
+  // private readonly shaResponsePhrase =
+  //   process.env.APS_PAY_FORT_SHA_RESPONSE_PHRASE;
   private readonly paymentApiUrl = process.env.APS_PAY_FORT_PAYMENT_API_URL;
   private readonly paymentReturnUrl =
     process.env.APS_PAY_FORT_PAYMENT_RETURN_URL;
@@ -212,7 +212,6 @@ export class PaymentService {
       amount,
       customer_email,
       merchant_reference,
-      shippingAddress,
     } = dto;
 
     const check = await this.validateUser(requestingUser, true, language);

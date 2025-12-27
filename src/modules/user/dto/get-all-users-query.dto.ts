@@ -1,7 +1,5 @@
 import { Transform } from 'class-transformer';
 import { IsBoolean, IsMongoId, IsOptional, IsString } from 'class-validator';
-
-import { UserRole } from 'src/enums/user-role.enum';
 import { Locale } from 'src/types/Locale';
 
 export class GetAllUsersQueryDto {

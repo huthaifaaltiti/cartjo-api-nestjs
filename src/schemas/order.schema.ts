@@ -3,6 +3,9 @@ import mongoose, { Document } from 'mongoose';
 import { PaymentStatus } from 'src/enums/paymentStatus.enum';
 import { DefaultShippingAddress } from './user.schema';
 import { NameRef } from './common.schema';
+import { OrderDeliveryByStatus } from 'src/enums/orderDeliveryByStatus.enum';
+import { OrderDeliveryStatus } from 'src/enums/orderDeliveryStatus.enum';
+import { Currency } from 'src/enums/currency.enum';
 
 export type OrderDocument = Order & Document;
 
@@ -35,7 +38,7 @@ export class Order extends Document {
   amount: number;
 
   @Prop({ required: true })
-  currency: string;
+  currency: Currency;
 
   @Prop({ type: String, enum: PaymentStatus, default: PaymentStatus.PENDING })
   paymentStatus: PaymentStatus;
@@ -54,6 +57,27 @@ export class Order extends Document {
 
   @Prop({ type: DefaultShippingAddress, required: true })
   shippingAddress: DefaultShippingAddress;
+
+  @Prop({ default: false })
+  isPaid: boolean;
+
+  @Prop({ type: Date, default: null })
+  paidAt: Date | null;
+
+  @Prop({ default: false })
+  isDelivered: boolean;
+
+  @Prop({ type: Date, default: null })
+  deliveredAt: Date | null;
+
+  @Prop({ enum: OrderDeliveryStatus, default: OrderDeliveryStatus.PENDING })
+  deliveryStatus: OrderDeliveryStatus;
+
+  @Prop({
+    enum: OrderDeliveryByStatus,
+    default: OrderDeliveryByStatus.OUTSOURCED,
+  })
+  deliveredByStatus: OrderDeliveryByStatus;
 
   @Prop({ default: false })
   isDeleted: boolean;
