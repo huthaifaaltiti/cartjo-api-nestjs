@@ -39,11 +39,10 @@ async function server() {
   if (isDev) {
     // General logging pipe for incoming requests
     app.useGlobalPipes(new LoggingPipe());
-  } else {
     // NestJS-style global exception filter
     app.useGlobalFilters(new AllExceptionsFilter());
-  }
-
+  } 
+  
   // Seed email templates
   const seeder = app.get(EmailTemplateSeeder);
   await seeder.seed();
