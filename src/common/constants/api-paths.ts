@@ -173,6 +173,7 @@ export const ApiPaths = {
     GetOne: '/:id',
     Export: 'export',
     MyOrders: 'my-orders/:uid',
+    MyReturns: 'my-orders/:uid/returns',
     MyOrder: 'my-order/:uid/:oid',
   },
 };

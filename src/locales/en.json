@@ -242,5 +242,6 @@
   "order_deliveredOrder": "Orders with delivered status cant be edit",
   "order_canceledOrder": "Orders with canceled status cant be edit",
   "order_invalidDeliveryStatusTransition": "Invalid Delivery Status Transition",
-  "order_deliveryStatusUpdatedSuccessfully": "Delivery Status Updated Successfully"
+  "order_deliveryStatusUpdatedSuccessfully": "Delivery Status Updated Successfully",
+  "order_ordersReturnsRetrieved": "Orders Returns Retrieved Successfully"
 }
