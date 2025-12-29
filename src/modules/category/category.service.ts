@@ -202,25 +202,6 @@ export class CategoryService {
       return { id: result.mediaId, url: result.fileUrl };
     };
 
-    // let mediaUrl: string | undefined = categoryToUpdate.media.url;
-    // let mediaId: string | undefined = categoryToUpdate.media.id;
-
-    // if (image && Object.keys(image).length > 0) {
-    //   fileSizeValidator(image, MAX_FILE_SIZES.CATEGORY_IMAGE, lang);
-
-    //   const result = await this.mediaService.handleFileUpload(
-    //     image,
-    //     { userId: requestingUser?.userId },
-    //     lang,
-    //     Modules.CATEGORY,
-    //   );
-
-    //   if (result?.isSuccess) {
-    //     mediaUrl = result.fileUrl;
-    //     mediaId = result.mediaId;
-    //   }
-    // }
-
     const updateData: any = {
       updatedBy: requestingUser?.userId,
       updatedAt: new Date(),
@@ -246,19 +227,12 @@ export class CategoryService {
       updateData.media = {
         ar: media_ar
           ? { ...media_ar, id: new mongoose.Types.ObjectId(media_ar.id) }
-          : updateData?.media?.ar,
+          : categoryToUpdate?.media?.ar,
         en: media_en
           ? { ...media_en, id: new mongoose.Types.ObjectId(media_en.id) }
-          : updateData?.media?.en,
+          : categoryToUpdate?.media?.en,
       };
     }
-
-    // if (mediaUrl !== categoryToUpdate.media?.url) {
-    //   updateData.media = {
-    //     id: mediaId,
-    //     url: mediaUrl,
-    //   };
-    // }
 
     if (name_ar || name_en) {
       updateData.name = {
@@ -267,7 +241,7 @@ export class CategoryService {
       };
     }
 
-    updateData.slug = slug; // Always keep slug consistent
+    updateData.slug = slug;
 
     const updatedCategory = await this.categoryModel.findByIdAndUpdate(
       id,
