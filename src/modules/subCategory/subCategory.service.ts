@@ -86,7 +86,7 @@ export class SubCategoryService {
       }
 
       fileSizeValidator(file, MAX_FILE_SIZES.BANNER_IMAGE, lang);
-      fileTypeValidator(file, ['png', 'jpeg', 'webp', 'avif'], lang);
+      fileTypeValidator(file, ['png', 'jpeg', 'jpg', 'webp', 'avif'], lang);
 
       const result = await this.mediaService.handleFileUpload(
         file,
@@ -201,7 +201,7 @@ export class SubCategoryService {
       }
 
       fileSizeValidator(file, MAX_FILE_SIZES.BANNER_IMAGE, lang);
-      fileTypeValidator(file, ['webp', 'gif', 'avif'], lang);
+      fileTypeValidator(file, ['png', 'jpeg', 'jpg', 'webp', 'avif'], lang);
 
       const result = await this.mediaService.handleFileUpload(
         file,
@@ -244,10 +244,10 @@ export class SubCategoryService {
       updateData.media = {
         ar: media_ar
           ? { ...media_ar, id: new mongoose.Types.ObjectId(media_ar.id) }
-          : updateData?.media?.ar,
+          : subCategoryToUpdate?.media?.ar,
         en: media_en
           ? { ...media_en, id: new mongoose.Types.ObjectId(media_en.id) }
-          : updateData?.media?.en,
+          : subCategoryToUpdate?.media?.en,
       };
     }
 
