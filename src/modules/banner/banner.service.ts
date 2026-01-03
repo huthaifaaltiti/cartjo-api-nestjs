@@ -7,9 +7,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
-
 import { MediaService } from '../media/media.service';
-
 import { Banner, BannerDocument } from 'src/schemas/banner.schema';
 import {
   BaseResponse,
@@ -20,7 +18,6 @@ import { Locale } from 'src/types/Locale';
 import { CreateBannerDto } from './dto/create.dto';
 import { Modules } from 'src/enums/appModules.enum';
 import { activateDefaultIfAllInactive } from 'src/common/functions/helpers/activateDefaultIfAllInactive.helper';
-
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
@@ -304,25 +301,6 @@ export class BannerService {
       }
     }
 
-    // // ---------------- Conflict Check ----------------
-    // const checkConflict = async () => {
-    //   const $or: any[] = [];
-    //   if (title_ar && title_ar !== bannerToUpdate.title?.ar)
-    //     $or.push({ 'title.ar': title_ar });
-    //   if (title_en && title_en !== bannerToUpdate.title?.en)
-    //     $or.push({ 'title.en': title_en });
-
-    //   if (
-    //     $or.length &&
-    //     (await this.bannerModel.findOne({ _id: { $ne: id }, $or }))
-    //   ) {
-    //     throw new BadRequestException(
-    //       getMessage('banner_bannerWithThisDetailsAlreadyExist', lang),
-    //     );
-    //   }
-    // };
-    // await checkConflict();
-
     // ---------------- Helper for Upload ----------------
     const uploadMedia = async (
       file: Express.Multer.File,
@@ -349,32 +327,6 @@ export class BannerService {
       return { id: result.mediaId, url: result.fileUrl };
     };
 
-    // const uploadMedia = async (
-    //   file: Express.Multer.File,
-    //   requiredMsg: string,
-    // ): Promise<MediaPreview | undefined> => {
-    //   if (!file) return undefined;
-
-    //   fileSizeValidator(file, MAX_FILE_SIZES.BANNER_IMAGE, lang);
-    //   fileTypeValidator(file, ['webp', 'gif'], lang);
-
-    //   const result = await this.mediaService.handleFileUpload(
-    //     file,
-    //     { userId: requestingUser?.userId },
-    //     lang,
-    //     Modules.BANNER,
-    //   );
-
-    //   if (!result?.isSuccess) {
-    //     throw new BadRequestException(getMessage('banner_uploadFailed', lang));
-    //   }
-
-    //   return {
-    //     id: new mongoose.Types.ObjectId(result.mediaId),
-    //     url: result.fileUrl,
-    //   };
-    // };
-
     if (image_ar || image_en) {
       let media_ar: MediaPreview, media_en: MediaPreview;
 
@@ -395,19 +347,6 @@ export class BannerService {
           : bannerToUpdate?.media?.en,
       };
     }
-
-    // // ---------------- Media Update ----------------
-    // if (image_ar || image_en) {
-    //   const [media_ar, media_en] = await Promise.all([
-    //     uploadMedia(image_ar, 'banner_shouldHasArImage'),
-    //     uploadMedia(image_en, 'banner_shouldHasEnImage'),
-    //   ]);
-
-    //   bannerToUpdate.media = {
-    //     ar: media_ar ?? bannerToUpdate.media?.ar,
-    //     en: media_en ?? bannerToUpdate.media?.en,
-    //   };
-    // }
 
     if (title_ar || title_en) {
       bannerToUpdate.title = {
@@ -431,32 +370,16 @@ export class BannerService {
       bannerToUpdate.link = null;
     }
 
-    // bannerToUpdate.withAction = !!withAction;
-    // if (bannerToUpdate.withAction) {
-    //   if (!link) {
-    //     throw new BadRequestException(
-    //       getMessage('banner_bannerWithActionShouldHasLink', lang),
-    //     );
-    //   }
-    //   bannerToUpdate.link = link;
-    // } else {
-    //   bannerToUpdate.link = null;
-    // }
-
-    if (startDate || endDate) {
+    if (startDate) {
       bannerToUpdate.startDate =
-        new Date(startDate) || bannerToUpdate?.startDate;
-
-      bannerToUpdate.endDate = new Date(endDate) || bannerToUpdate?.endDate;
+        new Date(startDate) ?? bannerToUpdate?.startDate;
     }
 
-    // // ---------------- Dates ----------------
-    // if (startDate) bannerToUpdate.startDate = new Date(startDate);
-    // if (endDate) bannerToUpdate.endDate = new Date(endDate);
-
-    // // ---------------- Update in DB ----------------
-    // bannerToUpdate.updatedBy = requestingUser?.userId;
-    // bannerToUpdate.updatedAt = new Date();
+    if (endDate) {
+      bannerToUpdate.endDate = new Date(endDate) ?? bannerToUpdate?.endDate;
+    } else {
+      bannerToUpdate.endDate = null;
+    }
 
     const updateData: Partial<Banner> = {
       ...bannerToUpdate,

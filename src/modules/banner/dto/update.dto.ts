@@ -1,7 +1,6 @@
 import { Transform } from 'class-transformer';
 import {
   IsBoolean,
-  IsDateString,
   IsMongoId,
   IsNotEmpty,
   IsOptional,
@@ -10,7 +9,6 @@ import {
   MinLength,
   ValidateIf,
 } from 'class-validator';
-
 import { validationConfig } from 'src/configs/validationConfig';
 import { Locale } from 'src/types/Locale';
 
@@ -43,11 +41,11 @@ export class UpdateBannerDto {
   link: string;
 
   @IsOptional()
-  @IsDateString({}, { message: 'Start date must be a valid date string' })
+  @IsString()
   startDate?: string;
 
   @IsOptional()
-  @IsDateString({}, { message: 'End date must be a valid date string' })
+  @IsString()
   endDate?: string;
 
   @IsOptional()
