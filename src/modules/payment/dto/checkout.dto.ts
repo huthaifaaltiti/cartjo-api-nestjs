@@ -17,7 +17,7 @@ export class MapLocation {
 
   @IsNumber()
   @IsNotEmpty()
-  lang: number;
+  lng: number;
 
   @IsString()
   @IsNotEmpty()
@@ -75,6 +75,10 @@ export class CheckoutBodyDto {
   @IsString()
   @IsNotEmpty()
   merchant_reference: string;
+
+  @IsString()
+  @IsNotEmpty()
+  transactionId: string;
 
   @IsString()
   @IsNotEmpty()

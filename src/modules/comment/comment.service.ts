@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Injectable,
   NotFoundException,
   ForbiddenException,
@@ -23,7 +22,6 @@ import {
 import { GetCommentParamDto, GetCommentQueryDto } from './dto/get-one.dto';
 import { DeleteCommentBodyDto } from './dto/delete.dto';
 import { UnDeleteCommentBodyDto } from './dto/un-delete.dto';
-import { UserRole } from 'src/enums/user-role.enum';
 import { ALLOWED_AUTHENTICATED_ROLES } from 'src/common/constants/roles.constants';
 
 @Injectable()

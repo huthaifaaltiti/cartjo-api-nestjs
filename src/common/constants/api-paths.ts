@@ -165,11 +165,15 @@ export const ApiPaths = {
   Order: {
     Root: '/api/v1/order',
     ChangePaymentStatus: '/:id/change-payment-status',
+    ChangeDeliveryStatus: '/:id/change-delivery-status',
     Delete: 'delete/:id',
     UnDelete: 'un-delete/:id',
     GetAll: 'all',
     Create: 'create',
     GetOne: '/:id',
     Export: 'export',
+    MyOrders: 'my-orders/:uid',
+    MyReturns: 'my-orders/:uid/returns',
+    MyOrder: 'my-order/:uid/:oid',
   },
 };

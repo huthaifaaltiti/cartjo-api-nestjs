@@ -10,6 +10,12 @@ import {
   resetPasswordTemplate,
   userRegistrationTemplate,
   orderCreatedTemplate,
+  orderShippedTemplate,
+  orderOutForDeliveryTemplate,
+  orderDeliveredTemplate,
+  orderDeliveryFailedTemplate,
+  orderCanceledTemplate,
+  orderReturnedTemplate,
 } from './email-templates';
 
 @Injectable()
@@ -20,12 +26,24 @@ export class EmailTemplateSeeder {
   ) {}
 
   async seed() {
-    await this.seedUserRegistration();
+    // App-Related
     await this.seedPrivacyPolicyUpdate();
+
+    // Authentication
+    await this.seedUserRegistration();
     await this.seedResendVerificationEmail();
     await this.seedResetPasswordEmail();
     await this.seedPasswordResetSuccessEmail();
+
+    // Order
     await this.seedOrderCreatedSuccessEmail();
+    await this.seedOrderShippedSuccessEmail();
+    await this.seedOrderOutForDeliverySuccessEmail();
+    await this.seedOrderDeliveredSuccessEmail();
+    await this.seedOrderDeliveryFailedSuccessEmail();
+    await this.seedOrderDeliveryCanceledSuccessEmail();
+    await this.seedOrderDeliveryCanceledSuccessEmail();
+    await this.seedOrderDeliveryReturnedSuccessEmail();
   }
 
   private async seedUserRegistration() {
@@ -94,7 +112,7 @@ export class EmailTemplateSeeder {
   }
 
   private async seedOrderCreatedSuccessEmail() {
-    const name = EmailTemplates.ORDER_ORDER_CREATED;
+    const name = EmailTemplates.ORDER_CREATED;
     const exists = await this.templateModel.findOne({ name });
 
     if (exists) return Logger.log(`✅ "${name}" template already exists`);
@@ -105,5 +123,89 @@ export class EmailTemplateSeeder {
     });
 
     Logger.log('✅ Order-created email template created (EN & AR)');
+  }
+
+  private async seedOrderShippedSuccessEmail() {
+    const name = EmailTemplates.ORDER_SHIPPED;
+    const exists = await this.templateModel.findOne({ name });
+
+    if (exists) return Logger.log(`✅ "${name}" template already exists`);
+
+    await this.templateModel.create({
+      name,
+      ...orderShippedTemplate,
+    });
+
+    Logger.log('✅ Order-shipped email template created (EN & AR)');
+  }
+
+  private async seedOrderOutForDeliverySuccessEmail() {
+    const name = EmailTemplates.ORDER_OUT_FOR_DELIVERY;
+    const exists = await this.templateModel.findOne({ name });
+
+    if (exists) return Logger.log(`✅ "${name}" template already exists`);
+
+    await this.templateModel.create({
+      name,
+      ...orderOutForDeliveryTemplate,
+    });
+
+    Logger.log('✅ Order-Out-For-Delivery email template created (EN & AR)');
+  }
+
+  private async seedOrderDeliveredSuccessEmail() {
+    const name = EmailTemplates.ORDER_DELIVERED;
+    const exists = await this.templateModel.findOne({ name });
+
+    if (exists) return Logger.log(`✅ "${name}" template already exists`);
+
+    await this.templateModel.create({
+      name,
+      ...orderDeliveredTemplate,
+    });
+
+    Logger.log('✅ Order-Delivered email template created (EN & AR)');
+  }
+
+  private async seedOrderDeliveryFailedSuccessEmail() {
+    const name = EmailTemplates.ORDER_DELIVERY_FAILED;
+    const exists = await this.templateModel.findOne({ name });
+
+    if (exists) return Logger.log(`✅ "${name}" template already exists`);
+
+    await this.templateModel.create({
+      name,
+      ...orderDeliveryFailedTemplate,
+    });
+
+    Logger.log('✅ Order-Delivery-Failed email template created (EN & AR)');
+  }
+
+  private async seedOrderDeliveryCanceledSuccessEmail() {
+    const name = EmailTemplates.ORDER_CANCELED;
+    const exists = await this.templateModel.findOne({ name });
+
+    if (exists) return Logger.log(`✅ "${name}" template already exists`);
+
+    await this.templateModel.create({
+      name,
+      ...orderCanceledTemplate,
+    });
+
+    Logger.log('✅ Order-Delivery-Canceled email template created (EN & AR)');
+  }
+
+  private async seedOrderDeliveryReturnedSuccessEmail() {
+    const name = EmailTemplates.ORDER_RETURNED;
+    const exists = await this.templateModel.findOne({ name });
+
+    if (exists) return Logger.log(`✅ "${name}" template already exists`);
+
+    await this.templateModel.create({
+      name,
+      ...orderReturnedTemplate,
+    });
+
+    Logger.log('✅ Order-Delivery-Returned email template created (EN & AR)');
   }
 }

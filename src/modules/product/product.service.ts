@@ -493,19 +493,21 @@ export class ProductService {
       }
     }
 
-    for (const img of images) {
-      fileSizeValidator(img, MAX_FILE_SIZES.PRODUCT_IMAGE, lang);
+    if (Array.isArray(images) && images.length > 0) {
+      for (const img of images) {
+        fileSizeValidator(img, MAX_FILE_SIZES.PRODUCT_IMAGE, lang);
 
-      const upload = await this.mediaService.handleFileUpload(
-        img,
-        { userId: user?.userId },
-        lang,
-        Modules.PRODUCT,
-      );
+        const upload = await this.mediaService.handleFileUpload(
+          img,
+          { userId: user?.userId },
+          lang,
+          Modules.PRODUCT,
+        );
 
-      if (upload?.isSuccess) {
-        imageUrls.push(upload.fileUrl);
-        mediaListIds.push(upload.mediaId);
+        if (upload?.isSuccess) {
+          imageUrls.push(upload.fileUrl);
+          mediaListIds.push(upload.mediaId);
+        }
       }
     }
 

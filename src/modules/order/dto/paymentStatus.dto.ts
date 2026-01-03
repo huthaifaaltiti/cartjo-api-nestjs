@@ -1,4 +1,10 @@
-import { IsMongoId, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsMongoId,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { PaymentStatus } from 'src/enums/paymentStatus.enum';
 import { Locale } from 'src/types/Locale';
 
@@ -8,9 +14,9 @@ export class ChangePaymentStatusBodyDto {
   @IsNotEmpty()
   orderId: string;
 
-  @IsString()
+  @IsEnum(PaymentStatus)
   @IsNotEmpty()
-  status: PaymentStatus.PAID | PaymentStatus.PENDING;
+  status: PaymentStatus;
 
   @IsString()
   @IsOptional()

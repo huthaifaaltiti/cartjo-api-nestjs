@@ -21,7 +21,7 @@ export class Product {
   @Prop({ required: true, type: TranslatedText })
   description: TranslatedText;
 
-  @Prop({ isRequired: true, type: [String], default: [] })
+  @Prop({ isRequired: false, type: [String], default: [] })
   images: string[];
 
   @Prop({ type: [MongooseSchema.Types.ObjectId], ref: 'Media', default: null })

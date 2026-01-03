@@ -35,7 +35,7 @@ export class OptionalJwtAuthGuard extends AuthGuard('jwt') {
    *        - `user` if authentication succeeded
    *        - `null` if no valid user is found (prevents throwing 401 errors)
    */
-  handleRequest(err: any, user: any, info: any, context: ExecutionContext) {
+  handleRequest(_err: any, user: any, _info: any, _context: ExecutionContext) {
     // If there's a valid user, return it
     // If not, return null instead of throwing
     return user || null;

@@ -1,10 +1,4 @@
-import {
-  IsIn,
-  IsNotEmpty,
-  IsObject,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsIn, IsOptional, IsString } from 'class-validator';
 
 export class DeleteLocationBodyDto {
   @IsString()

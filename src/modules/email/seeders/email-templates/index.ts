@@ -4,3 +4,9 @@ export { resendVerificationTemplate } from './resend-verification-email.template
 export { resetPasswordTemplate } from './reset-password.template';
 export { passwordResetSuccessTemplate } from './password-reset-success.template';
 export { orderCreatedTemplate } from './order-created.template';
+export { orderShippedTemplate } from './order-shipped.template';
+export { orderOutForDeliveryTemplate } from './order-out-for-delivery.template';
+export { orderDeliveredTemplate } from './order-delivered.template';
+export { orderDeliveryFailedTemplate } from './order-delivery-failed.template';
+export { orderCanceledTemplate } from './order-canceled.template';
+export { orderReturnedTemplate } from './order-returned.template';
