@@ -8,7 +8,7 @@ import { getMessage } from 'src/common/utils/translator';
 
 import { Locale } from 'src/types/Locale';
 import { User, UserDocument } from '../../schemas/user.schema';
-import { Media, MediaDocument } from 'src/schemas/media.schema';
+// import { Media, MediaDocument } from 'src/schemas/media.schema';
 
 @Injectable()
 export class MediaService {
@@ -19,7 +19,7 @@ export class MediaService {
 
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
-    @InjectModel(Media.name) private mediaModel: Model<MediaDocument>,
+    // @InjectModel(Media.name) private mediaModel: Model<MediaDocument>,
   ) {
     this.hostName = process.env.HOST_NAME;
     this.initializeMediaDatabase();
@@ -145,26 +145,26 @@ export class MediaService {
       console.log({fileUrl})
 
       // Save metadata to metadata collection
-      const metadataRecord = {
-        fileId: fileId,
-        originalName: file.originalname,
-        fileName: fileName,
-        fileUrl: fileUrl,
-        mimetype: file.mimetype,
-        size: file.size,
-        category: fileCategory,
-        uploadedBy: new ObjectId(userId),
-        uploadKey: key,
-        tags: [],
-        description: '',
-        uploadedAt: new Date(),
-        isActive: true,
-        // Reference to your main database entities if needed
-        relatedEntity: null, // You can set this when linking to products, locations, etc.
-      };
+      // const metadataRecord = {
+      //   fileId: fileId,
+      //   originalName: file.originalname,
+      //   fileName: fileName,
+      //   fileUrl: fileUrl,
+      //   mimetype: file.mimetype,
+      //   size: file.size,
+      //   category: fileCategory,
+      //   uploadedBy: new ObjectId(userId),
+      //   uploadKey: key,
+      //   tags: [],
+      //   description: '',
+      //   uploadedAt: new Date(),
+      //   isActive: true,
+      //   // Reference to your main database entities if needed
+      //   relatedEntity: null, // You can set this when linking to products, locations, etc.
+      // };
 
-      const savedMetadata =
-        await this.metadataCollection.insertOne(metadataRecord);
+      // const savedMetadata =
+      //   await this.metadataCollection.insertOne(metadataRecord);
 
       // Log access (optional)
       await this.logAccess({
