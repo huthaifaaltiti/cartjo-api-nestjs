@@ -9,7 +9,6 @@ import mongoose, { Model, Types } from 'mongoose';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
-import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
 import { MediaService } from '../media/media.service';
 import {
   SubCategory,
@@ -33,6 +32,7 @@ import slugify from 'slugify';
 import { revalidateTag } from 'src/common/utils/revalidate';
 import { REVALIDATION_TAGS } from 'src/common/constants/revalidation-tags';
 import { RevalidationService } from '../revalidation/revalidation.service';
+import { MEDIA_CONFIG } from 'src/configs/media.config';
 
 @Injectable()
 export class SubCategoryService {
@@ -85,8 +85,12 @@ export class SubCategoryService {
         throw new ForbiddenException(getMessage(requiredMsg, lang));
       }
 
-      fileSizeValidator(file, MAX_FILE_SIZES.BANNER_IMAGE, lang);
-      fileTypeValidator(file, ['png', 'jpeg', 'jpg', 'webp', 'avif'], lang);
+      fileSizeValidator(file, MEDIA_CONFIG.SUB_CATEGORY.IMAGE.MAX_SIZE, lang);
+      fileTypeValidator(
+        file,
+        MEDIA_CONFIG.SUB_CATEGORY.IMAGE.ALLOWED_TYPES,
+        lang,
+      );
 
       const result = await this.mediaService.handleFileUpload(
         file,
@@ -200,8 +204,12 @@ export class SubCategoryService {
         throw new ForbiddenException(getMessage(requiredMsg, lang));
       }
 
-      fileSizeValidator(file, MAX_FILE_SIZES.BANNER_IMAGE, lang);
-      fileTypeValidator(file, ['png', 'jpeg', 'jpg', 'webp', 'avif'], lang);
+      fileSizeValidator(file, MEDIA_CONFIG.SUB_CATEGORY.IMAGE.MAX_SIZE, lang);
+      fileTypeValidator(
+        file,
+        MEDIA_CONFIG.SUB_CATEGORY.IMAGE.ALLOWED_TYPES,
+        lang,
+      );
 
       const result = await this.mediaService.handleFileUpload(
         file,

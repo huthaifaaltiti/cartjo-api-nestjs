@@ -1,5 +1,4 @@
 import { BadRequestException } from '@nestjs/common';
-
 import { Locale } from 'src/types/Locale';
 import { getMessage } from 'src/common/utils/translator';
 
@@ -10,11 +9,9 @@ export const fileSizeValidator = (
   maxFileSize: number,
   lang: Locale = 'en',
 ): void => {
-  if (!file) return;
+  if (!file || maxFileSize === Infinity) return;
 
-  const { size } = file;
-
-  if (size > maxFileSize) {
+  if (file.size > maxFileSize) {
     throw new BadRequestException(
       `${getMessage('media_fileSizeExceedsLimit', lang)} (${maxFileSize / (1024 * 1024)} MB).`,
     );
