@@ -11,7 +11,6 @@ import { MongoError } from 'mongodb';
 import { getMessage } from 'src/common/utils/translator';
 import { generateUsername } from 'src/common/utils/generators';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
-import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
 import { RolePermissions } from 'src/common/constants/roles-permissions.constant';
 import { UserRole } from 'src/enums/user-role.enum';
 import { User, UserDocument } from 'src/schemas/user.schema';
@@ -33,6 +32,8 @@ import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
 import { BaseResponse } from 'src/types/service-response.type';
 import { getAppUrl } from 'src/common/utils/getAppUrl';
 import commonEmailTemplateData from 'src/common/utils/commonEmailTemplateData';
+import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
+import { MEDIA_CONFIG } from 'src/configs/media.config';
 
 @Injectable()
 export class AuthService {
@@ -63,7 +64,16 @@ export class AuthService {
     let profilePicUrl: string | undefined = undefined;
 
     if (profilePic && Object.keys(profilePic).length > 0) {
-      fileSizeValidator(profilePic, MAX_FILE_SIZES.USER_PROFILE_IMAGE, lang);
+      fileSizeValidator(
+        profilePic,
+        MEDIA_CONFIG.USER.PROFILE_IMAGE.MAX_SIZE,
+        lang,
+      );
+      fileTypeValidator(
+        profilePic,
+        MEDIA_CONFIG.USER.PROFILE_IMAGE.ALLOWED_TYPES,
+        lang,
+      );
 
       const result = await this.mediaService.handleFileUpload(
         profilePic,

@@ -21,12 +21,12 @@ import { activateDefaultIfAllInactive } from 'src/common/functions/helpers/activ
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
-import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
 import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
 import { UpdateBannerDto } from './dto/update.dto';
 import { DeleteDto } from './dto/delete.dto';
 import { UnDeleteDto } from './dto/unDelete.dto';
 import { MediaPreview } from 'src/schemas/common.schema';
+import { MEDIA_CONFIG } from 'src/configs/media.config';
 
 @Injectable()
 export class BannerService {
@@ -224,9 +224,9 @@ export class BannerService {
         throw new ForbiddenException(getMessage(requiredMsg, lang));
       }
 
-      fileSizeValidator(file, MAX_FILE_SIZES.BANNER_IMAGE, lang);
-      fileTypeValidator(file, ['webp', 'gif', 'avif'], lang);
-
+      fileSizeValidator(file, MEDIA_CONFIG.BANNER.IMAGE.MAX_SIZE, lang);
+      fileTypeValidator(file, MEDIA_CONFIG.BANNER.IMAGE.ALLOWED_TYPES, lang);
+      
       const result = await this.mediaService.handleFileUpload(
         file,
         { userId: requestingUser?.userId },
@@ -310,8 +310,8 @@ export class BannerService {
         throw new ForbiddenException(getMessage(requiredMsg, lang));
       }
 
-      fileSizeValidator(file, MAX_FILE_SIZES.BANNER_IMAGE, lang);
-      fileTypeValidator(file, ['webp', 'gif', 'avif'], lang);
+      fileSizeValidator(file, MEDIA_CONFIG.BANNER.IMAGE.MAX_SIZE, lang);
+      fileTypeValidator(file, MEDIA_CONFIG.BANNER.IMAGE.ALLOWED_TYPES, lang);
 
       const result = await this.mediaService.handleFileUpload(
         file,
