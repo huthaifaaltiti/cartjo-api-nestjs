@@ -1,6 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
 import { extname } from 'path';
-
 import { Locale } from 'src/types/Locale';
 import { getMessage } from 'src/common/utils/translator';
 
@@ -26,6 +25,8 @@ export const fileTypeValidator = (
     'ppt',
     'pptx',
     'txt',
+    'xlsm',
+    'xlsb',
     // Archives
     'zip',
     'rar',
@@ -42,10 +43,11 @@ export const fileTypeValidator = (
   ],
   lang: Locale = 'en',
 ): void => {
-  if (!file) return;
+  if (!file || allowedTypes.includes('*')) return;
 
   const fileName =
     (file as Express.Multer.File).originalname || (file as File).name;
+
   const extension = extname(fileName).replace('.', '').toLowerCase();
 
   if (!allowedTypes.includes(extension)) {

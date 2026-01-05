@@ -5,9 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-
 import { MediaService } from '../media/media.service';
-
 import {
   BaseResponse,
   DataListResponse,
@@ -15,18 +13,17 @@ import {
 } from 'src/types/service-response.type';
 import { Logo, LogoDocument } from 'src/schemas/logo.schema';
 import { Modules } from 'src/enums/appModules.enum';
-
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { activateDefaultIfAllInactive } from 'src/common/functions/helpers/activateDefaultIfAllInactive.helper';
 import { getMessage } from 'src/common/utils/translator';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
-import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
-
 import { CreateLogoDto } from './dto/create-logo.dto';
 import { UpdateLogoDto } from './dto/update-logo.dto';
 import { DeleteLogoDto } from './dto/delete-logo.dto';
 import { UnDeleteLogoBodyDto } from './dto/unDelete-logo.dto';
 import { Locale } from 'src/types/Locale';
+import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
+import { MEDIA_CONFIG } from 'src/configs/media.config';
 
 @Injectable()
 export class LogoService {
@@ -152,7 +149,8 @@ export class LogoService {
     let mediaId: string | undefined = undefined;
 
     if (image && Object.keys(image).length > 0) {
-      fileSizeValidator(image, MAX_FILE_SIZES.LOGO_IMAGE, lang);
+      fileSizeValidator(image, MEDIA_CONFIG.LOGO.IMAGE.MAX_SIZE, lang);
+      fileTypeValidator(image, MEDIA_CONFIG.LOGO.IMAGE.ALLOWED_TYPES, lang);
 
       const result = await this.mediaService.handleFileUpload(
         image,
@@ -217,7 +215,8 @@ export class LogoService {
     let mediaId: string | undefined = logoToUpdate.media.id?.toString();
 
     if (image && Object.keys(image).length > 0) {
-      fileSizeValidator(image, MAX_FILE_SIZES.LOGO_IMAGE, lang);
+      fileSizeValidator(image, MEDIA_CONFIG.LOGO.IMAGE.MAX_SIZE, lang);
+      fileTypeValidator(image, MEDIA_CONFIG.LOGO.IMAGE.ALLOWED_TYPES, lang);
 
       const result = await this.mediaService.handleFileUpload(
         image,

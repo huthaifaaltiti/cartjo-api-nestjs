@@ -23,10 +23,10 @@ import { Modules } from 'src/enums/appModules.enum';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
-import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
 import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
 import { MediaPreview } from 'src/schemas/common.schema';
 import { GetActiveOnesQueryDto } from './dto/get-active-ones.dto';
+import { MEDIA_CONFIG } from 'src/configs/media.config';
 
 @Injectable()
 export class CategoryService {
@@ -66,8 +66,8 @@ export class CategoryService {
         throw new ForbiddenException(getMessage(requiredMsg, lang));
       }
 
-      fileSizeValidator(file, MAX_FILE_SIZES.BANNER_IMAGE, lang);
-      fileTypeValidator(file, ['png', 'jpeg', 'webp', 'avif'], lang);
+      fileSizeValidator(file, MEDIA_CONFIG.CATEGORY.IMAGE.MAX_SIZE, lang);
+      fileTypeValidator(file, MEDIA_CONFIG.CATEGORY.IMAGE.ALLOWED_TYPES, lang);
 
       const result = await this.mediaService.handleFileUpload(
         file,
@@ -185,8 +185,8 @@ export class CategoryService {
         throw new ForbiddenException(getMessage(requiredMsg, lang));
       }
 
-      fileSizeValidator(file, MAX_FILE_SIZES.BANNER_IMAGE, lang);
-      fileTypeValidator(file, ['webp', 'gif', 'avif'], lang);
+      fileSizeValidator(file, MEDIA_CONFIG.CATEGORY.IMAGE.MAX_SIZE, lang);
+      fileTypeValidator(file, MEDIA_CONFIG.CATEGORY.IMAGE.ALLOWED_TYPES, lang);
 
       const result = await this.mediaService.handleFileUpload(
         file,
