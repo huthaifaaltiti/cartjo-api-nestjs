@@ -147,8 +147,7 @@ Go to CartJO      </a>
          <!-- Footer Bottom -->
          <div style="background-color:#f8f9fa;padding:30px 20px;text-align:center;border-top:1px solid #e9ecef;">
             <p style="color:#666;font-size:12px;margin:0;">
-               © 2025 CartJO. All rights reserved.<br />
-               Amman, Jordan
+               {{copyRightsEn}}
             </p>
          </div>
       </div>
@@ -292,8 +291,7 @@ Go to CartJO      </a>
       <!-- Footer -->
       <div style="background-color:#f8f9fa;padding:30px 20px;text-align:center;border-top:1px solid #e9ecef;">
          <p style="color:#666;font-size:12px;margin:0;">
-            © 2025 كارت جو. جميع الحقوق محفوظة.<br />
-            عمّان، الأردن
+           {{copyRightsAr}}
          </p>
       </div>
    </div>
