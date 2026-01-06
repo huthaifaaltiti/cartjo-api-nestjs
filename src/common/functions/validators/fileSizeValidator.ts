@@ -9,7 +9,7 @@ export const fileSizeValidator = (
   maxFileSize: number,
   lang: Locale = 'en',
 ): void => {
-  if (!file || maxFileSize === Infinity) return;
+  if (!file || maxFileSize === null) return;
 
   if (file.size > maxFileSize) {
     throw new BadRequestException(
