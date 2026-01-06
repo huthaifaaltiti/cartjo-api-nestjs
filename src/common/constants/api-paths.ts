@@ -176,4 +176,9 @@ export const ApiPaths = {
     MyReturns: 'my-orders/:uid/returns',
     MyOrder: 'my-order/:uid/:oid',
   },
+  Configs: {
+    Root: '/api/v1/configs',
+    GetOne: '/:key',
+    Update: 'update/:key',
+  },
 };
