@@ -3,6 +3,7 @@ import {
   getSocialMediaLinks,
 } from 'src/configs/social-media.config';
 import { AppEnvironments } from 'src/enums/appEnvs.enum';
+import { copyRights } from 'src/configs/copyRights.config';
 
 const commonEmailTemplateData = () => {
   const isProd = process.env.NODE_ENV === AppEnvironments.PRODUCTION;
@@ -17,6 +18,7 @@ const commonEmailTemplateData = () => {
     appUsersSupportEmail,
     ...getSocialMediaLinks(),
     ...getSocialMediaIconsPaths(hostUrl),
+    ...copyRights(),
   };
 };
 

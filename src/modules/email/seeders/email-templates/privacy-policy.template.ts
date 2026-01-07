@@ -57,8 +57,7 @@ export const privacyPolicyTemplate = {
             Questions about our privacy practices? Contact us at privacy@cartjo.com
           </p>
           <p style="color: #666; font-size: 12px; margin: 0;">
-            © 2025 CartJO. All rights reserved.<br>
-            Amman, Jordan
+            {{copyRightsEn}}
           </p>
         </div>
       </div>
@@ -116,8 +115,7 @@ export const privacyPolicyTemplate = {
             لديك أسئلة حول ممارسات الخصوصية لدينا؟ تواصل معنا على privacy@cartjo.com
           </p>
           <p style="color: #666; font-size: 12px; margin: 0;">
-            © 2025 كارت جو. جميع الحقوق محفوظة.<br>
-            عمّان، الأردن
+           {{copyRightsAr}}
           </p>
         </div>
       </div>

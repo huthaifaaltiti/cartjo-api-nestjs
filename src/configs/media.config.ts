@@ -44,7 +44,7 @@ export const MEDIA_CONFIG = {
   OTHERS: {
     ANY: {
       ALLOWED_TYPES: ['*'], 
-      MAX_SIZE: Infinity,
+      MAX_SIZE: null,
     },
   },
 };
