@@ -63,7 +63,7 @@ export class ProductService {
       createdFrom,
       createdTo,
       beforeNumOfDays,
-      typeHint
+      typeHint,
     } = params;
 
     const query: any = {};
@@ -480,11 +480,7 @@ export class ProductService {
     let mainImageUrl: string | undefined;
 
     if (mainImage) {
-      fileSizeValidator(
-        mainImage,
-        MEDIA_CONFIG.PRODUCT.IMAGE.MAX_SIZE,
-        lang,
-      );
+      fileSizeValidator(mainImage, MEDIA_CONFIG.PRODUCT.IMAGE.MAX_SIZE, lang);
       fileTypeValidator(
         mainImage,
         MEDIA_CONFIG.PRODUCT.IMAGE.ALLOWED_TYPES,
@@ -825,5 +821,45 @@ export class ProductService {
       isSuccess: true,
       message: getMessage('products_productUnDeletedSuccessfully', lang),
     };
+  }
+
+  async deactivateBySubCategory(
+    subCategoryId: string,
+    requestingUser: any,
+  ): Promise<void> {
+    await this.productModel.updateMany(
+      {
+        subCategoryId: new Types.ObjectId(subCategoryId),
+        isActive: true,
+      },
+      {
+        $set: {
+          isActive: false,
+          isDeleted: false,
+          updatedBy: requestingUser.userId,
+          updatedAt: new Date(),
+        },
+      },
+    );
+  }
+
+  async deactivateBySubCategories(
+    subCategoryIds: Types.ObjectId[],
+    requestingUser: any,
+  ): Promise<void> {
+    await this.productModel.updateMany(
+      {
+        subCategoryId: { $in: subCategoryIds },
+        isActive: true,
+      },
+      {
+        $set: {
+          isActive: false,
+          isDeleted: false,
+          updatedBy: requestingUser.userId,
+          updatedAt: new Date(),
+        },
+      },
+    );
   }
 }

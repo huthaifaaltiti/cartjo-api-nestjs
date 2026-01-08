@@ -1,6 +1,8 @@
 import {
   BadRequestException,
   ForbiddenException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -35,6 +37,7 @@ export class CategoryService {
     @InjectModel(Category.name)
     private categoryModel: Model<CategoryDocument>,
     private mediaService: MediaService,
+    @Inject(forwardRef(() => SubCategoryService))
     private subCategoryService: SubCategoryService,
   ) {}
 
@@ -347,16 +350,7 @@ export class CategoryService {
 
     // If main category is deactivated → deactivate all subcategories
     if (!isActive && category.subCategories?.length) {
-      await Promise.all(
-        category.subCategories.map((subCat: any) =>
-          this.subCategoryService.updateStatus(
-            subCat._id.toString(),
-            false,
-            lang,
-            requestingUser,
-          ),
-        ),
-      );
+      await this.subCategoryService.deactivateByCategory(id, requestingUser);
     }
 
     return {

@@ -3,6 +3,8 @@ import {
   BadRequestException,
   NotFoundException,
   ForbiddenException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
@@ -33,6 +35,7 @@ import { revalidateTag } from 'src/common/utils/revalidate';
 import { REVALIDATION_TAGS } from 'src/common/constants/revalidation-tags';
 import { RevalidationService } from '../revalidation/revalidation.service';
 import { MEDIA_CONFIG } from 'src/configs/media.config';
+import { ProductService } from '../product/product.service';
 
 @Injectable()
 export class SubCategoryService {
@@ -40,10 +43,10 @@ export class SubCategoryService {
     @InjectModel(SubCategory.name)
     private subCategoryModel: Model<SubCategoryDocument>,
     private mediaService: MediaService,
-
+    @Inject(forwardRef(() => ProductService))
+    private productService: ProductService,
     @InjectModel(Category.name)
     private categoryModel: Model<CategoryDocument>,
-
     private revalidationService: RevalidationService,
   ) {}
 
@@ -397,6 +400,11 @@ export class SubCategoryService {
       REVALIDATION_TAGS.ACTIVE_CATEGORIES,
     );
 
+    // If subcategory is deactivated → deactivate its products
+    if (!isActive) {
+      await this.productService.deactivateBySubCategory(id, requestingUser);
+    }
+
     return {
       isSuccess: true,
       message: getMessage(
@@ -480,5 +488,43 @@ export class SubCategoryService {
       ),
       data: subCategory,
     };
+  }
+
+  async deactivateByCategory(
+    categoryId: string,
+    requestingUser: any,
+  ): Promise<void> {
+    const subCategories = await this.subCategoryModel
+      .find(
+        {
+          categoryId: new Types.ObjectId(categoryId),
+          isActive: true,
+        },
+        { _id: 1 },
+      )
+      .lean<{ _id: Types.ObjectId }[]>(); // lean() removes Mongoose Document noise
+
+    if (!subCategories.length) return;
+
+    const subCategoryIds = subCategories.map(sc => sc._id);
+
+    // Deactivate subcategories
+    await this.subCategoryModel.updateMany(
+      { _id: { $in: subCategoryIds } },
+      {
+        $set: {
+          isActive: false,
+          isDeleted: false,
+          updatedBy: requestingUser.userId,
+          updatedAt: new Date(),
+        },
+      },
+    );
+
+    // Deactivate ALL products under those subcategories (ONE QUERY)
+    await this.productService.deactivateBySubCategories(
+      subCategoryIds,
+      requestingUser,
+    );
   }
 }
