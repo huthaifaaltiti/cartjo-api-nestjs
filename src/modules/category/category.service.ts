@@ -27,6 +27,7 @@ import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValid
 import { MediaPreview } from 'src/schemas/common.schema';
 import { GetActiveOnesQueryDto } from './dto/get-active-ones.dto';
 import { MEDIA_CONFIG } from 'src/configs/media.config';
+import { SubCategoryService } from '../subCategory/subCategory.service';
 
 @Injectable()
 export class CategoryService {
@@ -34,6 +35,7 @@ export class CategoryService {
     @InjectModel(Category.name)
     private categoryModel: Model<CategoryDocument>,
     private mediaService: MediaService,
+    private subCategoryService: SubCategoryService,
   ) {}
 
   async create(
@@ -342,6 +344,20 @@ export class CategoryService {
     category.isActive = isActive;
 
     await category.save();
+
+    // If main category is deactivated → deactivate all subcategories
+    if (!isActive && category.subCategories?.length) {
+      await Promise.all(
+        category.subCategories.map((subCat: any) =>
+          this.subCategoryService.updateStatus(
+            subCat._id.toString(),
+            false,
+            lang,
+            requestingUser,
+          ),
+        ),
+      );
+    }
 
     return {
       isSuccess: true,
