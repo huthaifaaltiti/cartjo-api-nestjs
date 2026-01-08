@@ -10,6 +10,8 @@ import { getMessage } from 'src/common/utils/translator';
 import {
   BadRequestException,
   ForbiddenException,
+  forwardRef,
+  Inject,
   NotFoundException,
 } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
@@ -27,6 +29,7 @@ import { UpdateStatusBodyDto } from './dto/update-active-status.dto';
 import { UnDeleteDto } from './dto/unDelete.dto';
 import { GetListQueryDto } from './dto/get-list.dto';
 import slugify from 'slugify';
+import { ProductService } from '../product/product.service';
 
 export class TypeHintConfigService {
   private readonly staticTypeHintConfigs: string[] = [
@@ -40,6 +43,8 @@ export class TypeHintConfigService {
   constructor(
     @InjectModel(TypeHintConfig.name)
     private typeHintConfigModel: Model<TypeHintConfigDocument>,
+    @Inject(forwardRef(() => ProductService))
+    private productService: ProductService,
   ) {}
 
   @Cron(CronExpression.EVERY_HOUR)
@@ -511,6 +516,12 @@ export class TypeHintConfigService {
           getMessage('typeHintConfig_cannotActivateBeforeStartDate', dto.lang),
         );
       }
+    } else {
+      // deactivate products based on type-hint key
+      await this.productService.deactivateByTypeHint(
+        typeHintConfig.key,
+        requestingUser,
+      );
     }
 
     typeHintConfig.isActive = dto.isActive;

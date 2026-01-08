@@ -23,7 +23,7 @@ import { SubCategory, SubCategorySchema } from 'src/schemas/subCategory.schema';
     MediaModule,
     JwtModule,
     forwardRef(() => CategoryModule),
-    TypeHintConfigModule,
+    forwardRef(() => TypeHintConfigModule),
     forwardRef(() => SubCategoryModule),
   ],
   providers: [ProductService],

@@ -28,7 +28,10 @@ import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
 import { GetProductsQueryDto } from './dto/get-products.dto';
 import { MEDIA_CONFIG } from 'src/configs/media.config';
 import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
-import { SubCategory, SubCategoryDocument } from 'src/schemas/subCategory.schema';
+import {
+  SubCategory,
+  SubCategoryDocument,
+} from 'src/schemas/subCategory.schema';
 
 @Injectable()
 export class ProductService {
@@ -876,6 +879,26 @@ export class ProductService {
     await this.productModel.updateMany(
       {
         subCategoryId: { $in: subCategoryIds },
+        isActive: true,
+      },
+      {
+        $set: {
+          isActive: false,
+          isDeleted: false,
+          updatedBy: requestingUser.userId,
+          updatedAt: new Date(),
+        },
+      },
+    );
+  }
+
+  async deactivateByTypeHint(
+    typeHint: string,
+    requestingUser: any,
+  ): Promise<void> {
+    await this.productModel.updateMany(
+      {
+        typeHint,
         isActive: true,
       },
       {
