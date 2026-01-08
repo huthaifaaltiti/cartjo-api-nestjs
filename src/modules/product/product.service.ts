@@ -28,6 +28,7 @@ import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
 import { GetProductsQueryDto } from './dto/get-products.dto';
 import { MEDIA_CONFIG } from 'src/configs/media.config';
 import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
+import { SubCategory, SubCategoryDocument } from 'src/schemas/subCategory.schema';
 
 @Injectable()
 export class ProductService {
@@ -36,9 +37,10 @@ export class ProductService {
     private productModel: Model<ProductDocument>,
     private mediaService: MediaService,
 
+    @InjectModel(SubCategory.name)
+    private subCategoryModel: Model<SubCategoryDocument>,
     @InjectModel(Category.name)
     private categoryModel: Model<CategoryDocument>,
-
     @InjectModel(WishList.name)
     private wishListModel: Model<WishListDocument>,
 
@@ -742,6 +744,30 @@ export class ProductService {
     }
 
     if (isActive) {
+      // Check sub-category
+      const subCategory = await this.subCategoryModel.findById(
+        product.subCategoryId,
+        { isActive: 1, categoryId: 1 },
+      );
+
+      if (!subCategory || !subCategory.isActive) {
+        throw new BadRequestException(
+          getMessage('products_cannotActivateSubCategoryIsInactive', lang),
+        );
+      }
+
+      // Check category
+      const category = await this.categoryModel.findById(
+        subCategory.categoryId,
+        { isActive: 1 },
+      );
+
+      if (!category || !category.isActive) {
+        throw new BadRequestException(
+          getMessage('products_cannotActivateCategoryIsInactive', lang),
+        );
+      }
+
       product.isDeleted = false;
       product.deletedAt = null;
     }

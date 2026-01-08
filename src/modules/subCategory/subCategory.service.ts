@@ -386,6 +386,20 @@ export class SubCategoryService {
     }
 
     if (isActive) {
+      const parentCategory = await this.categoryModel.findById(
+        subCategory.categoryId,
+        { isActive: 1 },
+      );
+
+      if (!parentCategory || !parentCategory.isActive) {
+        throw new BadRequestException(
+          getMessage(
+            'subCategories_cannotActivateWhenCategoryIsInactive',
+            lang,
+          ),
+        );
+      }
+
       subCategory.isDeleted = false;
       subCategory.deletedAt = null;
     }
