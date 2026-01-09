@@ -568,15 +568,16 @@ export class ShowcaseService {
 
     validateUserRoleAccess(requestingUser, lang);
 
-    const defaultTypeHints = [
-      ...this.typeHintConfigService.getStaticTypeHints(),
-    ];
-
     const showcase = await this.showcaseModel.findById(id);
 
-    if (defaultTypeHints.includes(showcase.type)) {
+    const typeHintConfig = await this.typeHintConfigModel.findOne({
+      key: showcase.type,
+      isDeleted: false,
+    });
+
+    if (typeHintConfig?.isSystem) {
       throw new ForbiddenException(
-        getMessage('showcase_cannotDeleteDefaultShowcase', lang),
+        getMessage('showcase_cannotModifySystemShowcase', lang),
       );
     }
 
@@ -617,13 +618,14 @@ export class ShowcaseService {
       );
     }
 
-    const defaultTypeHints = [
-      ...this.typeHintConfigService.getStaticTypeHints(),
-    ];
+    const typeHintConfig = await this.typeHintConfigModel.findOne({
+      key: showcase.type,
+      isDeleted: false,
+    });
 
-    if (defaultTypeHints.includes(showcase.type)) {
+    if (typeHintConfig?.isSystem) {
       throw new ForbiddenException(
-        getMessage('showcase_cannotUnDeleteDefaultShowcase', lang),
+        getMessage('showcase_cannotModifySystemShowcase', lang),
       );
     }
 
@@ -657,13 +659,14 @@ export class ShowcaseService {
       );
     }
 
-    const defaultTypeHints = [
-      ...this.typeHintConfigService.getStaticTypeHints(),
-    ];
+    const typeHintConfig = await this.typeHintConfigModel.findOne({
+      key: showcase.type,
+      isDeleted: false,
+    });
 
-    if (defaultTypeHints.includes(showcase.type)) {
+    if (typeHintConfig?.isSystem) {
       throw new ForbiddenException(
-        getMessage('showcase_cannotActivateUnActiveDefaultShowcase', lang),
+        getMessage('showcase_cannotModifySystemShowcase', lang),
       );
     }
 

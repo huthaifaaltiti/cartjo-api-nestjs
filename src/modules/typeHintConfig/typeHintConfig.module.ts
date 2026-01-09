@@ -9,6 +9,7 @@ import { TypeHintConfigService } from './typeHintConfig.service';
 import { TypeHintConfigController } from './typeHintConfig.controller';
 import { ProductModule } from '../product/product.module';
 import { ShowcaseModule } from '../showcase/showcase.module';
+import { TypeHintsSeeder } from 'src/database/seeders/type-hints.seeder';
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -18,7 +19,7 @@ import { ShowcaseModule } from '../showcase/showcase.module';
     forwardRef(() => ProductModule),
     forwardRef(() => ShowcaseModule),
   ],
-  providers: [TypeHintConfigService],
+  providers: [TypeHintConfigService, TypeHintsSeeder],
   controllers: [TypeHintConfigController],
   exports: [TypeHintConfigService],
 })

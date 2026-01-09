@@ -31,15 +31,10 @@ import { GetListQueryDto } from './dto/get-list.dto';
 import slugify from 'slugify';
 import { ProductService } from '../product/product.service';
 import { ShowcaseService } from '../showcase/showcase.service';
+import { SYSTEM_TYPE_HINTS } from 'src/database/seeds/type-hints.seed';
 
 export class TypeHintConfigService {
-  private readonly staticTypeHintConfigs: string[] = [
-    'static',
-    'best_sellers',
-    'most_viewed',
-    'editor_pick',
-    'recommended_for_you',
-  ];
+  private SYSTEM_TYPE_KEYS = SYSTEM_TYPE_HINTS.map(hint => hint.key);
 
   constructor(
     @InjectModel(TypeHintConfig.name)
@@ -55,10 +50,6 @@ export class TypeHintConfigService {
   @Cron(CronExpression.EVERY_HOUR)
   async deactivateExpiredTypeHintConfigs() {
     await deactivateExpiredDocs(this.typeHintConfigModel);
-  }
-
-  getStaticTypeHints(): string[] {
-    return this.staticTypeHintConfigs;
   }
 
   async getAll(
@@ -223,22 +214,18 @@ export class TypeHintConfigService {
     reqUser: any,
     dto: CreateDto,
   ): Promise<DataResponse<TypeHintConfig>> {
-    const {
-      label_ar,
-      label_en,
-      colorFrom,
-      colorTo,
-      textColor,
-      priority,
-      icon,
-      startDate,
-      endDate,
-      lang,
-    } = dto;
+    const { label_ar, label_en, priority, startDate, endDate, lang } = dto;
 
     validateUserRoleAccess(reqUser, lang);
 
     const key = label_en ? slugify(label_en, { lower: true }) : undefined;
+
+    // prevent creating system keys
+    if (this.SYSTEM_TYPE_KEYS.includes(key)) {
+      throw new BadRequestException(
+        getMessage('typeHintConfig_cannotCreateSystemTypeHint', lang),
+      );
+    }
 
     if (endDate && new Date(endDate) < new Date(startDate)) {
       throw new BadRequestException(
@@ -262,11 +249,7 @@ export class TypeHintConfigService {
     const typeHintData = {
       key,
       label: { ar: label_ar, en: label_en },
-      colorFrom,
-      colorTo,
-      textColor,
       priority,
-      icon,
       startDate: startDate ? new Date(startDate) : null,
       endDate: endDate ? new Date(endDate) : null,
       isActive: true,
@@ -307,6 +290,13 @@ export class TypeHintConfigService {
       );
     }
 
+    // prevent updating system's type-hints
+    if (typeHintConfig.isSystem) {
+      throw new BadRequestException(
+        getMessage('typeHintConfig_cannotChangeSystemKey', dto.lang),
+      );
+    }
+
     let key = typeHintConfig.key;
 
     if (dto.label_en) {
@@ -314,7 +304,7 @@ export class TypeHintConfigService {
     }
 
     if (key) {
-      if (this.staticTypeHintConfigs.includes(typeHintConfig.key)) {
+      if (this.SYSTEM_TYPE_KEYS.includes(typeHintConfig.key)) {
         throw new BadRequestException(
           getMessage('typeHintConfig_cannotUpdateDefaultKeys', dto.lang),
         );
@@ -356,22 +346,6 @@ export class TypeHintConfigService {
         ar: dto.label_ar || typeHintConfig.label.ar,
         en: dto.label_en || typeHintConfig.label.en,
       };
-    }
-
-    if (dto.icon) {
-      typeHintConfig.icon = dto.icon || typeHintConfig.icon;
-    }
-
-    if (dto.colorFrom) {
-      typeHintConfig.colorFrom = dto.colorFrom || typeHintConfig.colorFrom;
-    }
-
-    if (dto.colorTo) {
-      typeHintConfig.colorTo = dto.colorTo || typeHintConfig.colorTo;
-    }
-
-    if (dto.textColor) {
-      typeHintConfig.textColor = dto.textColor || typeHintConfig.textColor;
     }
 
     if (dto.priority) {
@@ -416,7 +390,8 @@ export class TypeHintConfigService {
       );
     }
 
-    if (this.staticTypeHintConfigs.includes(typeHintConfig.key)) {
+    // prevent deleting system-type-hint
+    if (typeHintConfig.isSystem) {
       throw new ForbiddenException(
         getMessage(
           'typeHintConfig_cannotDeleteDefaultTypeHintConfig',
@@ -459,7 +434,8 @@ export class TypeHintConfigService {
       );
     }
 
-    if (this.staticTypeHintConfigs.includes(typeHintConfig.key)) {
+    // prevent unDeleting system-type-hint
+    if (typeHintConfig.isSystem) {
       throw new ForbiddenException(
         getMessage('typeHintConfig_cannotUnDeleteDefaultTypeHintConfig', lang),
       );
@@ -497,9 +473,8 @@ export class TypeHintConfigService {
       );
     }
 
-    const now = new Date();
-
-    if (this.staticTypeHintConfigs.includes(typeHintConfig.key)) {
+    // prevent changing system-type-hints active status
+    if (typeHintConfig.isSystem) {
       throw new ForbiddenException(
         getMessage(
           'typeHintConfig_cannotChangeStatusDefaultTypeHintConfig',
@@ -507,6 +482,8 @@ export class TypeHintConfigService {
         ),
       );
     }
+
+    const now = new Date();
 
     if (dto.isActive) {
       if (typeHintConfig.endDate && typeHintConfig.endDate < now) {
@@ -523,8 +500,10 @@ export class TypeHintConfigService {
       }
     } else {
       // deactivate showcases based on type-hint key
-      await this.showcaseService.deactivateByTypeHint(typeHintConfig.key,
-        requestingUser);
+      await this.showcaseService.deactivateByTypeHint(
+        typeHintConfig.key,
+        requestingUser,
+      );
 
       // deactivate products based on type-hint key
       await this.productService.deactivateByTypeHint(

@@ -7,6 +7,7 @@ import { CustomValidationPipe } from './pipes/customValidation.pipe';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 import { AppEnvironments } from './enums/appEnvs.enum';
 import { join } from 'path';
+import { TypeHintsSeeder } from './database/seeders/type-hints.seeder';
 
 async function server() {
   const isDev = process.env.NODE_ENV !== AppEnvironments.PRODUCTION;
@@ -41,11 +42,15 @@ async function server() {
     app.useGlobalPipes(new LoggingPipe());
     // NestJS-style global exception filter
     app.useGlobalFilters(new AllExceptionsFilter());
-  } 
-  
+  }
+
   // Seed email templates
   const seeder = app.get(EmailTemplateSeeder);
   await seeder.seed();
+
+  // Seed type hints
+  const typeHintSeeder = app.get(TypeHintsSeeder);
+  await typeHintSeeder.seed();
 
   await app.listen(process.env.PORT ?? 8000);
 }
