@@ -30,6 +30,7 @@ import { UnDeleteDto } from './dto/unDelete.dto';
 import { GetListQueryDto } from './dto/get-list.dto';
 import slugify from 'slugify';
 import { ProductService } from '../product/product.service';
+import { ShowcaseService } from '../showcase/showcase.service';
 
 export class TypeHintConfigService {
   private readonly staticTypeHintConfigs: string[] = [
@@ -43,8 +44,12 @@ export class TypeHintConfigService {
   constructor(
     @InjectModel(TypeHintConfig.name)
     private typeHintConfigModel: Model<TypeHintConfigDocument>,
+
     @Inject(forwardRef(() => ProductService))
     private productService: ProductService,
+
+    @Inject(forwardRef(() => ShowcaseService))
+    private showcaseService: ShowcaseService,
   ) {}
 
   @Cron(CronExpression.EVERY_HOUR)
@@ -517,6 +522,10 @@ export class TypeHintConfigService {
         );
       }
     } else {
+      // deactivate showcases based on type-hint key
+      await this.showcaseService.deactivateByTypeHint(typeHintConfig.key,
+        requestingUser);
+
       // deactivate products based on type-hint key
       await this.productService.deactivateByTypeHint(
         typeHintConfig.key,

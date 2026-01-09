@@ -155,6 +155,7 @@
   "showcase_noProductsWithThisTypeForShowcase": "لا توجد منتجات بهذا النوع للعرض",
   "showcase_invalidTypeHint": "دليل عرض غير صحيح",
   "showcase_typeHintNotActive": "فعّل دليل العرض لتتمكن من إنشاء العرض",
+  "showcase_typeHintKeyNotActive": "دليل العرض غير مفعل",
   "showcase_cannotActivateUnActiveDefaultShowcase": "لا يمكن تفعيل أو إلغاء تفعيل أدلة العرض الرئيسية",
   "typeHintConfig_typeHintConfigWithThisDetailsAlreadyExist": "دليل النوع بهذه التفاصيل موجودة بالفعل",
   "typeHintConfig_typeHintConfigCreatedSuccessfully": "تم إنشاء دليل النوع بنجاح",

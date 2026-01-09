@@ -38,6 +38,9 @@ export class TypeHintConfig {
   @Prop({ default: false })
   isDeleted: boolean;
 
+  @Prop({ default: false })
+  isSystem: boolean;
+
   @Prop({ type: Date, default: null })
   deletedAt?: Date;
 

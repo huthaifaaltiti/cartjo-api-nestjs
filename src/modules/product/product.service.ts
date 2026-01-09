@@ -32,22 +32,29 @@ import {
   SubCategory,
   SubCategoryDocument,
 } from 'src/schemas/subCategory.schema';
+import { TypeHintConfig, TypeHintConfigDocument } from 'src/schemas/typeHintConfig.schema';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectModel(Product.name)
     private productModel: Model<ProductDocument>,
+    
     private mediaService: MediaService,
 
     @InjectModel(SubCategory.name)
     private subCategoryModel: Model<SubCategoryDocument>,
+
     @InjectModel(Category.name)
     private categoryModel: Model<CategoryDocument>,
+
     @InjectModel(WishList.name)
     private wishListModel: Model<WishListDocument>,
 
     private typeHintConfigService: TypeHintConfigService,
+
+    @InjectModel(TypeHintConfig.name)
+    private typeHintConfigModel: Model<TypeHintConfigDocument>,
   ) {}
 
   async getAll(
@@ -747,6 +754,24 @@ export class ProductService {
     }
 
     if (isActive) {
+      // ✅ 1. CHECK PARENT TYPE HINT STATUS
+      const typeHintConfig = await this.typeHintConfigModel.findOne({
+        key: product.typeHint,
+        isDeleted: false,
+      });
+
+      if (!typeHintConfig) {
+        throw new BadRequestException(
+          getMessage('showcase_invalidTypeHint', lang),
+        );
+      }
+
+      if (!typeHintConfig.isActive) {
+        throw new BadRequestException(
+          getMessage('showcase_typeHintKeyNotActive', lang),
+        );
+      }
+
       // Check sub-category
       const subCategory = await this.subCategoryModel.findById(
         product.subCategoryId,

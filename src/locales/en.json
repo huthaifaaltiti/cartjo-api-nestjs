@@ -160,6 +160,7 @@
   "showcase_noProductsWithThisTypeForShowcase": "No products with this type for showcase",
   "showcase_cannotActivateUnActiveDefaultShowcase": "Cannot activate or de-Activate default showcase",
   "showcase_typeHintNotActive": "Activate type-hint to create showcase",
+  "showcase_typeHintKeyNotActive": "Type-Hint is not activated",
   "typeHintConfig_typeHintConfigWithThisDetailsAlreadyExist": "Type hint config with this details already exist",
   "typeHintConfig_endDateMustBeAfterStartDate": "Type hint end date must be after start date",
   "typeHintConfig_typeHintConfigCreatedSuccessfully": "Type hint config created successfully",

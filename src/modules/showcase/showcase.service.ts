@@ -1,6 +1,8 @@
 import {
   BadRequestException,
   ForbiddenException,
+  forwardRef,
+  Inject,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -40,6 +42,8 @@ export class ShowcaseService {
 
     @InjectModel(TypeHintConfig.name)
     private typeHintConfigModel: Model<TypeHintConfigDocument>,
+
+    @Inject(forwardRef(() => TypeHintConfigService))
     private typeHintConfigService: TypeHintConfigService,
   ) {}
 
@@ -666,6 +670,25 @@ export class ShowcaseService {
     const now = new Date();
 
     if (isActive) {
+      // ✅ 1. CHECK PARENT TYPE HINT STATUS
+      const typeHintConfig = await this.typeHintConfigModel.findOne({
+        key: showcase.type,
+        isDeleted: false,
+      });
+
+      if (!typeHintConfig) {
+        throw new BadRequestException(
+          getMessage('showcase_invalidTypeHint', lang),
+        );
+      }
+
+      if (!typeHintConfig.isActive) {
+        throw new BadRequestException(
+          getMessage('showcase_typeHintKeyNotActive', lang),
+        );
+      }
+
+      // ✅ 2. DATE VALIDATIONS
       if (showcase.endDate && showcase.endDate < now) {
         throw new BadRequestException(
           getMessage('showcase_cannotActivateExpired', lang),
@@ -697,5 +720,25 @@ export class ShowcaseService {
         lang,
       ),
     };
+  }
+
+  async deactivateByTypeHint(
+    typeHint: string,
+    requestingUser: any,
+  ): Promise<void> {
+    await this.showcaseModel.updateMany(
+      {
+        type: typeHint,
+        isActive: true,
+      },
+      {
+        $set: {
+          isActive: false,
+          isDeleted: false,
+          updatedBy: requestingUser.userId,
+          updatedAt: new Date(),
+        },
+      },
+    );
   }
 }

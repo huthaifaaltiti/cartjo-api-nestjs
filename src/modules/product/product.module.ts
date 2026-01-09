@@ -11,6 +11,7 @@ import { TypeHintConfigModule } from '../typeHintConfig/typeHintConfig.module';
 import { WishList, WishListSchema } from 'src/schemas/wishList.schema';
 import { SubCategoryModule } from '../subCategory/subCategory.module';
 import { SubCategory, SubCategorySchema } from 'src/schemas/subCategory.schema';
+import { TypeHintConfig, TypeHintConfigSchema } from 'src/schemas/typeHintConfig.schema';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { SubCategory, SubCategorySchema } from 'src/schemas/subCategory.schema';
       { name: Category.name, schema: CategorySchema },
       { name: WishList.name, schema: WishListSchema },
       { name: SubCategory.name, schema: SubCategorySchema },
+      { name: TypeHintConfig.name, schema: TypeHintConfigSchema },
     ]),
     MediaModule,
     JwtModule,

@@ -8,13 +8,15 @@ import {
 import { TypeHintConfigService } from './typeHintConfig.service';
 import { TypeHintConfigController } from './typeHintConfig.controller';
 import { ProductModule } from '../product/product.module';
+import { ShowcaseModule } from '../showcase/showcase.module';
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: TypeHintConfig.name, schema: TypeHintConfigSchema },
     ]),
     JwtModule,
-    forwardRef(() => ProductModule)
+    forwardRef(() => ProductModule),
+    forwardRef(() => ShowcaseModule),
   ],
   providers: [TypeHintConfigService],
   controllers: [TypeHintConfigController],
