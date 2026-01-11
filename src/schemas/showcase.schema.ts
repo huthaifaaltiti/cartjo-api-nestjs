@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Schema as MongooseSchema, Types } from 'mongoose';
-
 import { NameRef } from './common.schema';
 
 export type ShowCaseDocument = ShowCase & Document;
@@ -28,7 +27,7 @@ export class ShowCase {
 
   @Prop({
     required: false,
-    default: ""
+    default: '',
   })
   showAllButtonLink: string;
 
@@ -46,6 +45,9 @@ export class ShowCase {
 
   @Prop({ type: Date, default: undefined })
   endDate?: Date | undefined;
+
+  @Prop({ default: false })
+  isSystem: boolean;
 
   @Prop({ default: true })
   isActive: boolean;
