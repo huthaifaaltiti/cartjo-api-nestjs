@@ -1,11 +1,20 @@
 import {
   BadRequestException,
   ForbiddenException,
+<<<<<<< HEAD
+=======
+  forwardRef,
+  Inject,
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
+<<<<<<< HEAD
 import { Cron, CronExpression } from '@nestjs/schedule';
+=======
+import { Cron } from '@nestjs/schedule';
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 import { getMessage } from 'src/common/utils/translator';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { TypeHintConfigService } from '../typeHintConfig/typeHintConfig.service';
@@ -26,6 +35,12 @@ import {
   TypeHintConfigDocument,
 } from 'src/schemas/typeHintConfig.schema';
 import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
+<<<<<<< HEAD
+=======
+import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
+import { TYPE_HINT_THRESHOLDS } from 'src/configs/typeHint.config';
+import { CRON_JOBS } from 'src/configs/cron.config';
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
 export class ShowcaseService {
   constructor(
@@ -40,10 +55,19 @@ export class ShowcaseService {
 
     @InjectModel(TypeHintConfig.name)
     private typeHintConfigModel: Model<TypeHintConfigDocument>,
+<<<<<<< HEAD
     private typeHintConfigService: TypeHintConfigService,
   ) {}
 
   @Cron(CronExpression.EVERY_2_HOURS)
+=======
+
+    @Inject(forwardRef(() => TypeHintConfigService))
+    private typeHintConfigService: TypeHintConfigService,
+  ) {}
+
+  @Cron(CRON_JOBS.SHOWCASE.CHECK_INACTIVE_TYPE_HINT)
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   async checkInactiveTypeHints(): Promise<void> {
     const inactiveHints = await this.typeHintConfigModel
       .find({ isActive: false })
@@ -155,6 +179,174 @@ export class ShowcaseService {
     };
   }
 
+<<<<<<< HEAD
+=======
+  // async getActiveOnes(
+  //   lang?: Locale,
+  //   limit: number = 3,
+  //   userId?: mongoose.Types.ObjectId,
+  // ): Promise<DataListResponse<ShowCase>> {
+  //   const now = new Date();
+
+  //   const findQuery = {
+  //     isActive: true,
+  //     isDeleted: false,
+  //     $or: [
+  //       { $and: [{ startDate: { $lte: now } }, { endDate: { $gte: now } }] },
+  //       {
+  //         $and: [
+  //           { startDate: { $lte: now } },
+  //           { $or: [{ endDate: null }, { endDate: { $exists: false } }] },
+  //         ],
+  //       },
+  //       {
+  //         $and: [
+  //           { $or: [{ startDate: null }, { startDate: { $exists: false } }] },
+  //           { $or: [{ endDate: null }, { endDate: { $exists: false } }] },
+  //         ],
+  //       },
+  //     ],
+  //   };
+
+  //   const showcases = await this.showcaseModel
+  //     .find(findQuery)
+  //     .populate('deletedBy', 'firstName lastName email _id')
+  //     .populate('unDeletedBy', 'firstName lastName email _id')
+  //     .populate('createdBy', 'firstName lastName email _id')
+  //     .lean();
+
+  //   if (showcases.length === 0) {
+  //     throw new NotFoundException(
+  //       getMessage('showcase_noActiveShowcasesFound', lang),
+  //     );
+  //   }
+
+  //   // wishListed products
+  //   let wishListProducts: string[] = [];
+  //   if (userId) {
+  //     const wishList = await this.wishListModel
+  //       .findOne({ user: userId })
+  //       .lean();
+
+  //     if (wishList) {
+  //       wishListProducts = wishList.products.map(p => p.toString());
+  //     }
+
+  //     // if (wishList) {
+  //     //   wishListProducts = wishList.products.map(p => {
+  //     //     return p._id ? p._id.toString() : String(p);
+  //     //   });
+  //     // }
+  //   }
+
+  //   const usedProductIds = new Set<string>();
+  //   const populatedShowcases = [];
+
+  //   // Process sequentially to ensure proper tracking of used products
+  //   for (const showcase of showcases) {
+  //     // Query products that:
+  //     // - match showcase.type
+  //     // - are active and not deleted
+  //     // - not already used in previous showcases (within same request)
+  //     // - randomly selected
+  //     const products = await this.productModel.aggregate([
+  //       {
+  //         $match: {
+  //           typeHint: showcase.type,
+  //           isActive: true,
+  //           isDeleted: false,
+  //           _id: { $nin: Array.from(usedProductIds) }, // exclude used items
+  //         },
+  //       },
+  //       { $sample: { size: Number(limit) } }, // Random selection
+  //       { $project: { __v: 0 } },
+  //     ]);
+
+  //     // Add product IDs to the used set
+  //     products.forEach(p => usedProductIds.add(p._id.toString()));
+
+  //     /*
+  //        You're very close, but the bug is coming from this line:
+
+  //        isWishListed: wishListProducts.includes(p._id.toString())
+
+  //        ⚠️ WHY SOME ITEMS SHOW isWishListed: false EVEN IF THEY ARE WISHLISTED?
+
+  //         Because when you use MongoDB aggregation:
+
+  //           const products = await this.productModel.aggregate([...])
+
+  //          MongoDB returns plain objects, not full Mongoose documents.
+  //          The _id inside an aggregation result may be an ObjectId OR a nested object, depending on your pipeline.
+
+  //          Most commonly when the bug appears, _id inside aggregate() looks like this:
+
+  //          { _id: { $oid: "6742ea..." } }
+
+  //          or:
+
+  //          _id: new ObjectId("6742ea...")
+
+  //          But your wishListProducts array contains only string IDs:
+
+  //          wishListProducts = ["6742ea...", "673bf..."]
+
+  //          So this comparison fails:
+
+  //          wishListProducts.includes(p._id.toString())
+
+  //          Because p._id.toString() from aggregation often returns:
+
+  //          "new ObjectId(\"6742ea...\")"
+
+  //          Not "6742ea...".
+  //     */
+
+  //     // enrichedProducts
+  //     // const enrichedProducts = products.map(p => ({
+  //     //   ...p,
+  //     //   isWishListed: wishListProducts.includes(p._id.toString()),
+  //     // }));
+
+  //     const enrichedProducts = products.map(p => {
+  //       const productId = String(p._id); // SAFE for any aggregation result
+  //       return {
+  //         ...p,
+  //         isWishListed: wishListProducts.includes(productId),
+  //       };
+  //     });
+
+  //     populatedShowcases.push({
+  //       ...showcase,
+  //       items: enrichedProducts,
+  //     });
+  //   }
+
+  //   const showcasesWithPriorityWithPriority = await Promise.all(
+  //     populatedShowcases.map(async showcase => {
+  //       const typeHintConfig = await this.typeHintConfigModel
+  //         .findOne({ key: showcase.type })
+  //         .lean();
+
+  //       return {
+  //         ...showcase,
+  //         priority: typeHintConfig?.priority ?? null,
+  //       };
+  //     }),
+  //   );
+
+  //   return {
+  //     isSuccess: true,
+  //     message: getMessage(
+  //       'showcase_activeShowcasesRetrievedSuccessfully',
+  //       lang,
+  //     ),
+  //     dataCount: showcasesWithPriorityWithPriority.length,
+  //     data: showcasesWithPriorityWithPriority,
+  //   };
+  // }
+
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   async getActiveOnes(
     lang?: Locale,
     limit: number = 3,
@@ -162,6 +354,10 @@ export class ShowcaseService {
   ): Promise<DataListResponse<ShowCase>> {
     const now = new Date();
 
+<<<<<<< HEAD
+=======
+    // 1️⃣ Find active showcases within their dates
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     const findQuery = {
       isActive: true,
       isDeleted: false,
@@ -189,18 +385,28 @@ export class ShowcaseService {
       .populate('createdBy', 'firstName lastName email _id')
       .lean();
 
+<<<<<<< HEAD
     if (showcases.length === 0) {
+=======
+    if (!showcases.length) {
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       throw new NotFoundException(
         getMessage('showcase_noActiveShowcasesFound', lang),
       );
     }
 
+<<<<<<< HEAD
     // wishListed products
     let wishListProducts: string[] = [];
+=======
+    // 2️⃣ Get user's wishlisted products
+    const wishListProducts: string[] = [];
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     if (userId) {
       const wishList = await this.wishListModel
         .findOne({ user: userId })
         .lean();
+<<<<<<< HEAD
 
       if (wishList) {
         wishListProducts = wishList.products.map(p => p.toString());
@@ -211,11 +417,17 @@ export class ShowcaseService {
       //     return p._id ? p._id.toString() : String(p);
       //   });
       // }
+=======
+      if (wishList) {
+        wishListProducts.push(...wishList.products.map(p => p.toString()));
+      }
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     }
 
     const usedProductIds = new Set<string>();
     const populatedShowcases = [];
 
+<<<<<<< HEAD
     // Process sequentially to ensure proper tracking of used products
     for (const showcase of showcases) {
       // Query products that:
@@ -295,6 +507,57 @@ export class ShowcaseService {
           isWishListed: wishListProducts.includes(productId),
         };
       });
+=======
+    // 4️⃣ Process each showcase sequentially
+    for (const showcase of showcases) {
+      const productsQuery: any = {
+        isActive: true,
+        isDeleted: false,
+        _id: { $nin: Array.from(usedProductIds) },
+      };
+
+      // Determine dynamic query for system type hints
+      switch (showcase.type) {
+        case SystemTypeHints.MOST_VIEWED:
+          productsQuery.viewCount = {
+            $gte: TYPE_HINT_THRESHOLDS.most_viewed,
+          };
+          break;
+        case SystemTypeHints.BEST_SELLERS:
+          productsQuery.sellCount = { $gte: TYPE_HINT_THRESHOLDS.best_sellers };
+          break;
+
+        case SystemTypeHints.MOST_FAVORITED:
+          productsQuery.favoriteCount = {
+            $gte: TYPE_HINT_THRESHOLDS.most_favorited,
+          };
+          break;
+
+        case SystemTypeHints.TRENDING:
+          productsQuery.weeklyFavoriteCount = {
+            $gte: TYPE_HINT_THRESHOLDS.trending,
+          };
+          break;
+
+        default:
+          productsQuery.typeHint = showcase.type;
+      }
+
+      const products = await this.productModel.aggregate([
+        { $match: productsQuery },
+        { $sample: { size: Number(limit) } },
+        { $project: { __v: 0 } },
+      ]);
+
+      // Track used product IDs
+      products.forEach(p => usedProductIds.add(String(p._id)));
+
+      // Enrich products with isWishListed flag
+      const enrichedProducts = products.map(p => ({
+        ...p,
+        isWishListed: wishListProducts.includes(String(p._id)),
+      }));
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
       populatedShowcases.push({
         ...showcase,
@@ -302,7 +565,12 @@ export class ShowcaseService {
       });
     }
 
+<<<<<<< HEAD
     const showcasesWithPriorityWithPriority = await Promise.all(
+=======
+    // 5️⃣ Add priority from typeHintConfig
+    const showcasesWithPriority = await Promise.all(
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       populatedShowcases.map(async showcase => {
         const typeHintConfig = await this.typeHintConfigModel
           .findOne({ key: showcase.type })
@@ -315,14 +583,23 @@ export class ShowcaseService {
       }),
     );
 
+<<<<<<< HEAD
+=======
+    // 6️⃣ Return structured response
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     return {
       isSuccess: true,
       message: getMessage(
         'showcase_activeShowcasesRetrievedSuccessfully',
         lang,
       ),
+<<<<<<< HEAD
       dataCount: showcasesWithPriorityWithPriority.length,
       data: showcasesWithPriorityWithPriority,
+=======
+      dataCount: showcasesWithPriority.length,
+      data: showcasesWithPriority,
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     };
   }
 
@@ -376,6 +653,10 @@ export class ShowcaseService {
       isActive: true,
       availableCount: { $gt: 0 },
     });
+<<<<<<< HEAD
+=======
+
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     if (!foundProducts) {
       throw new BadRequestException(
         getMessage('showcase_noProductsWithThisTypeForShowcase', dto.lang),
@@ -564,6 +845,7 @@ export class ShowcaseService {
 
     validateUserRoleAccess(requestingUser, lang);
 
+<<<<<<< HEAD
     const defaultTypeHints = [
       ...this.typeHintConfigService.getStaticTypeHints(),
     ];
@@ -573,6 +855,18 @@ export class ShowcaseService {
     if (defaultTypeHints.includes(showcase.type)) {
       throw new ForbiddenException(
         getMessage('showcase_cannotDeleteDefaultShowcase', lang),
+=======
+    const showcase = await this.showcaseModel.findById(id);
+
+    const typeHintConfig = await this.typeHintConfigModel.findOne({
+      key: showcase.type,
+      isDeleted: false,
+    });
+
+    if (typeHintConfig?.isSystem) {
+      throw new ForbiddenException(
+        getMessage('showcase_cannotModifySystemShowcase', lang),
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       );
     }
 
@@ -613,6 +907,7 @@ export class ShowcaseService {
       );
     }
 
+<<<<<<< HEAD
     const defaultTypeHints = [
       ...this.typeHintConfigService.getStaticTypeHints(),
     ];
@@ -620,6 +915,16 @@ export class ShowcaseService {
     if (defaultTypeHints.includes(showcase.type)) {
       throw new ForbiddenException(
         getMessage('showcase_cannotUnDeleteDefaultShowcase', lang),
+=======
+    const typeHintConfig = await this.typeHintConfigModel.findOne({
+      key: showcase.type,
+      isDeleted: false,
+    });
+
+    if (typeHintConfig?.isSystem) {
+      throw new ForbiddenException(
+        getMessage('showcase_cannotModifySystemShowcase', lang),
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       );
     }
 
@@ -653,6 +958,7 @@ export class ShowcaseService {
       );
     }
 
+<<<<<<< HEAD
     const defaultTypeHints = [
       ...this.typeHintConfigService.getStaticTypeHints(),
     ];
@@ -660,12 +966,44 @@ export class ShowcaseService {
     if (defaultTypeHints.includes(showcase.type)) {
       throw new ForbiddenException(
         getMessage('showcase_cannotActivateUnActiveDefaultShowcase', lang),
+=======
+    const typeHintConfig = await this.typeHintConfigModel.findOne({
+      key: showcase.type,
+      isDeleted: false,
+    });
+
+    if (typeHintConfig?.isSystem) {
+      throw new ForbiddenException(
+        getMessage('showcase_cannotModifySystemShowcase', lang),
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       );
     }
 
     const now = new Date();
 
     if (isActive) {
+<<<<<<< HEAD
+=======
+      // ✅ 1. CHECK PARENT TYPE HINT STATUS
+      const typeHintConfig = await this.typeHintConfigModel.findOne({
+        key: showcase.type,
+        isDeleted: false,
+      });
+
+      if (!typeHintConfig) {
+        throw new BadRequestException(
+          getMessage('showcase_invalidTypeHint', lang),
+        );
+      }
+
+      if (!typeHintConfig.isActive) {
+        throw new BadRequestException(
+          getMessage('showcase_typeHintKeyNotActive', lang),
+        );
+      }
+
+      // ✅ 2. DATE VALIDATIONS
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       if (showcase.endDate && showcase.endDate < now) {
         throw new BadRequestException(
           getMessage('showcase_cannotActivateExpired', lang),
@@ -698,4 +1036,27 @@ export class ShowcaseService {
       ),
     };
   }
+<<<<<<< HEAD
+=======
+
+  async deactivateByTypeHint(
+    typeHint: string,
+    requestingUser: any,
+  ): Promise<void> {
+    await this.showcaseModel.updateMany(
+      {
+        type: typeHint,
+        isActive: true,
+      },
+      {
+        $set: {
+          isActive: false,
+          isDeleted: false,
+          updatedBy: requestingUser.userId,
+          updatedAt: new Date(),
+        },
+      },
+    );
+  }
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 }

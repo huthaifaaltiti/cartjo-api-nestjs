@@ -21,7 +21,11 @@
   "users_errWhileCreatingUser": "حدث خطأ غير متوقع أثناء إنشاء المستخدم",
   "authorization_accountDeleted": "تم حذف حسابك. يرجى التواصل مع الدعم.",
   "authorization_accountInactive": "حسابك غير مفعل. يرجى التواصل مع الدعم.",
+<<<<<<< HEAD
   "users_userCreatedSuccessfully": "تم إنشاء المستخدم بنجاح",
+=======
+  "users_userCreatedSuccessfully": "تم إنشاء المستخدم نبجاح. سيتم إرسال رسالة إلى بريدك الإلكتروني لغايات التوثيق.",
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   "authorization_loginSuccessful": "تم تسجيل الدخول بنجاح",
   "authorization_InvalidCredentials": "بيانات الاعتماد غير صحيحة",
   "authorization_noAccess": "تم رفض الوصول",
@@ -81,6 +85,10 @@
   "subCategories_subCategoryImageUploadFailed": "فشل تحميل صورة الفئة الفرعية",
   "subCategories_subCategoryShouldHasArImage": "يجب أن تحتوي الفئة الفرعية على صورة AR",
   "subCategories_subCategoryShouldHasEnImage": "يجب أن تحتوي الفئة الفرعية على صورة EN",
+<<<<<<< HEAD
+=======
+  "subCategories_cannotActivateCategoryIsInactive": "لا يمكن تفعيل التصنيف الفرعي عندما يكون التصنيف الرئيسي غير نشط",
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   "products_productCreatedSuccessfully": "تم إنشاء المنتج بنجاح",
   "products_productWithSlugAlreadyExist": "يوجد منتج بهذا المعرف بالفعل",
   "products_productWithThisNameOrDescAlreadyExist": "يوجد منتج بنفس الاسم أو الوصف بالفعل",
@@ -98,6 +106,12 @@
   "products_productUnDeletedSuccessfully": "تم استرجاع المنتج بنجاح",
   "products_invalidTypeHint": "دليل المنتج غير صحيح",
   "products_noProductsForCategory": "لا توجد منتجات لهذه الفئة",
+<<<<<<< HEAD
+=======
+  "products_cannotActivateSubCategoryIsInactive": "لا يمكن تفعيل المنتج عندما يكون التصنيف الفرعي غير نشط",
+  "products_cannotActivateCategoryIsInactive": "لا يمكن تفعيل المنتج عندما يكون التصنيف الرئيسي غير نشط",
+  "products_cannotAssignSystemGeneratedTypeHint": "لا يمكن تعيين تلميح النوع الذي تم إنشاؤه بواسطة النظام",
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   "logo_logoAlreadyExists": "اللجو موجود بالفعل",
   "logo_logoCreatedSuccessfully": "تم إنشاء الشعار بنجاح",
   "logo_logoNotFound": "لم يتم إيجاد الشعار",
@@ -152,7 +166,13 @@
   "showcase_noProductsWithThisTypeForShowcase": "لا توجد منتجات بهذا النوع للعرض",
   "showcase_invalidTypeHint": "دليل عرض غير صحيح",
   "showcase_typeHintNotActive": "فعّل دليل العرض لتتمكن من إنشاء العرض",
+<<<<<<< HEAD
   "showcase_cannotActivateUnActiveDefaultShowcase": "لا يمكن تفعيل أو إلغاء تفعيل أدلة العرض الرئيسية",
+=======
+  "showcase_typeHintKeyNotActive": "دليل العرض غير مفعل",
+  "showcase_cannotActivateUnActiveDefaultShowcase": "لا يمكن تفعيل أو إلغاء تفعيل أدلة العرض الرئيسية",
+  "showcase_cannotModifySystemShowcase": "لا يمكت تعديل أدوات عرض النظام الرئيسية",
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   "typeHintConfig_typeHintConfigWithThisDetailsAlreadyExist": "دليل النوع بهذه التفاصيل موجودة بالفعل",
   "typeHintConfig_typeHintConfigCreatedSuccessfully": "تم إنشاء دليل النوع بنجاح",
   "typeHintConfig_typeHintConfigsRetrievedSuccessfully": "تم استرداد أدلة النوع بنجاح",
@@ -173,6 +193,11 @@
   "typeHintConfig_typeHintConfigDeActivatedSuccessfully": "تم إلغاء تفعيل دليل النوع بنجاح",
   "typeHintConfig_typeHintConfigsListRetrievedSuccessfully": "تم استرداد أدلة النوع بنجاح",
   "typeHintConfig_cannotUpdateDefaultKeys": "لا يمكن تعديل رموز أدلة النوع الأساسية",
+<<<<<<< HEAD
+=======
+  "typeHintConfig_cannotCreateSystemTypeHint": "لا يمكن تعديل أو إضافة أدوات عرض النظام الرئيسية",
+  "typeHintConfig_cannotChangeSystemKey": "لا يمكن تعديل أدوات عرض النظام الرئيسية",
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   "wishList_wishListRetrievedSuccessfully": "تم استرجاع قائمة الأمنيات بنجاح",
   "wishList_productAddedToWishlistSuccessfully": "تمت إضافة المنتج إلى قائمة الأمنيات بنجاح",
   "wishList_productIsInWishList": "المنتج موجود بالفعل في قائمة الأمنيات",
@@ -223,11 +248,27 @@
   "order_orderNotFound": "الطلب غير موجود",
   "order_orderMarkedPaid": "تم وضع علامة الدفع على الطلب بالفعل",
   "order_orderMarkedPaidSuccessfully": "تم وضع علامة الدفع على الطلب بنجاح",
+<<<<<<< HEAD
   "order_orderMarkedUnPaidSuccessfully": "تم وضع الطلب في حالة الدفع المعلق بنجاح",
+=======
+  "order_orderPaymentStatusChanged": "تم وضع الطلب في حالة الدفع المعلق بنجاح",
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   "order_notDeleted": "لم يتم حذف الطلب",
   "order_restoredSuccessfully": "تم استعادة الطلب بنجاح",
   "order_ordersRetrievedSuccessfully": "تم استرجاع الطلبات بنجاح",
   "order_invalidId": "معرّف الطلب غير صالح",
   "order_notFound": "الطلب غير موجود",
+<<<<<<< HEAD
   "order_orderRetrieved": "تم استرجاع الطلب بنجاح"
+=======
+  "order_orderRetrieved": "تم استرجاع الطلب بنجاح",
+  "order_cashOrderCreatedSuccessfully": "تم إنشاء طلب الدفع النقدي بنجاح،",
+  "orders_cardOrderCreatedSuccessfully": "تم إنشاء طلب الدفع بالبطاقة بنجاح،",
+  "orders_cantCreateOrder": "عذرًا! لا يمكن إنشاء هذا الطلب.",
+  "order_deliveredOrder": "لا يمكن تعديل الطلب بعد تسليمه",
+  "order_canceledOrder": "لا يمكن تعديل الطلب بعد إلغائه",
+  "order_invalidDeliveryStatusTransition": "انتقال غير صالح لحالة التوصيل",
+  "order_deliveryStatusUpdatedSuccessfully": "تم تحديث حالة التوصيل بنجاح",
+  "order_ordersReturnsRetrieved": "تم استرداد المرتجعات بنجاح"
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 }

@@ -1,5 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+<<<<<<< HEAD
+=======
+import { getNextJsUrl } from 'src/common/utils/getNextJsUrl';
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
 @Injectable()
 export class RevalidationService {
@@ -8,9 +12,15 @@ export class RevalidationService {
   private readonly revalidationSecret: string;
 
   constructor(private configService: ConfigService) {
+<<<<<<< HEAD
     this.nextjsUrl = this.configService.get<string>('NEXTJS_URL');
     this.revalidationSecret = this.configService.get<string>(
       'REVALIDATION_SECRET',
+=======
+    this.nextjsUrl = getNextJsUrl();
+    this.revalidationSecret = this.configService.get<string>(
+      'NEXTJS_REVALIDATION_SECRET',
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     );
   }
 

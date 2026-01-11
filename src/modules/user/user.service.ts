@@ -15,7 +15,10 @@ import { generateUsername } from 'src/common/functions/generators/uniqueUsername
 import { checkUserRole } from 'src/common/utils/checkUserRole';
 import { validateSameUsersRoleLevel } from 'src/common/utils/validateSameUsersRoleLevel';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
+<<<<<<< HEAD
 import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
+=======
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 import { UserRole } from 'src/enums/user-role.enum';
 import { User, UserDocument } from 'src/schemas/user.schema';
 import { Locale } from 'src/types/Locale';
@@ -25,6 +28,11 @@ import { MediaService } from '../media/media.service';
 import { Modules } from 'src/enums/appModules.enum';
 import { UpdateDefaultAddressDto, UpdateUserDto } from './dto/update.dto';
 import { BaseResponse } from 'src/types/service-response.type';
+<<<<<<< HEAD
+=======
+import { MEDIA_CONFIG } from 'src/configs/media.config';
+import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 @Injectable()
 export class UserService {
   constructor(
@@ -360,7 +368,20 @@ export class UserService {
     let profilePicUrl: string | undefined = undefined;
 
     if (profilePic && Object.keys(profilePic).length > 0) {
+<<<<<<< HEAD
       fileSizeValidator(profilePic, MAX_FILE_SIZES.USER_PROFILE_IMAGE, lang);
+=======
+      fileSizeValidator(
+        profilePic,
+        MEDIA_CONFIG.USER.PROFILE_IMAGE.MAX_SIZE,
+        lang,
+      );
+      fileTypeValidator(
+        profilePic,
+        MEDIA_CONFIG.USER.PROFILE_IMAGE.ALLOWED_TYPES,
+        lang,
+      );
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
       const result = await this.mediaService.handleFileUpload(
         profilePic,
@@ -532,7 +553,20 @@ export class UserService {
     }
 
     if (profilePic && Object.keys(profilePic).length > 0) {
+<<<<<<< HEAD
       fileSizeValidator(profilePic, MAX_FILE_SIZES.USER_PROFILE_IMAGE, lang);
+=======
+      fileSizeValidator(
+        profilePic,
+        MEDIA_CONFIG.USER.PROFILE_IMAGE.MAX_SIZE,
+        lang,
+      );
+      fileTypeValidator(
+        profilePic,
+        MEDIA_CONFIG.USER.PROFILE_IMAGE.ALLOWED_TYPES,
+        lang,
+      );
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
       const result = await this.mediaService.handleFileUpload(
         profilePic,
@@ -618,7 +652,20 @@ export class UserService {
     }
 
     if (profilePic && Object.keys(profilePic).length > 0) {
+<<<<<<< HEAD
       fileSizeValidator(profilePic, MAX_FILE_SIZES.USER_PROFILE_IMAGE, lang);
+=======
+      fileSizeValidator(
+        profilePic,
+        MEDIA_CONFIG.USER.PROFILE_IMAGE.MAX_SIZE,
+        lang,
+      );
+      fileTypeValidator(
+        profilePic,
+        MEDIA_CONFIG.USER.PROFILE_IMAGE.ALLOWED_TYPES,
+        lang,
+      );
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
       const result = await this.mediaService.handleFileUpload(
         profilePic,

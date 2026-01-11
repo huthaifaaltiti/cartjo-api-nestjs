@@ -19,8 +19,14 @@ import { MediaService } from './media.service';
 import { UploadFileBodyDto } from './dto/upload-file.dto';
 import { Modules } from 'src/enums/appModules.enum';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
+<<<<<<< HEAD
 import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
 import { ApiPaths } from 'src/common/constants/api-paths';
+=======
+import { ApiPaths } from 'src/common/constants/api-paths';
+import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
+import { MEDIA_CONFIG } from 'src/configs/media.config';
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
 @Controller(ApiPaths.Media.Root)
 export class MediaController {
@@ -37,7 +43,12 @@ export class MediaController {
     const { lang } = body;
     const { user } = req;
 
+<<<<<<< HEAD
     fileSizeValidator(file, MAX_FILE_SIZES.GENERAL_MEDIA_FILE, lang);
+=======
+    fileSizeValidator(file, MEDIA_CONFIG.OTHERS.ANY.MAX_SIZE, lang);
+    fileTypeValidator(file, MEDIA_CONFIG.OTHERS.ANY.ALLOWED_TYPES, lang);
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
     return this.fileUploadService.handleFileUpload(
       file,

@@ -8,7 +8,11 @@ import { getMessage } from 'src/common/utils/translator';
 
 import { Locale } from 'src/types/Locale';
 import { User, UserDocument } from '../../schemas/user.schema';
+<<<<<<< HEAD
 import { Media, MediaDocument } from 'src/schemas/media.schema';
+=======
+// import { Media, MediaDocument } from 'src/schemas/media.schema';
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
 @Injectable()
 export class MediaService {
@@ -19,7 +23,11 @@ export class MediaService {
 
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+<<<<<<< HEAD
     @InjectModel(Media.name) private mediaModel: Model<MediaDocument>,
+=======
+    // @InjectModel(Media.name) private mediaModel: Model<MediaDocument>,
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   ) {
     this.hostName = process.env.HOST_NAME;
     this.initializeMediaDatabase();
@@ -145,6 +153,7 @@ export class MediaService {
       console.log({fileUrl})
 
       // Save metadata to metadata collection
+<<<<<<< HEAD
       const metadataRecord = {
         fileId: fileId,
         originalName: file.originalname,
@@ -165,6 +174,28 @@ export class MediaService {
 
       const savedMetadata =
         await this.metadataCollection.insertOne(metadataRecord);
+=======
+      // const metadataRecord = {
+      //   fileId: fileId,
+      //   originalName: file.originalname,
+      //   fileName: fileName,
+      //   fileUrl: fileUrl,
+      //   mimetype: file.mimetype,
+      //   size: file.size,
+      //   category: fileCategory,
+      //   uploadedBy: new ObjectId(userId),
+      //   uploadKey: key,
+      //   tags: [],
+      //   description: '',
+      //   uploadedAt: new Date(),
+      //   isActive: true,
+      //   // Reference to your main database entities if needed
+      //   relatedEntity: null, // You can set this when linking to products, locations, etc.
+      // };
+
+      // const savedMetadata =
+      //   await this.metadataCollection.insertOne(metadataRecord);
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
       // Log access (optional)
       await this.logAccess({

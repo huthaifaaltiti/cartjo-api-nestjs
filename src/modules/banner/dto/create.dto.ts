@@ -12,8 +12,12 @@ import { Locale } from 'src/types/Locale';
 import { validationConfig } from 'src/configs/validationConfig';
 import { Transform } from 'class-transformer';
 
+<<<<<<< HEAD
 const { titleMinChars, titleMaxChars, bannerLinkMinChars, bannerLinkMaxChars } =
   validationConfig.banner;
+=======
+const { titleMinChars, titleMaxChars } = validationConfig.banner;
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
 export class CreateBannerDto {
   @IsString()

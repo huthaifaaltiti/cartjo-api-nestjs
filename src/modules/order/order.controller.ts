@@ -26,6 +26,19 @@ import { CreateOrderBodyDto } from './dto/createOrder.dto';
 import { GetOrderParamDto, GetOrderQueryDto } from './dto/getOrder.dto';
 import { ExportOrdersQueryDto } from './dto/exportOrders.dto';
 import { Response } from 'express';
+<<<<<<< HEAD
+=======
+import {
+  GetMyOrdersParamDto,
+  GetMyOrdersQueryDto,
+} from './dto/getMyOrders.dto';
+import { GetMyOrderParamDto, GetMyOrderQueryDto } from './dto/getMyOrder.dto';
+import { ChangeDeliveryStatusBodyDto } from './dto/deliveryStatus.dto';
+import {
+  GetMyOrderReturnsParamDto,
+  GetMyOrderReturnsQueryDto,
+} from './dto/getMyOrderReturns.dto';
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
 @Controller(ApiPaths.Order.Root)
 export class OrderController {
@@ -43,6 +56,20 @@ export class OrderController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+<<<<<<< HEAD
+=======
+  @Post(ApiPaths.Order.ChangeDeliveryStatus)
+  async changeDeliveryStatus(
+    @Body() dto: ChangeDeliveryStatusBodyDto,
+    @Request() req: any,
+  ) {
+    const { user } = req;
+
+    return this.orderService.changeDeliveryStatus(user, dto);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   @Post(ApiPaths.Order.Delete)
   async deleteOrder(
     @Request() req: any,
@@ -69,6 +96,7 @@ export class OrderController {
 
     const cart = await this.orderService.getUserCart(user);
 
+<<<<<<< HEAD
     return this.orderService.createOrderAndClearCart(
       user,
       cart,
@@ -80,6 +108,9 @@ export class OrderController {
       body.paymentMethod,
       body.shippingAddress,
     );
+=======
+    return this.orderService.createOrderAndClearCart(user, cart, body);
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -91,6 +122,44 @@ export class OrderController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+<<<<<<< HEAD
+=======
+  @Get(ApiPaths.Order.MyOrders)
+  async getMyOrders(
+    @Request() req: any,
+    @Query() query: GetMyOrdersQueryDto,
+    @Param() param: GetMyOrdersParamDto,
+  ) {
+    const { user } = req;
+
+    return this.orderService.getMyOrders(user, query, param);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get(ApiPaths.Order.MyReturns)
+  async getMyOrderReturns(
+    @Request() req: any,
+    @Query() query: GetMyOrderReturnsQueryDto,
+    @Param() param: GetMyOrderReturnsParamDto,
+  ) {
+    const { user } = req;
+
+    return this.orderService.getMyOrderReturns(user, query, param);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get(ApiPaths.Order.MyOrder)
+  async getMyOrder(
+    @Request() req: any,
+    @Query() query: GetMyOrderQueryDto,
+    @Param() param: GetMyOrderParamDto,
+  ) {
+    const { user } = req;
+    return this.orderService.getMyOrder(user, query, param);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   @Get(ApiPaths.Order.Export)
   async exportOrders(
     @Request() req: any,

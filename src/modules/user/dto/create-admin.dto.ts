@@ -1,6 +1,10 @@
+<<<<<<< HEAD
 import { Transform } from 'class-transformer';
 import {
   IsBoolean,
+=======
+import {
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   IsEmail,
   IsNotEmpty,
   IsOptional,

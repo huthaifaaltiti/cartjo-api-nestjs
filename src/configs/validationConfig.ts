@@ -38,10 +38,13 @@ export const validationConfig = {
   typeHint: {
     labelMinChars: 3,
     labelMaxChars: 50,
+<<<<<<< HEAD
     iconMinChars: 3,
     iconMaxChars: 30,
     clrMinChars: 3,
     clrMaxChars: 12,
+=======
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     priorityMinNum: 1,
     priorityMaxNum: 10,
   },

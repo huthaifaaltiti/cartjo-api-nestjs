@@ -13,6 +13,7 @@ import { Transform } from 'class-transformer';
 import { Locale } from 'src/types/Locale';
 import { validationConfig } from 'src/configs/validationConfig';
 
+<<<<<<< HEAD
 const {
   labelMinChars,
   labelMaxChars,
@@ -23,6 +24,10 @@ const {
   priorityMinNum,
   priorityMaxNum,
 } = validationConfig.typeHint;
+=======
+const { labelMinChars, labelMaxChars, priorityMinNum, priorityMaxNum } =
+  validationConfig.typeHint;
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
 export class CreateDto {
   @IsString()
@@ -37,6 +42,7 @@ export class CreateDto {
   @MaxLength(labelMaxChars)
   label_en: string;
 
+<<<<<<< HEAD
   @IsString()
   @IsNotEmpty({ message: 'Type hint icon is required' })
   @MinLength(iconMinChars)
@@ -61,6 +67,8 @@ export class CreateDto {
   @MaxLength(clrMaxChars)
   textColor: string;
 
+=======
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   @IsNumber()
   @Min(priorityMinNum)
   @Max(priorityMaxNum)

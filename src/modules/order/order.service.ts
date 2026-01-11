@@ -9,7 +9,10 @@ import { Cart, CartDocument } from 'src/schemas/cart.schema';
 import { Order, OrderDocument } from 'src/schemas/order.schema';
 import { PaymentStatus } from 'src/enums/paymentStatus.enum';
 import { PaymentMethod } from 'src/enums/paymentMethod.enum';
+<<<<<<< HEAD
 import { ShippingAddressDto } from '../payment/dto/checkout.dto';
+=======
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 import { generateRandomString } from 'src/common/utils/generateRandomString';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
@@ -38,17 +41,122 @@ import { ExportOrdersQueryDto } from './dto/exportOrders.dto';
 import * as ExcelJS from 'exceljs';
 import * as PDFDocument from 'pdfkit';
 import { Response } from 'express';
+<<<<<<< HEAD
+=======
+import { getAppUrl } from 'src/common/utils/getAppUrl';
+import commonEmailTemplateData from 'src/common/utils/commonEmailTemplateData';
+import { CreateOrderBodyDto } from './dto/createOrder.dto';
+import getCurrencyLabel from 'src/common/utils/getCurrencyLabel';
+import getPaymentMethodLabel from 'src/common/utils/getPaymentMethodLabel';
+import {
+  GetMyOrdersParamDto,
+  GetMyOrdersQueryDto,
+} from './dto/getMyOrders.dto';
+import { validateSameUserAccess } from 'src/common/utils/validateSameUserAccess';
+import { GetMyOrderParamDto, GetMyOrderQueryDto } from './dto/getMyOrder.dto';
+import { ChangeDeliveryStatusBodyDto } from './dto/deliveryStatus.dto';
+import { OrderDeliveryStatus } from 'src/enums/orderDeliveryStatus.enum';
+import { User } from 'src/schemas/user.schema';
+import {
+  GetMyOrderReturnsParamDto,
+  GetMyOrderReturnsQueryDto,
+} from './dto/getMyOrderReturns.dto';
+import { Product, ProductDocument } from 'src/schemas/product.schema';
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
 @Injectable()
 export class OrderService {
   constructor(
     @InjectModel(Order.name)
     private readonly orderModel: Model<OrderDocument>,
+<<<<<<< HEAD
     @InjectModel(Cart.name)
     private readonly cartModel: Model<CartDocument>,
     private readonly emailService: EmailService,
   ) {}
 
+=======
+
+    @InjectModel(Cart.name)
+    private readonly cartModel: Model<CartDocument>,
+
+    private readonly emailService: EmailService,
+
+    @InjectModel(Product.name)
+    private readonly productModel: Model<ProductDocument>,
+  ) {}
+
+  private async incrementProductsSellCount(
+    items: {
+      productId: Types.ObjectId;
+      quantity: number;
+    }[],
+  ) {
+    if (!items.length) return;
+
+    const bulkOps = items.map(item => ({
+      updateOne: {
+        filter: { _id: item.productId },
+        update: {
+          $inc: {
+            sellCount: item.quantity,
+            availableCount: -item.quantity, // ✅ optional but recommended
+          },
+        },
+      },
+    }));
+
+    await this.productModel.bulkWrite(bulkOps);
+  }
+
+  private sendDeliveryEmailTemplate({
+    status,
+    user,
+    order,
+  }: {
+    status: OrderDeliveryStatus;
+    user: User;
+    order: Order;
+  }) {
+    const DeliveryStatusEmailMap: Partial<
+      Record<OrderDeliveryStatus, EmailTemplates>
+    > = {
+      [OrderDeliveryStatus.SHIPPED]: EmailTemplates.ORDER_SHIPPED,
+      [OrderDeliveryStatus.OUT_FOR_DELIVERY]:
+        EmailTemplates.ORDER_OUT_FOR_DELIVERY,
+      [OrderDeliveryStatus.DELIVERED]: EmailTemplates.ORDER_DELIVERED,
+      [OrderDeliveryStatus.FAILED]: EmailTemplates.ORDER_DELIVERY_FAILED,
+      [OrderDeliveryStatus.CANCELED]: EmailTemplates.ORDER_CANCELED,
+      [OrderDeliveryStatus.RETURNED]: EmailTemplates.ORDER_RETURNED,
+    };
+
+    const template = DeliveryStatusEmailMap[status];
+
+    if (template && user?.email) {
+      const orderId =
+        order.merchantReference || order.transactionId || order._id;
+
+      const preferredLang = user.preferredLang ?? PreferredLanguage.ARABIC;
+
+      const orderUrl = `${getAppUrl()}/${preferredLang}/user/orders?sq=${order?.merchantReference || order?._id}`;
+
+      this.emailService.sendTemplateEmail({
+        to: user.email,
+        templateName: template,
+        templateData: {
+          firstName: user.firstName,
+          orderId,
+          amount: order.amount,
+          currency: getCurrencyLabel(preferredLang, order.currency),
+          orderUrl,
+          ...commonEmailTemplateData(),
+        },
+        prefLang: preferredLang,
+      });
+    }
+  }
+
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   async getUserCart(requestingUser: any) {
     const cartDoc = await this.cartModel.findOne({
       userId: requestingUser.userId,
@@ -64,6 +172,7 @@ export class OrderService {
   async createOrderAndClearCart(
     user: any,
     cart: CartDocument,
+<<<<<<< HEAD
     amount: number,
     currency: string,
     customerEmail: string,
@@ -72,13 +181,31 @@ export class OrderService {
     paymentMethod: PaymentMethod,
     shippingAddress: ShippingAddressDto,
   ): Promise<Order> | null {
+=======
+    body: CreateOrderBodyDto,
+  ): Promise<DataResponse<Order>> {
+    const {
+      amount,
+      currency,
+      email,
+      merchantReference,
+      transactionId,
+      paymentMethod,
+      shippingAddress,
+      lang,
+    } = body;
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     if (
       !checkUserRole({
         userRole: user?.role,
         requiredRole: UserRole.USER,
       })
     ) {
+<<<<<<< HEAD
       return null;
+=======
+      throw new BadRequestException(getMessage('orders_cantCreateOrder', lang));
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     }
 
     const finalTransactionId =
@@ -91,8 +218,22 @@ export class OrderService {
         ? PaymentStatus.PAID
         : PaymentStatus.PENDING;
 
+<<<<<<< HEAD
     const order = await this.orderModel.create({
       userId: user?.userId,
+=======
+    for (const item of cart.items) {
+      const product = await this.productModel.findById(item.productId).lean();
+
+      if (!product || product.availableCount < item.quantity) {
+        throw new BadRequestException(`Product "${item.name}" is out of stock`);
+      }
+    }
+
+    const order = await this.orderModel.create({
+      userId: user?.userId,
+      createdBy: user?.userId,
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       items: cart.items.map(item => ({
         productId: item.productId,
         price: item.price,
@@ -104,11 +245,16 @@ export class OrderService {
       paymentStatus: finalPaymentStatus,
       paymentMethod,
       transactionId: finalTransactionId,
+<<<<<<< HEAD
       email: customerEmail,
+=======
+      email,
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       merchantReference,
       shippingAddress,
     });
 
+<<<<<<< HEAD
     if (user.email && order) {
       await this.emailService.sendTemplateEmail({
         to: user.email,
@@ -122,6 +268,40 @@ export class OrderService {
           orderUrl: `${process.env.APP_URL}/orders/${order._id}`,
         },
         prefLang: user.preferredLang || PreferredLanguage.ARABIC,
+=======
+    /** ✅ Increment sell count */
+    await this.incrementProductsSellCount(
+      cart.items.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity,
+      })),
+    );
+
+    if (user?.email && order) {
+      const { amount, _id, merchantReference, transactionId } = order;
+      const orderId = merchantReference ?? transactionId ?? _id;
+
+      const preferredLang = user.preferredLang ?? PreferredLanguage.ARABIC;
+
+      const orderUrl = `${getAppUrl()}/${preferredLang}/user/orders?sq=${merchantReference || _id}`;
+
+      this.emailService.sendTemplateEmail({
+        to: user.email,
+        templateName: EmailTemplates.ORDER_CREATED,
+        templateData: {
+          firstName: user.firstName,
+          orderId,
+          amount,
+          currency: getCurrencyLabel(preferredLang, body.currency),
+          paymentMethod: getPaymentMethodLabel(
+            preferredLang,
+            body.paymentMethod,
+          ),
+          orderUrl,
+          ...commonEmailTemplateData(),
+        },
+        prefLang: preferredLang,
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       });
     }
 
@@ -129,7 +309,129 @@ export class OrderService {
     cart.items = [];
     await cart.save();
 
+<<<<<<< HEAD
     return order;
+=======
+    const responseMessage =
+      order.paymentMethod === PaymentMethod.CASH
+        ? 'order_cashOrderCreatedSuccessfully'
+        : 'order_cardOrderCreatedSuccessfully';
+
+    return {
+      isSuccess: true,
+      message: getMessage(responseMessage, lang),
+      data: order,
+    };
+  }
+
+  async changeDeliveryStatus(
+    requestingUser: any,
+    dto: ChangeDeliveryStatusBodyDto,
+  ): Promise<DataResponse<Order>> {
+    const { orderId, lang, status } = dto;
+
+    validateUserRoleAccess(requestingUser, lang);
+
+    const order = await this.orderModel.findById(orderId);
+
+    if (!order || order.isDeleted) {
+      throw new BadRequestException(getMessage('order_orderNotFound', lang));
+    }
+
+    // Hard stop: delivered or canceled orders
+    if (order.isDelivered) {
+      throw new BadRequestException(getMessage('order_deliveredOrder', lang));
+    }
+
+    if (order.deliveryStatus === OrderDeliveryStatus.CANCELED) {
+      throw new BadRequestException(getMessage('order_canceledOrder', lang));
+    }
+
+    /**
+     * ✅ Allowed delivery status transitions
+     * (works for INTERNAL & OUTSOURCED)
+     * This object is a delivery status rule map.
+
+        It answers one question only:
+
+        👉 “From the current delivery status, which next statuses are allowed?”
+
+        This prevents invalid jumps like:
+
+        PENDING → DELIVERED ❌
+
+        DELIVERED → SHIPPED ❌
+
+        CANCELED → ANYTHING ❌
+
+        Means:
+
+         Key → current delivery status
+
+         Value → list of statuses you’re allowed to move to next
+     */
+    const allowedTransitions: Record<
+      OrderDeliveryStatus,
+      OrderDeliveryStatus[]
+    > = {
+      PENDING: [OrderDeliveryStatus.CONFIRMED, OrderDeliveryStatus.CANCELED],
+      CONFIRMED: [OrderDeliveryStatus.PREPARING, OrderDeliveryStatus.CANCELED],
+      PREPARING: [OrderDeliveryStatus.SHIPPED],
+      SHIPPED: [
+        OrderDeliveryStatus.OUT_FOR_DELIVERY,
+        OrderDeliveryStatus.FAILED,
+      ],
+      OUT_FOR_DELIVERY: [
+        OrderDeliveryStatus.DELIVERED,
+        OrderDeliveryStatus.FAILED,
+      ],
+      FAILED: [OrderDeliveryStatus.RETURNED],
+      RETURNED: [],
+      DELIVERED: [],
+      CANCELED: [],
+    };
+
+    const currentStatus = order.deliveryStatus;
+
+    if (currentStatus && !allowedTransitions[currentStatus]?.includes(status)) {
+      throw new BadRequestException(
+        getMessage('order_invalidDeliveryStatusTransition', lang),
+      );
+    }
+
+    order.deliveryStatus = status;
+
+    if (status === OrderDeliveryStatus.DELIVERED) {
+      order.isDelivered = true;
+      order.deliveredAt = new Date();
+    } else {
+      order.isDelivered = false;
+      order.deliveredAt = null;
+    }
+
+    order.updatedBy = requestingUser.userId;
+    order.updatedAt = new Date();
+    order.isUpdated = true;
+
+    await order.save();
+
+    if (
+      status === OrderDeliveryStatus.SHIPPED ||
+      status === OrderDeliveryStatus.OUT_FOR_DELIVERY ||
+      status === OrderDeliveryStatus.DELIVERED ||
+      status === OrderDeliveryStatus.FAILED ||
+      status === OrderDeliveryStatus.CANCELED ||
+      status === OrderDeliveryStatus.RETURNED
+    ) {
+      this.sendDeliveryEmailTemplate({ status, user: requestingUser, order });
+    }
+
+    return {
+      isSuccess: true,
+      message: getMessage('order_deliveryStatusUpdatedSuccessfully', lang),
+      data: order,
+    };
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   }
 
   async changePaidStatus(
@@ -148,9 +450,28 @@ export class OrderService {
       throw new BadRequestException(getMessage('order_orderNotFound', lang));
     }
 
+<<<<<<< HEAD
     isStatusPaid
       ? (order.paymentStatus = PaymentStatus.PAID)
       : (order.paymentStatus = PaymentStatus.PENDING);
+=======
+    if (order.isDelivered) {
+      throw new BadRequestException(getMessage('order_deliveredOrder', lang));
+    }
+
+    if (order.deliveryStatus === OrderDeliveryStatus.CANCELED) {
+      throw new BadRequestException(getMessage('order_canceledOrder', lang));
+    }
+
+    if (isStatusPaid) {
+      order.paymentStatus = PaymentStatus.PAID;
+      order.isPaid = true;
+      order.paidAt = new Date();
+    } else {
+      order.isPaid = false;
+      order.paymentStatus = status;
+    }
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
     order.updatedBy = requestingUser.userId;
     order.updatedAt = new Date();
@@ -163,7 +484,11 @@ export class OrderService {
       message: getMessage(
         isStatusPaid
           ? 'order_orderMarkedPaidSuccessfully'
+<<<<<<< HEAD
           : 'order_orderMarkedUnPaidSuccessfully',
+=======
+          : 'order_orderPaymentStatusChanged',
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
         lang,
       ),
       data: order,
@@ -248,6 +573,276 @@ export class OrderService {
     };
   }
 
+<<<<<<< HEAD
+=======
+  async getMyOrders(
+    requestingUser: any,
+    query: GetMyOrdersQueryDto,
+    param: GetMyOrdersParamDto,
+  ): Promise<DataListResponse<Order>> {
+    const {
+      lang = 'en',
+      limit = 10,
+      lastId,
+      search,
+      amountMin,
+      amountMax,
+      paymentStatus,
+      paymentMethod,
+      createdAfter,
+      createdBefore,
+      updatedAfter,
+      updatedBefore,
+    } = query;
+    const { uid } = param;
+
+    validateSameUserAccess(
+      requestingUser?.userId?.toString(),
+      uid?.toString(),
+      lang,
+    );
+    validateUserRoleAccess(requestingUser, lang);
+
+    const dbQuery: any = { isDeleted: false, userId: uid };
+
+    if (lastId) {
+      dbQuery._id = { $lt: new Types.ObjectId(lastId) };
+    }
+
+    if (search) {
+      const searchRegex = new RegExp(search, 'i');
+      dbQuery.$or = [
+        { transactionId: searchRegex },
+        { merchantReference: searchRegex },
+        {
+          _id: Types.ObjectId.isValid(search)
+            ? new Types.ObjectId(search)
+            : undefined,
+        },
+      ].filter(Boolean);
+    }
+
+    /*
+    The issue is that _id (or userId) should only be added to $or when the search value is a valid ObjectId. Putting undefined inside $or is risky and unclear.
+
+Here’s the clean, safe, and idiomatic MongoDB/Mongoose way to handle it.
+
+✅ Correct & clean implementation
+if (search) {
+  const searchRegex = new RegExp(search, 'i');
+
+  const orConditions: any[] = [
+    { transactionId: searchRegex },
+    { merchantReference: searchRegex },
+    { email: searchRegex },
+  ];
+
+  // Handle ObjectId search (_id or userId)
+  if (Types.ObjectId.isValid(search)) {
+    orConditions.push({ userId: new Types.ObjectId(search) });
+    // or if you want order _id:
+    // orConditions.push({ _id: new Types.ObjectId(search) });
+  }
+
+  dbQuery.$or = orConditions;
+}
+
+    */
+
+    // Filter by amount range
+    if (amountMin !== undefined || amountMax !== undefined) {
+      dbQuery.amount = {};
+      if (amountMin !== undefined) dbQuery.amount.$gte = Number(amountMin);
+      if (amountMax !== undefined) dbQuery.amount.$lte = Number(amountMax);
+    }
+
+    // Filter by paymentStatus
+    if (paymentStatus) {
+      dbQuery.paymentStatus = paymentStatus;
+    }
+
+    // Filter by paymentMethod
+    if (paymentMethod) {
+      dbQuery.paymentMethod = paymentMethod;
+    }
+
+    // Filter by creation time
+    if (createdAfter || createdBefore) {
+      dbQuery.createdAt = {};
+      if (createdAfter) dbQuery.createdAt.$gte = new Date(createdAfter);
+      if (createdBefore) dbQuery.createdAt.$lte = new Date(createdBefore);
+    }
+
+    // Filter by update time
+    if (updatedAfter || updatedBefore) {
+      dbQuery.updatedAt = {};
+      if (updatedAfter) dbQuery.updatedAt.$gte = new Date(updatedAfter);
+      if (updatedBefore) dbQuery.updatedAt.$lte = new Date(updatedBefore);
+    }
+
+    const orders = await this.orderModel
+      .find(dbQuery)
+      .sort({ _id: -1 })
+      .limit(Number(limit))
+      .populate('deletedBy', 'firstName lastName email _id')
+      .populate('restoredBy', 'firstName lastName email _id')
+      .populate('createdBy', 'firstName lastName email _id')
+      .populate('updatedBy', 'firstName lastName email _id')
+      .select('-__v')
+      .lean();
+
+    return {
+      isSuccess: true,
+      message: getMessage('order_ordersRetrievedSuccessfully', lang),
+      dataCount: orders.length,
+      data: orders,
+    };
+  }
+
+  async getMyOrderReturns(
+    requestingUser: any,
+    query: GetMyOrderReturnsQueryDto,
+    param: GetMyOrderReturnsParamDto,
+  ): Promise<DataListResponse<Order>> {
+    const {
+      lang = 'en',
+      limit = 10,
+      lastId,
+      search,
+      amountMin,
+      amountMax,
+      paymentStatus,
+      paymentMethod,
+      createdAfter,
+      createdBefore,
+      updatedAfter,
+      updatedBefore,
+    } = query;
+    const { uid } = param;
+
+    validateSameUserAccess(
+      requestingUser?.userId?.toString(),
+      uid?.toString(),
+      lang,
+    );
+    validateUserRoleAccess(requestingUser, lang);
+
+    const dbQuery: any = {
+      isDeleted: false,
+      userId: uid,
+      deliveryStatus: OrderDeliveryStatus.RETURNED,
+    };
+
+    if (lastId) {
+      dbQuery._id = { $lt: new Types.ObjectId(lastId) };
+    }
+
+    if (search) {
+      const searchRegex = new RegExp(search, 'i');
+      dbQuery.$or = [
+        { transactionId: searchRegex },
+        { merchantReference: searchRegex },
+        {
+          _id: Types.ObjectId.isValid(search)
+            ? new Types.ObjectId(search)
+            : undefined,
+        },
+      ].filter(Boolean);
+    }
+
+    // Filter by amount range
+    if (amountMin !== undefined || amountMax !== undefined) {
+      dbQuery.amount = {};
+      if (amountMin !== undefined) dbQuery.amount.$gte = Number(amountMin);
+      if (amountMax !== undefined) dbQuery.amount.$lte = Number(amountMax);
+    }
+
+    // Filter by paymentStatus
+    if (paymentStatus) {
+      dbQuery.paymentStatus = paymentStatus;
+    }
+
+    // Filter by paymentMethod
+    if (paymentMethod) {
+      dbQuery.paymentMethod = paymentMethod;
+    }
+
+    // Filter by creation time
+    if (createdAfter || createdBefore) {
+      dbQuery.createdAt = {};
+      if (createdAfter) dbQuery.createdAt.$gte = new Date(createdAfter);
+      if (createdBefore) dbQuery.createdAt.$lte = new Date(createdBefore);
+    }
+
+    // Filter by update time
+    if (updatedAfter || updatedBefore) {
+      dbQuery.updatedAt = {};
+      if (updatedAfter) dbQuery.updatedAt.$gte = new Date(updatedAfter);
+      if (updatedBefore) dbQuery.updatedAt.$lte = new Date(updatedBefore);
+    }
+
+    const orders = await this.orderModel
+      .find(dbQuery)
+      .sort({ _id: -1 })
+      .limit(Number(limit))
+      .populate('deletedBy', 'firstName lastName email _id')
+      .populate('restoredBy', 'firstName lastName email _id')
+      .populate('createdBy', 'firstName lastName email _id')
+      .populate('updatedBy', 'firstName lastName email _id')
+      .select('-__v')
+      .lean();
+
+    return {
+      isSuccess: true,
+      message: getMessage('order_ordersReturnsRetrieved', lang),
+      dataCount: orders.length,
+      data: orders,
+    };
+  }
+
+  async getMyOrder(
+    requestingUser: any,
+    query: GetMyOrderQueryDto,
+    param: GetMyOrderParamDto,
+  ): Promise<DataResponse<Order>> {
+    const { oid, uid } = param;
+    const { lang } = query;
+
+    validateSameUserAccess(
+      requestingUser?.userId?.toString(),
+      uid?.toString(),
+      lang,
+    );
+    validateUserRoleAccess(requestingUser, lang);
+
+    if (!Types.ObjectId.isValid(oid)) {
+      throw new NotFoundException(getMessage('order_invalidId', lang));
+    }
+
+    const order = await this.orderModel
+      .findById(oid)
+      .populate('deletedBy', 'firstName lastName email _id')
+      .populate('restoredBy', 'firstName lastName email _id')
+      .populate('createdBy', 'firstName lastName email _id')
+      .populate('updatedBy', 'firstName lastName email _id')
+      .populate({
+        path: 'items.productId',
+        select: 'name currency ratings description mainImage',
+      })
+      .lean();
+
+    if (!order) {
+      throw new NotFoundException(getMessage('order_notFound', lang));
+    }
+
+    return {
+      isSuccess: true,
+      message: getMessage('order_orderRetrieved', lang),
+      data: order,
+    };
+  }
+
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   async getAll(
     requestingUser: any,
     params: GetOrdersQueryDto,
@@ -260,6 +855,10 @@ export class OrderService {
       amountMin,
       amountMax,
       paymentStatus,
+<<<<<<< HEAD
+=======
+      deliveryStatus,
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       paymentMethod,
       createdAfter,
       createdBefore,
@@ -298,6 +897,14 @@ export class OrderService {
       query.paymentStatus = paymentStatus;
     }
 
+<<<<<<< HEAD
+=======
+    // Filter by deliveryStatus
+    if (deliveryStatus) {
+      query.deliveryStatus = deliveryStatus;
+    }
+
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     // Filter by paymentMethod
     if (paymentMethod) {
       query.paymentMethod = paymentMethod;
@@ -317,8 +924,11 @@ export class OrderService {
       if (updatedBefore) query.updatedAt.$lte = new Date(updatedBefore);
     }
 
+<<<<<<< HEAD
     console.log({ query });
 
+=======
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     const orders = await this.orderModel
       .find(query)
       .sort({ _id: -1 })
@@ -434,7 +1044,11 @@ export class OrderService {
   private async generateExcel(
     orders: any[],
     filename: string,
+<<<<<<< HEAD
     dateRange: string,
+=======
+    _dateRange: string,
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     res: Response,
   ): Promise<void> {
     const workbook = new ExcelJS.Workbook();
@@ -578,7 +1192,11 @@ export class OrderService {
         `${order.amount} ${order.currency}`,
         order.paymentStatus,
         order.paymentMethod,
+<<<<<<< HEAD
         new Date(order.createdAt).toLocaleString("en-US", { hour12: true }),
+=======
+        new Date(order.createdAt).toLocaleString('en-US', { hour12: true }),
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       ];
 
       row.forEach((cell, i) => {
