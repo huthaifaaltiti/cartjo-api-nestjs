@@ -51,17 +51,49 @@ import { GetMyOrderParamDto, GetMyOrderQueryDto } from './dto/getMyOrder.dto';
 import { ChangeDeliveryStatusBodyDto } from './dto/deliveryStatus.dto';
 import { OrderDeliveryStatus } from 'src/enums/orderDeliveryStatus.enum';
 import { User } from 'src/schemas/user.schema';
-import { GetMyOrderReturnsParamDto, GetMyOrderReturnsQueryDto } from './dto/getMyOrderReturns.dto';
+import {
+  GetMyOrderReturnsParamDto,
+  GetMyOrderReturnsQueryDto,
+} from './dto/getMyOrderReturns.dto';
+import { Product, ProductDocument } from 'src/schemas/product.schema';
 
 @Injectable()
 export class OrderService {
   constructor(
     @InjectModel(Order.name)
     private readonly orderModel: Model<OrderDocument>,
+
     @InjectModel(Cart.name)
     private readonly cartModel: Model<CartDocument>,
+
     private readonly emailService: EmailService,
+
+    @InjectModel(Product.name)
+    private readonly productModel: Model<ProductDocument>,
   ) {}
+
+  private async incrementProductsSellCount(
+    items: {
+      productId: Types.ObjectId;
+      quantity: number;
+    }[],
+  ) {
+    if (!items.length) return;
+
+    const bulkOps = items.map(item => ({
+      updateOne: {
+        filter: { _id: item.productId },
+        update: {
+          $inc: {
+            sellCount: item.quantity,
+            availableCount: -item.quantity, // ✅ optional but recommended
+          },
+        },
+      },
+    }));
+
+    await this.productModel.bulkWrite(bulkOps);
+  }
 
   private sendDeliveryEmailTemplate({
     status,
@@ -156,6 +188,14 @@ export class OrderService {
         ? PaymentStatus.PAID
         : PaymentStatus.PENDING;
 
+    for (const item of cart.items) {
+      const product = await this.productModel.findById(item.productId).lean();
+
+      if (!product || product.availableCount < item.quantity) {
+        throw new BadRequestException(`Product "${item.name}" is out of stock`);
+      }
+    }
+
     const order = await this.orderModel.create({
       userId: user?.userId,
       createdBy: user?.userId,
@@ -174,6 +214,14 @@ export class OrderService {
       merchantReference,
       shippingAddress,
     });
+
+    /** ✅ Increment sell count */
+    await this.incrementProductsSellCount(
+      cart.items.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity,
+      })),
+    );
 
     if (user?.email && order) {
       const { amount, _id, merchantReference, transactionId } = order;

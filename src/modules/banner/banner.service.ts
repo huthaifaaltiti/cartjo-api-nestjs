@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { MediaService } from '../media/media.service';
 import { Banner, BannerDocument } from 'src/schemas/banner.schema';
 import {
@@ -27,6 +27,7 @@ import { DeleteDto } from './dto/delete.dto';
 import { UnDeleteDto } from './dto/unDelete.dto';
 import { MediaPreview } from 'src/schemas/common.schema';
 import { MEDIA_CONFIG } from 'src/configs/media.config';
+import { CRON_JOBS } from 'src/configs/cron.config';
 
 @Injectable()
 export class BannerService {
@@ -40,7 +41,7 @@ export class BannerService {
     this.defaultBannerId = process.env.DEFAULT_BANNER_ID;
   }
 
-  @Cron(CronExpression.EVERY_2_HOURS)
+  @Cron(CRON_JOBS.BANNER.DEACTIVATE_EXPIRED_BANNERS)
   async deactivateExpiredBanners() {
     const now = new Date();
 

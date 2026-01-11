@@ -1,10 +1,12 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Category, CategorySchema } from 'src/schemas/category.schema';
 import { CategoryController } from './category.controller';
 import { CategoryService } from './category.service';
 import { MediaModule } from '../media/media.module';
 import { JwtModule } from '../jwt/jwt.module';
+import { SubCategoryModule } from '../subCategory/subCategory.module';
+
 
 @Module({
   imports: [
@@ -13,6 +15,7 @@ import { JwtModule } from '../jwt/jwt.module';
     ]),
     MediaModule,
     JwtModule,
+    forwardRef(() => SubCategoryModule),
   ],
   providers: [CategoryService],
   controllers: [CategoryController],

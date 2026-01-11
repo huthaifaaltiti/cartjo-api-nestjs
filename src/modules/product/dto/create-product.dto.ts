@@ -1,5 +1,6 @@
 import { Type, Transform } from 'class-transformer';
 import {
+  IsArray,
   IsEnum,
   IsMongoId,
   IsNotEmpty,
@@ -12,6 +13,7 @@ import {
 } from 'class-validator';
 
 import { Currency } from 'src/enums/currency.enum';
+import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
 import { Locale } from 'src/types/Locale';
 
 export class CreateProductDto {
@@ -81,8 +83,9 @@ export class CreateProductDto {
   totalAmountCount?: string;
 
   @IsNotEmpty()
-  @IsString()
-  typeHint: string;
+  @IsArray()
+  @IsEnum(SystemTypeHints, { each: true })
+  typeHint: SystemTypeHints[];
 
   @IsNotEmpty()
   @IsMongoId()
