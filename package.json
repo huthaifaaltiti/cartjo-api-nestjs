@@ -17,12 +17,8 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-<<<<<<< HEAD
-    "test:e2e": "jest --config ./test/jest-e2e.json"
-=======
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "migrate": "ts-node -r tsconfig-paths/register src/migrate.ts"
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   },
   "dependencies": {
     "@nestjs/bull": "^11.0.4",
@@ -37,10 +33,7 @@
     "@nestjs/schedule": "^6.0.0",
     "@nestjs/serve-static": "^5.0.3",
     "@nestjs/swagger": "^11.2.3",
-<<<<<<< HEAD
-=======
     "@sendgrid/mail": "^8.1.6",
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     "@supabase/supabase-js": "^2.50.2",
     "axios": "^1.13.1",
     "bcrypt": "^5.1.1",
