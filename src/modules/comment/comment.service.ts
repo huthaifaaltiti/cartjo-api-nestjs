@@ -1,8 +1,4 @@
 import {
-<<<<<<< HEAD
-  BadRequestException,
-=======
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   Injectable,
   NotFoundException,
   ForbiddenException,
@@ -26,10 +22,6 @@ import {
 import { GetCommentParamDto, GetCommentQueryDto } from './dto/get-one.dto';
 import { DeleteCommentBodyDto } from './dto/delete.dto';
 import { UnDeleteCommentBodyDto } from './dto/un-delete.dto';
-<<<<<<< HEAD
-import { UserRole } from 'src/enums/user-role.enum';
-=======
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 import { ALLOWED_AUTHENTICATED_ROLES } from 'src/common/constants/roles.constants';
 
 @Injectable()

@@ -1,9 +1,5 @@
 import { FetchError } from 'src/types/common';
-<<<<<<< HEAD
-import { Locale } from 'src/types/Locale';
-=======
 // import { Locale } from 'src/types/Locale';
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
 /**
  * General fetch wrapper
@@ -16,11 +12,7 @@ import { Locale } from 'src/types/Locale';
 export async function fetcher<T = any>(
   url: string | URL,
   options?: RequestInit,
-<<<<<<< HEAD
-  lang?: string | Locale,
-=======
   // lang?: string | Locale,
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 ): Promise<T> {
   const resp = await fetch(url, options);
 

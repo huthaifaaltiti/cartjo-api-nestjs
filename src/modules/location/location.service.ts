@@ -14,12 +14,8 @@ import { DeleteLocationBodyDto } from './dto/delete-location-body.dto';
 import { Modules } from 'src/enums/appModules.enum';
 import { Locale } from 'src/types/Locale';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
-<<<<<<< HEAD
-import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
-=======
 import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
 import { MEDIA_CONFIG } from 'src/configs/media.config';
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
 @Injectable()
 export class LocationService {
@@ -46,12 +42,8 @@ export class LocationService {
       (file?.mimetype?.startsWith('application/') &&
         file?.mimetype?.includes('sheet'))
     ) {
-<<<<<<< HEAD
-      fileSizeValidator(file, MAX_FILE_SIZES.LOCATION_EXCEL_FILE, lang);
-=======
        fileSizeValidator(file, MEDIA_CONFIG.LOCATION.BULK_UPLOAD_FILE.MAX_SIZE, lang);
        fileTypeValidator(file, MEDIA_CONFIG.LOCATION.BULK_UPLOAD_FILE.ALLOWED_TYPES, lang);
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
       const uploadResult = await this.mediaService.handleFileUpload(
         file,

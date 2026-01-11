@@ -3,21 +3,14 @@ import {
   BadRequestException,
   NotFoundException,
   ForbiddenException,
-<<<<<<< HEAD
-=======
   Inject,
   forwardRef,
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
-<<<<<<< HEAD
-import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
-=======
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 import { MediaService } from '../media/media.service';
 import {
   SubCategory,
@@ -41,11 +34,8 @@ import slugify from 'slugify';
 import { revalidateTag } from 'src/common/utils/revalidate';
 import { REVALIDATION_TAGS } from 'src/common/constants/revalidation-tags';
 import { RevalidationService } from '../revalidation/revalidation.service';
-<<<<<<< HEAD
-=======
 import { MEDIA_CONFIG } from 'src/configs/media.config';
 import { ProductService } from '../product/product.service';
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
 @Injectable()
 export class SubCategoryService {
@@ -53,17 +43,10 @@ export class SubCategoryService {
     @InjectModel(SubCategory.name)
     private subCategoryModel: Model<SubCategoryDocument>,
     private mediaService: MediaService,
-<<<<<<< HEAD
-
-    @InjectModel(Category.name)
-    private categoryModel: Model<CategoryDocument>,
-
-=======
     @Inject(forwardRef(() => ProductService))
     private productService: ProductService,
     @InjectModel(Category.name)
     private categoryModel: Model<CategoryDocument>,
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     private revalidationService: RevalidationService,
   ) {}
 
@@ -105,17 +88,12 @@ export class SubCategoryService {
         throw new ForbiddenException(getMessage(requiredMsg, lang));
       }
 
-<<<<<<< HEAD
-      fileSizeValidator(file, MAX_FILE_SIZES.BANNER_IMAGE, lang);
-      fileTypeValidator(file, ['png', 'jpeg', 'webp', 'avif'], lang);
-=======
       fileSizeValidator(file, MEDIA_CONFIG.SUB_CATEGORY.IMAGE.MAX_SIZE, lang);
       fileTypeValidator(
         file,
         MEDIA_CONFIG.SUB_CATEGORY.IMAGE.ALLOWED_TYPES,
         lang,
       );
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
       const result = await this.mediaService.handleFileUpload(
         file,
@@ -229,17 +207,12 @@ export class SubCategoryService {
         throw new ForbiddenException(getMessage(requiredMsg, lang));
       }
 
-<<<<<<< HEAD
-      fileSizeValidator(file, MAX_FILE_SIZES.BANNER_IMAGE, lang);
-      fileTypeValidator(file, ['webp', 'gif', 'avif'], lang);
-=======
       fileSizeValidator(file, MEDIA_CONFIG.SUB_CATEGORY.IMAGE.MAX_SIZE, lang);
       fileTypeValidator(
         file,
         MEDIA_CONFIG.SUB_CATEGORY.IMAGE.ALLOWED_TYPES,
         lang,
       );
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
       const result = await this.mediaService.handleFileUpload(
         file,
@@ -282,17 +255,10 @@ export class SubCategoryService {
       updateData.media = {
         ar: media_ar
           ? { ...media_ar, id: new mongoose.Types.ObjectId(media_ar.id) }
-<<<<<<< HEAD
-          : updateData?.media?.ar,
-        en: media_en
-          ? { ...media_en, id: new mongoose.Types.ObjectId(media_en.id) }
-          : updateData?.media?.en,
-=======
           : subCategoryToUpdate?.media?.ar,
         en: media_en
           ? { ...media_en, id: new mongoose.Types.ObjectId(media_en.id) }
           : subCategoryToUpdate?.media?.en,
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       };
     }
 
@@ -420,8 +386,6 @@ export class SubCategoryService {
     }
 
     if (isActive) {
-<<<<<<< HEAD
-=======
       const parentCategory = await this.categoryModel.findById(
         subCategory.categoryId,
         { isActive: 1 },
@@ -436,7 +400,6 @@ export class SubCategoryService {
         );
       }
 
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       subCategory.isDeleted = false;
       subCategory.deletedAt = null;
     }
@@ -451,14 +414,11 @@ export class SubCategoryService {
       REVALIDATION_TAGS.ACTIVE_CATEGORIES,
     );
 
-<<<<<<< HEAD
-=======
     // If subcategory is deactivated → deactivate its products
     if (!isActive) {
       await this.productService.deactivateBySubCategory(id, requestingUser);
     }
 
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     return {
       isSuccess: true,
       message: getMessage(
@@ -543,8 +503,6 @@ export class SubCategoryService {
       data: subCategory,
     };
   }
-<<<<<<< HEAD
-=======
 
   async deactivateByCategory(
     categoryId: string,
@@ -583,5 +541,4 @@ export class SubCategoryService {
       requestingUser,
     );
   }
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 }

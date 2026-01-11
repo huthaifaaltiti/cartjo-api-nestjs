@@ -24,11 +24,6 @@ import { TypeHintConfigService } from '../typeHintConfig/typeHintConfig.service'
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
-<<<<<<< HEAD
-import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
-import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
-import { GetProductsQueryDto } from './dto/get-products.dto';
-=======
 import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
 import { GetProductsQueryDto } from './dto/get-products.dto';
 import { MEDIA_CONFIG } from 'src/configs/media.config';
@@ -49,24 +44,18 @@ import {
   SYSTEM_GENERATED_HINTS,
   SystemGeneratedHint,
 } from 'src/configs/typeHint.config';
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectModel(Product.name)
     private productModel: Model<ProductDocument>,
-<<<<<<< HEAD
-    private mediaService: MediaService,
-
-=======
 
     private mediaService: MediaService,
 
     @InjectModel(SubCategory.name)
     private subCategoryModel: Model<SubCategoryDocument>,
 
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     @InjectModel(Category.name)
     private categoryModel: Model<CategoryDocument>,
 
@@ -74,10 +63,6 @@ export class ProductService {
     private wishListModel: Model<WishListDocument>,
 
     private typeHintConfigService: TypeHintConfigService,
-<<<<<<< HEAD
-  ) {}
-
-=======
 
     @InjectModel(TypeHintConfig.name)
     private typeHintConfigModel: Model<TypeHintConfigDocument>,
@@ -112,7 +97,6 @@ export class ProductService {
     );
   }
 
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   async getAll(
     params: GetProductsQueryDto,
     userId?: mongoose.Types.ObjectId,
@@ -131,26 +115,16 @@ export class ProductService {
       createdFrom,
       createdTo,
       beforeNumOfDays,
-<<<<<<< HEAD
-      typeHint
-    } = params;
-
-    const query: any = {};
-=======
       typeHint,
     } = params;
 
     const query: any = {};
     const sort: any = { _id: -1 };
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
     if (lastId) {
       query._id = { $lt: new Types.ObjectId(lastId) };
     }
 
-<<<<<<< HEAD
-    if (typeHint) query.typeHint = typeHint;
-=======
     // ✅ CRITICAL FIX: System-generated hints (MOST_VIEWED, TRENDING)
     // should NOT filter by typeHint field - they only affect sorting
     const isSystemGeneratedHint = SYSTEM_GENERATED_HINTS.includes(
@@ -217,7 +191,6 @@ const products = await this.productModel
 
 ✅ MOST_VIEWED now truly means highest viewCount first
     */
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
     if (categoryId) {
       query.categoryId = new Types.ObjectId(categoryId);
@@ -272,11 +245,6 @@ const products = await this.productModel
       if (createdTo) query.createdAt.$lte = new Date(createdTo);
     }
 
-<<<<<<< HEAD
-    const products = await this.productModel
-      .find(query)
-      .sort({ _id: -1 }) // Sorting by .sort({ createdAt: -1 }) ensures most recent products appear first.
-=======
     // ✅ MOST_VIEWED: Filter active products and sort by viewCount
     if (typeHint === SystemTypeHints.MOST_VIEWED) {
       query.isActive = true;
@@ -299,7 +267,6 @@ const products = await this.productModel
       .find(query)
       // .sort({ _id: -1 }) // Sorting by .sort({ createdAt: -1 }) ensures most recent products appear first.
       .sort(sort)
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       .limit(Number(limit))
       .populate('deletedBy', 'firstName lastName email _id')
       .populate('unDeletedBy', 'firstName lastName email _id')
@@ -551,12 +518,9 @@ const products = await this.productModel
       );
     }
 
-<<<<<<< HEAD
-=======
     // 🔥 increment view BEFORE fetching
     await this.incrementView(id);
 
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     const product = await this.productModel
       .findById(id)
       .populate('deletedBy', 'firstName lastName email _id')
@@ -604,11 +568,7 @@ const products = await this.productModel
       currency,
       discountRate = 0,
       totalAmountCount = 0,
-<<<<<<< HEAD
-      typeHint,
-=======
       typeHint = [],
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       categoryId,
       subCategoryId,
       tags = [],
@@ -618,8 +578,6 @@ const products = await this.productModel
 
     validateUserRoleAccess(user, lang);
 
-<<<<<<< HEAD
-=======
     const rawTypeHint = typeHint;
     const typeHints: string[] = Array.isArray(rawTypeHint)
       ? rawTypeHint
@@ -635,7 +593,6 @@ const products = await this.productModel
       }
     }
 
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     const slug = slugify(name_en, { lower: true });
 
     const existing = await this.productModel.findOne({
@@ -678,16 +635,12 @@ const products = await this.productModel
     let mainImageUrl: string | undefined;
 
     if (mainImage) {
-<<<<<<< HEAD
-      fileSizeValidator(mainImage, MAX_FILE_SIZES.PRODUCT_IMAGE, lang);
-=======
       fileSizeValidator(mainImage, MEDIA_CONFIG.PRODUCT.IMAGE.MAX_SIZE, lang);
       fileTypeValidator(
         mainImage,
         MEDIA_CONFIG.PRODUCT.IMAGE.ALLOWED_TYPES,
         lang,
       );
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
       const mainUpload = await this.mediaService.handleFileUpload(
         mainImage,
@@ -701,31 +654,6 @@ const products = await this.productModel
       }
     }
 
-<<<<<<< HEAD
-    for (const img of images) {
-      fileSizeValidator(img, MAX_FILE_SIZES.PRODUCT_IMAGE, lang);
-
-      const upload = await this.mediaService.handleFileUpload(
-        img,
-        { userId: user?.userId },
-        lang,
-        Modules.PRODUCT,
-      );
-
-      if (upload?.isSuccess) {
-        imageUrls.push(upload.fileUrl);
-        mediaListIds.push(upload.mediaId);
-      }
-    }
-
-    const typeHintKeys = await this.typeHintConfigService.getList(user, {
-      lang: dto.lang,
-    });
-
-    if (!typeHintKeys.data.includes(typeHint)) {
-      throw new BadRequestException(
-        getMessage('products_invalidTypeHint', dto.lang),
-=======
     if (Array.isArray(images) && images.length > 0) {
       for (const img of images) {
         fileSizeValidator(img, MEDIA_CONFIG.PRODUCT.IMAGE.MAX_SIZE, lang);
@@ -759,7 +687,6 @@ const products = await this.productModel
     if (!isValid) {
       throw new BadRequestException(
         getMessage('products_invalidTypeHint', lang),
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       );
     }
 
@@ -773,11 +700,7 @@ const products = await this.productModel
       availableCount: totalAmountCount,
       sellCount: 0,
       favoriteCount: 0,
-<<<<<<< HEAD
-      typeHint,
-=======
       typeHint: typeHints.length ? typeHints : [SystemTypeHints.STATIC],
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       slug,
       tags,
       categoryId,
@@ -827,8 +750,6 @@ const products = await this.productModel
 
     validateUserRoleAccess(user, lang);
 
-<<<<<<< HEAD
-=======
     // normalize typeHint
     const rawTypeHint = typeHint;
     const typeHints: string[] = Array.isArray(rawTypeHint)
@@ -845,7 +766,6 @@ const products = await this.productModel
       }
     }
 
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     const product = await this.productModel.findById(id);
     if (!product) {
       throw new BadRequestException(
@@ -891,10 +811,6 @@ const products = await this.productModel
       product.name.en = name_en;
       product.slug = slug;
     }
-<<<<<<< HEAD
-
-=======
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     if (description_ar) product.description.ar = description_ar;
     if (description_en) product.description.en = description_en;
     if (price !== undefined) product.price = Number(price);
@@ -904,14 +820,6 @@ const products = await this.productModel
       product.totalAmountCount = Number(totalAmountCount);
       product.availableCount = Number(totalAmountCount);
     }
-<<<<<<< HEAD
-    if (typeHint) {
-      const typeHintKeys = await this.typeHintConfigService.getList(user, {
-        lang,
-      });
-
-      if (!typeHintKeys.data.includes(typeHint)) {
-=======
     // if (typeHint) {
     //   const typeHintKeys = await this.typeHintConfigService.getList(user, {
     //     lang,
@@ -939,19 +847,14 @@ const products = await this.productModel
       const isValid = typeHints.every(th => allowedTypeHints.includes(th));
 
       if (!isValid) {
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
         throw new BadRequestException(
           getMessage('products_invalidTypeHint', lang),
         );
       }
 
-<<<<<<< HEAD
-      product.typeHint = typeHint;
-=======
       product.typeHint = typeHints.length
         ? typeHints
         : [SystemTypeHints.STATIC];
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     }
 
     // Handle ObjectId assignments - use direct assignment, Mongoose will handle conversion
@@ -967,16 +870,12 @@ const products = await this.productModel
 
     // Handle main image upload
     if (mainImage) {
-<<<<<<< HEAD
-      fileSizeValidator(mainImage, MAX_FILE_SIZES.PRODUCT_IMAGE, lang);
-=======
       fileSizeValidator(mainImage, MEDIA_CONFIG.PRODUCT.IMAGE.MAX_SIZE, lang);
       fileTypeValidator(
         mainImage,
         MEDIA_CONFIG.PRODUCT.IMAGE.ALLOWED_TYPES,
         lang,
       );
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
       const mainUpload = await this.mediaService.handleFileUpload(
         mainImage,
@@ -996,12 +895,8 @@ const products = await this.productModel
       const newMediaListIds: string[] = [];
 
       for (const img of images) {
-<<<<<<< HEAD
-        fileSizeValidator(img, MAX_FILE_SIZES.PRODUCT_IMAGE, lang);
-=======
         fileSizeValidator(img, MEDIA_CONFIG.PRODUCT.IMAGE.MAX_SIZE, lang);
         fileTypeValidator(img, MEDIA_CONFIG.PRODUCT.IMAGE.ALLOWED_TYPES, lang);
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
         const upload = await this.mediaService.handleFileUpload(
           img,
@@ -1047,8 +942,6 @@ const products = await this.productModel
     }
 
     if (isActive) {
-<<<<<<< HEAD
-=======
       // ✅ 1. CHECK PARENT TYPE HINT STATUS
       const typeHintConfig = await this.typeHintConfigModel.findOne({
         key: product.typeHint,
@@ -1091,7 +984,6 @@ const products = await this.productModel
         );
       }
 
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       product.isDeleted = false;
       product.deletedAt = null;
     }
@@ -1172,8 +1064,6 @@ const products = await this.productModel
       message: getMessage('products_productUnDeletedSuccessfully', lang),
     };
   }
-<<<<<<< HEAD
-=======
 
   async deactivateBySubCategory(
     subCategoryId: string,
@@ -1234,5 +1124,4 @@ const products = await this.productModel
       },
     );
   }
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 }

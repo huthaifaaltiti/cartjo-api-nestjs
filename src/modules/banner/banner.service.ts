@@ -6,15 +6,8 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
-<<<<<<< HEAD
-import { Cron, CronExpression } from '@nestjs/schedule';
-
-import { MediaService } from '../media/media.service';
-
-=======
 import { Cron } from '@nestjs/schedule';
 import { MediaService } from '../media/media.service';
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 import { Banner, BannerDocument } from 'src/schemas/banner.schema';
 import {
   BaseResponse,
@@ -25,27 +18,16 @@ import { Locale } from 'src/types/Locale';
 import { CreateBannerDto } from './dto/create.dto';
 import { Modules } from 'src/enums/appModules.enum';
 import { activateDefaultIfAllInactive } from 'src/common/functions/helpers/activateDefaultIfAllInactive.helper';
-<<<<<<< HEAD
-
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
-import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
-=======
-import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
-import { getMessage } from 'src/common/utils/translator';
-import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
 import { UpdateBannerDto } from './dto/update.dto';
 import { DeleteDto } from './dto/delete.dto';
 import { UnDeleteDto } from './dto/unDelete.dto';
 import { MediaPreview } from 'src/schemas/common.schema';
-<<<<<<< HEAD
-=======
 import { MEDIA_CONFIG } from 'src/configs/media.config';
 import { CRON_JOBS } from 'src/configs/cron.config';
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
 @Injectable()
 export class BannerService {
@@ -59,11 +41,7 @@ export class BannerService {
     this.defaultBannerId = process.env.DEFAULT_BANNER_ID;
   }
 
-<<<<<<< HEAD
-  @Cron(CronExpression.EVERY_2_HOURS)
-=======
   @Cron(CRON_JOBS.BANNER.DEACTIVATE_EXPIRED_BANNERS)
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   async deactivateExpiredBanners() {
     const now = new Date();
 
@@ -247,15 +225,9 @@ export class BannerService {
         throw new ForbiddenException(getMessage(requiredMsg, lang));
       }
 
-<<<<<<< HEAD
-      fileSizeValidator(file, MAX_FILE_SIZES.BANNER_IMAGE, lang);
-      fileTypeValidator(file, ['webp', 'gif', 'avif'], lang);
-
-=======
       fileSizeValidator(file, MEDIA_CONFIG.BANNER.IMAGE.MAX_SIZE, lang);
       fileTypeValidator(file, MEDIA_CONFIG.BANNER.IMAGE.ALLOWED_TYPES, lang);
       
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       const result = await this.mediaService.handleFileUpload(
         file,
         { userId: requestingUser?.userId },
@@ -330,28 +302,6 @@ export class BannerService {
       }
     }
 
-<<<<<<< HEAD
-    // // ---------------- Conflict Check ----------------
-    // const checkConflict = async () => {
-    //   const $or: any[] = [];
-    //   if (title_ar && title_ar !== bannerToUpdate.title?.ar)
-    //     $or.push({ 'title.ar': title_ar });
-    //   if (title_en && title_en !== bannerToUpdate.title?.en)
-    //     $or.push({ 'title.en': title_en });
-
-    //   if (
-    //     $or.length &&
-    //     (await this.bannerModel.findOne({ _id: { $ne: id }, $or }))
-    //   ) {
-    //     throw new BadRequestException(
-    //       getMessage('banner_bannerWithThisDetailsAlreadyExist', lang),
-    //     );
-    //   }
-    // };
-    // await checkConflict();
-
-=======
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     // ---------------- Helper for Upload ----------------
     const uploadMedia = async (
       file: Express.Multer.File,
@@ -361,13 +311,8 @@ export class BannerService {
         throw new ForbiddenException(getMessage(requiredMsg, lang));
       }
 
-<<<<<<< HEAD
-      fileSizeValidator(file, MAX_FILE_SIZES.BANNER_IMAGE, lang);
-      fileTypeValidator(file, ['webp', 'gif', 'avif'], lang);
-=======
       fileSizeValidator(file, MEDIA_CONFIG.BANNER.IMAGE.MAX_SIZE, lang);
       fileTypeValidator(file, MEDIA_CONFIG.BANNER.IMAGE.ALLOWED_TYPES, lang);
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
       const result = await this.mediaService.handleFileUpload(
         file,
@@ -383,35 +328,6 @@ export class BannerService {
       return { id: result.mediaId, url: result.fileUrl };
     };
 
-<<<<<<< HEAD
-    // const uploadMedia = async (
-    //   file: Express.Multer.File,
-    //   requiredMsg: string,
-    // ): Promise<MediaPreview | undefined> => {
-    //   if (!file) return undefined;
-
-    //   fileSizeValidator(file, MAX_FILE_SIZES.BANNER_IMAGE, lang);
-    //   fileTypeValidator(file, ['webp', 'gif'], lang);
-
-    //   const result = await this.mediaService.handleFileUpload(
-    //     file,
-    //     { userId: requestingUser?.userId },
-    //     lang,
-    //     Modules.BANNER,
-    //   );
-
-    //   if (!result?.isSuccess) {
-    //     throw new BadRequestException(getMessage('banner_uploadFailed', lang));
-    //   }
-
-    //   return {
-    //     id: new mongoose.Types.ObjectId(result.mediaId),
-    //     url: result.fileUrl,
-    //   };
-    // };
-
-=======
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     if (image_ar || image_en) {
       let media_ar: MediaPreview, media_en: MediaPreview;
 
@@ -433,22 +349,6 @@ export class BannerService {
       };
     }
 
-<<<<<<< HEAD
-    // // ---------------- Media Update ----------------
-    // if (image_ar || image_en) {
-    //   const [media_ar, media_en] = await Promise.all([
-    //     uploadMedia(image_ar, 'banner_shouldHasArImage'),
-    //     uploadMedia(image_en, 'banner_shouldHasEnImage'),
-    //   ]);
-
-    //   bannerToUpdate.media = {
-    //     ar: media_ar ?? bannerToUpdate.media?.ar,
-    //     en: media_en ?? bannerToUpdate.media?.en,
-    //   };
-    // }
-
-=======
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     if (title_ar || title_en) {
       bannerToUpdate.title = {
         ar: title_ar || bannerToUpdate?.title?.ar,
@@ -471,34 +371,6 @@ export class BannerService {
       bannerToUpdate.link = null;
     }
 
-<<<<<<< HEAD
-    // bannerToUpdate.withAction = !!withAction;
-    // if (bannerToUpdate.withAction) {
-    //   if (!link) {
-    //     throw new BadRequestException(
-    //       getMessage('banner_bannerWithActionShouldHasLink', lang),
-    //     );
-    //   }
-    //   bannerToUpdate.link = link;
-    // } else {
-    //   bannerToUpdate.link = null;
-    // }
-
-    if (startDate || endDate) {
-      bannerToUpdate.startDate =
-        new Date(startDate) || bannerToUpdate?.startDate;
-
-      bannerToUpdate.endDate = new Date(endDate) || bannerToUpdate?.endDate;
-    }
-
-    // // ---------------- Dates ----------------
-    // if (startDate) bannerToUpdate.startDate = new Date(startDate);
-    // if (endDate) bannerToUpdate.endDate = new Date(endDate);
-
-    // // ---------------- Update in DB ----------------
-    // bannerToUpdate.updatedBy = requestingUser?.userId;
-    // bannerToUpdate.updatedAt = new Date();
-=======
     if (startDate) {
       bannerToUpdate.startDate =
         new Date(startDate) ?? bannerToUpdate?.startDate;
@@ -509,7 +381,6 @@ export class BannerService {
     } else {
       bannerToUpdate.endDate = null;
     }
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
     const updateData: Partial<Banner> = {
       ...bannerToUpdate,

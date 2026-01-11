@@ -10,15 +10,12 @@ import {
   resetPasswordTemplate,
   userRegistrationTemplate,
   orderCreatedTemplate,
-<<<<<<< HEAD
-=======
   orderShippedTemplate,
   orderOutForDeliveryTemplate,
   orderDeliveredTemplate,
   orderDeliveryFailedTemplate,
   orderCanceledTemplate,
   orderReturnedTemplate,
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 } from './email-templates';
 
 @Injectable()
@@ -29,14 +26,6 @@ export class EmailTemplateSeeder {
   ) {}
 
   async seed() {
-<<<<<<< HEAD
-    await this.seedUserRegistration();
-    await this.seedPrivacyPolicyUpdate();
-    await this.seedResendVerificationEmail();
-    await this.seedResetPasswordEmail();
-    await this.seedPasswordResetSuccessEmail();
-    await this.seedOrderCreatedSuccessEmail();
-=======
     // App-Related
     await this.seedPrivacyPolicyUpdate();
 
@@ -55,7 +44,6 @@ export class EmailTemplateSeeder {
     await this.seedOrderDeliveryCanceledSuccessEmail();
     await this.seedOrderDeliveryCanceledSuccessEmail();
     await this.seedOrderDeliveryReturnedSuccessEmail();
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   }
 
   private async seedUserRegistration() {
@@ -124,11 +112,7 @@ export class EmailTemplateSeeder {
   }
 
   private async seedOrderCreatedSuccessEmail() {
-<<<<<<< HEAD
-    const name = EmailTemplates.ORDER_ORDER_CREATED;
-=======
     const name = EmailTemplates.ORDER_CREATED;
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     const exists = await this.templateModel.findOne({ name });
 
     if (exists) return Logger.log(`✅ "${name}" template already exists`);
@@ -140,8 +124,6 @@ export class EmailTemplateSeeder {
 
     Logger.log('✅ Order-created email template created (EN & AR)');
   }
-<<<<<<< HEAD
-=======
 
   private async seedOrderShippedSuccessEmail() {
     const name = EmailTemplates.ORDER_SHIPPED;
@@ -226,5 +208,4 @@ export class EmailTemplateSeeder {
 
     Logger.log('✅ Order-Delivery-Returned email template created (EN & AR)');
   }
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 }

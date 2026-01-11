@@ -17,10 +17,7 @@ import {
 import { Product, ProductDocument } from 'src/schemas/product.schema';
 import { Cart, CartDocument } from 'src/schemas/cart.schema';
 import { CartService } from '../cart/cart.service';
-<<<<<<< HEAD
-=======
 import { WEEKLY_SCORE_WEIGHTS } from 'src/configs/weeklyScoreWeights.config';
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
 @Injectable()
 export class WishListService {
@@ -181,9 +178,6 @@ export class WishListService {
     // Increment favoriteCount atomically
     await this.productModel.updateOne(
       { _id: productId },
-<<<<<<< HEAD
-      { $inc: { favoriteCount: 1 } },
-=======
       {
         $inc: {
           favoriteCount: 1,
@@ -191,7 +185,6 @@ export class WishListService {
           weeklyScore: WEEKLY_SCORE_WEIGHTS.favorite,
         },
       },
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     );
 
     return {
@@ -298,10 +291,6 @@ export class WishListService {
 
     // Decrement favoriteCount atomically, but not below zero
     await this.productModel.updateOne(
-<<<<<<< HEAD
-      { _id: productId, favoriteCount: { $gt: 0 } },
-      { $inc: { favoriteCount: -1 } },
-=======
       {
         _id: productId,
         favoriteCount: { $gt: 0 },
@@ -314,7 +303,6 @@ export class WishListService {
           weeklyScore: -WEEKLY_SCORE_WEIGHTS.favorite,
         },
       },
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     );
 
     return {

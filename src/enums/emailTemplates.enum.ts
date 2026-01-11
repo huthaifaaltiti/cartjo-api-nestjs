@@ -1,12 +1,4 @@
 export enum EmailTemplates {
-<<<<<<< HEAD
-  USER_REGISTRATION_CONFIRMATION = 'user-registration-confirmation',
-  PRIVACY_POLICY_UPDATE = 'privacy-policy-update',
-  RESEND_VERIFICATION_EMAIL = 'resend-verification-email',
-  RESET_PASSWORD_CODE = 'reset-password-code',
-  PASSWORD_RESET_SUCCESS = 'password-reset-success',
-  ORDER_ORDER_CREATED = 'order-order-created',
-=======
   // Authentication
   USER_REGISTRATION_CONFIRMATION = 'USER_REGISTRATION_CONFIRMATION',
   RESEND_VERIFICATION_EMAIL = 'RESEND_VERIFICATION_EMAIL',
@@ -24,5 +16,4 @@ export enum EmailTemplates {
   ORDER_DELIVERY_FAILED = 'ORDER_DELIVERY_FAILED',
   ORDER_CANCELED = 'ORDER_CANCELED',
   ORDER_RETURNED = 'ORDER_RETURNED',
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 }

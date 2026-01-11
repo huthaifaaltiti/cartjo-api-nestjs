@@ -1,11 +1,8 @@
 import {
   BadRequestException,
   ForbiddenException,
-<<<<<<< HEAD
-=======
   forwardRef,
   Inject,
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -28,18 +25,11 @@ import { Modules } from 'src/enums/appModules.enum';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
-<<<<<<< HEAD
-import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
-import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
-import { MediaPreview } from 'src/schemas/common.schema';
-import { GetActiveOnesQueryDto } from './dto/get-active-ones.dto';
-=======
 import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
 import { MediaPreview } from 'src/schemas/common.schema';
 import { GetActiveOnesQueryDto } from './dto/get-active-ones.dto';
 import { MEDIA_CONFIG } from 'src/configs/media.config';
 import { SubCategoryService } from '../subCategory/subCategory.service';
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
 @Injectable()
 export class CategoryService {
@@ -47,11 +37,8 @@ export class CategoryService {
     @InjectModel(Category.name)
     private categoryModel: Model<CategoryDocument>,
     private mediaService: MediaService,
-<<<<<<< HEAD
-=======
     @Inject(forwardRef(() => SubCategoryService))
     private subCategoryService: SubCategoryService,
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   ) {}
 
   async create(
@@ -84,13 +71,8 @@ export class CategoryService {
         throw new ForbiddenException(getMessage(requiredMsg, lang));
       }
 
-<<<<<<< HEAD
-      fileSizeValidator(file, MAX_FILE_SIZES.BANNER_IMAGE, lang);
-      fileTypeValidator(file, ['png', 'jpeg', 'webp', 'avif'], lang);
-=======
       fileSizeValidator(file, MEDIA_CONFIG.CATEGORY.IMAGE.MAX_SIZE, lang);
       fileTypeValidator(file, MEDIA_CONFIG.CATEGORY.IMAGE.ALLOWED_TYPES, lang);
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
       const result = await this.mediaService.handleFileUpload(
         file,
@@ -208,13 +190,8 @@ export class CategoryService {
         throw new ForbiddenException(getMessage(requiredMsg, lang));
       }
 
-<<<<<<< HEAD
-      fileSizeValidator(file, MAX_FILE_SIZES.BANNER_IMAGE, lang);
-      fileTypeValidator(file, ['webp', 'gif', 'avif'], lang);
-=======
       fileSizeValidator(file, MEDIA_CONFIG.CATEGORY.IMAGE.MAX_SIZE, lang);
       fileTypeValidator(file, MEDIA_CONFIG.CATEGORY.IMAGE.ALLOWED_TYPES, lang);
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
       const result = await this.mediaService.handleFileUpload(
         file,
@@ -230,28 +207,6 @@ export class CategoryService {
       return { id: result.mediaId, url: result.fileUrl };
     };
 
-<<<<<<< HEAD
-    // let mediaUrl: string | undefined = categoryToUpdate.media.url;
-    // let mediaId: string | undefined = categoryToUpdate.media.id;
-
-    // if (image && Object.keys(image).length > 0) {
-    //   fileSizeValidator(image, MAX_FILE_SIZES.CATEGORY_IMAGE, lang);
-
-    //   const result = await this.mediaService.handleFileUpload(
-    //     image,
-    //     { userId: requestingUser?.userId },
-    //     lang,
-    //     Modules.CATEGORY,
-    //   );
-
-    //   if (result?.isSuccess) {
-    //     mediaUrl = result.fileUrl;
-    //     mediaId = result.mediaId;
-    //   }
-    // }
-
-=======
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     const updateData: any = {
       updatedBy: requestingUser?.userId,
       updatedAt: new Date(),
@@ -277,22 +232,6 @@ export class CategoryService {
       updateData.media = {
         ar: media_ar
           ? { ...media_ar, id: new mongoose.Types.ObjectId(media_ar.id) }
-<<<<<<< HEAD
-          : updateData?.media?.ar,
-        en: media_en
-          ? { ...media_en, id: new mongoose.Types.ObjectId(media_en.id) }
-          : updateData?.media?.en,
-      };
-    }
-
-    // if (mediaUrl !== categoryToUpdate.media?.url) {
-    //   updateData.media = {
-    //     id: mediaId,
-    //     url: mediaUrl,
-    //   };
-    // }
-
-=======
           : categoryToUpdate?.media?.ar,
         en: media_en
           ? { ...media_en, id: new mongoose.Types.ObjectId(media_en.id) }
@@ -300,7 +239,6 @@ export class CategoryService {
       };
     }
 
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     if (name_ar || name_en) {
       updateData.name = {
         ar: name_ar || categoryToUpdate.name.ar,
@@ -308,11 +246,7 @@ export class CategoryService {
       };
     }
 
-<<<<<<< HEAD
-    updateData.slug = slug; // Always keep slug consistent
-=======
     updateData.slug = slug;
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
     const updatedCategory = await this.categoryModel.findByIdAndUpdate(
       id,
@@ -414,14 +348,11 @@ export class CategoryService {
 
     await category.save();
 
-<<<<<<< HEAD
-=======
     // If main category is deactivated → deactivate all subcategories
     if (!isActive && category.subCategories?.length) {
       await this.subCategoryService.deactivateByCategory(id, requestingUser);
     }
 
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     return {
       isSuccess: true,
       message: getMessage(

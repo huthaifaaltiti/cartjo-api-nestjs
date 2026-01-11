@@ -1,9 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
-<<<<<<< HEAD
-
-=======
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 import { TranslatedText } from 'src/types/TranslatedText.type';
 
 @Schema({ timestamps: true })
@@ -14,21 +10,6 @@ export class TypeHintConfig {
   @Prop({ type: Object, required: true })
   label: TranslatedText;
 
-<<<<<<< HEAD
-  @Prop({ type: String, required: true })
-  icon: string;
-
-  @Prop({ type: String })
-  colorFrom?: string;
-
-  @Prop({ type: String })
-  colorTo?: string;
-
-  @Prop({ type: String })
-  textColor?: string;
-
-=======
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   @Prop({ type: Number, min: 1, max: 10, default: 10 })
   priority?: number;
 
@@ -44,12 +25,9 @@ export class TypeHintConfig {
   @Prop({ default: false })
   isDeleted: boolean;
 
-<<<<<<< HEAD
-=======
   @Prop({ default: false })
   isSystem: boolean;
 
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   @Prop({ type: Date, default: null })
   deletedAt?: Date;
 

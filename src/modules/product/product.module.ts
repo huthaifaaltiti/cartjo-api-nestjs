@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { Module } from '@nestjs/common';
-=======
 import { forwardRef, Module } from '@nestjs/common';
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 import { MongooseModule } from '@nestjs/mongoose';
 import { Product, ProductSchema } from 'src/schemas/product.schema';
 import { Category, CategorySchema } from 'src/schemas/category.schema';
@@ -13,12 +9,9 @@ import { ProductController } from './product.controller';
 import { CategoryModule } from '../category/category.module';
 import { TypeHintConfigModule } from '../typeHintConfig/typeHintConfig.module';
 import { WishList, WishListSchema } from 'src/schemas/wishList.schema';
-<<<<<<< HEAD
-=======
 import { SubCategoryModule } from '../subCategory/subCategory.module';
 import { SubCategory, SubCategorySchema } from 'src/schemas/subCategory.schema';
 import { TypeHintConfig, TypeHintConfigSchema } from 'src/schemas/typeHintConfig.schema';
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
 @Module({
   imports: [
@@ -26,13 +19,6 @@ import { TypeHintConfig, TypeHintConfigSchema } from 'src/schemas/typeHintConfig
       { name: Product.name, schema: ProductSchema },
       { name: Category.name, schema: CategorySchema },
       { name: WishList.name, schema: WishListSchema },
-<<<<<<< HEAD
-    ]),
-    MediaModule,
-    JwtModule,
-    CategoryModule,
-    TypeHintConfigModule,
-=======
       { name: SubCategory.name, schema: SubCategorySchema },
       { name: TypeHintConfig.name, schema: TypeHintConfigSchema },
     ]),
@@ -41,7 +27,6 @@ import { TypeHintConfig, TypeHintConfigSchema } from 'src/schemas/typeHintConfig
     forwardRef(() => CategoryModule),
     forwardRef(() => TypeHintConfigModule),
     forwardRef(() => SubCategoryModule),
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   ],
   providers: [ProductService],
   controllers: [ProductController],

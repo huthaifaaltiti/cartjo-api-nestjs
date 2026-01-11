@@ -11,10 +11,6 @@ import { MongoError } from 'mongodb';
 import { getMessage } from 'src/common/utils/translator';
 import { generateUsername } from 'src/common/utils/generators';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
-<<<<<<< HEAD
-import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
-=======
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 import { RolePermissions } from 'src/common/constants/roles-permissions.constant';
 import { UserRole } from 'src/enums/user-role.enum';
 import { User, UserDocument } from 'src/schemas/user.schema';
@@ -34,13 +30,10 @@ import { EmailService } from '../email/email.service';
 import { EmailTemplates } from 'src/enums/emailTemplates.enum';
 import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
 import { BaseResponse } from 'src/types/service-response.type';
-<<<<<<< HEAD
-=======
 import { getAppUrl } from 'src/common/utils/getAppUrl';
 import commonEmailTemplateData from 'src/common/utils/commonEmailTemplateData';
 import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
 import { MEDIA_CONFIG } from 'src/configs/media.config';
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
 @Injectable()
 export class AuthService {
@@ -71,9 +64,6 @@ export class AuthService {
     let profilePicUrl: string | undefined = undefined;
 
     if (profilePic && Object.keys(profilePic).length > 0) {
-<<<<<<< HEAD
-      fileSizeValidator(profilePic, MAX_FILE_SIZES.USER_PROFILE_IMAGE, lang);
-=======
       fileSizeValidator(
         profilePic,
         MEDIA_CONFIG.USER.PROFILE_IMAGE.MAX_SIZE,
@@ -84,7 +74,6 @@ export class AuthService {
         MEDIA_CONFIG.USER.PROFILE_IMAGE.ALLOWED_TYPES,
         lang,
       );
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
       const result = await this.mediaService.handleFileUpload(
         profilePic,
@@ -173,21 +162,13 @@ export class AuthService {
       });
 
       if (user.email) {
-<<<<<<< HEAD
-        await this.emailService.sendTemplateEmail({
-=======
         this.emailService.sendTemplateEmail({
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
           to: user.email,
           templateName: EmailTemplates.USER_REGISTRATION_CONFIRMATION,
           templateData: {
             firstName: user.firstName,
-<<<<<<< HEAD
-            confirmationUrl: `${process.env.APP_URL}/verify-email?token=${emailVerificationToken}`,
-=======
             confirmationUrl: `${getAppUrl()}/verify-email?token=${emailVerificationToken}`,
             ...commonEmailTemplateData(),
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
           },
           prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
         });
@@ -213,10 +194,7 @@ export class AuthService {
         token,
       };
     } catch (err) {
-<<<<<<< HEAD
-=======
       console.log({ err });
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       if (err instanceof MongoError && err.code === 11000) {
         throw new BadRequestException(
           getMessage('users_userAlreadyExists', lang),
@@ -296,21 +274,13 @@ export class AuthService {
 
     await user.save();
 
-<<<<<<< HEAD
-    await this.emailService.sendTemplateEmail({
-=======
     this.emailService.sendTemplateEmail({
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       to: user.email,
       templateName: EmailTemplates.RESEND_VERIFICATION_EMAIL,
       templateData: {
         firstName: user.firstName,
-<<<<<<< HEAD
-        confirmationUrl: `${process.env.APP_URL}/verify-email?token=${emailVerificationToken}`,
-=======
         confirmationUrl: `${getAppUrl()}/verify-email?token=${emailVerificationToken}`,
         ...commonEmailTemplateData(),
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       },
       prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
     });
@@ -350,20 +320,13 @@ export class AuthService {
     await user.save();
 
     if (user.email) {
-<<<<<<< HEAD
-      await this.emailService.sendTemplateEmail({
-=======
       this.emailService.sendTemplateEmail({
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
         to: user.email,
         templateName: EmailTemplates.RESET_PASSWORD_CODE,
         templateData: {
           firstName: user.firstName,
           resetCode,
-<<<<<<< HEAD
-=======
           ...commonEmailTemplateData(),
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
         },
         prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
       });
@@ -463,21 +426,13 @@ export class AuthService {
     await user.save();
 
     if (user.email) {
-<<<<<<< HEAD
-      await this.emailService.sendTemplateEmail({
-=======
       this.emailService.sendTemplateEmail({
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
         to: user.email,
         templateName: EmailTemplates.PASSWORD_RESET_SUCCESS,
         templateData: {
           firstName: user.firstName,
-<<<<<<< HEAD
-          loginUrl: `${process.env.APP_URL}/auth`,
-=======
           loginUrl: `${getAppUrl()}/auth`,
           ...commonEmailTemplateData(),
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
         },
         prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
       });

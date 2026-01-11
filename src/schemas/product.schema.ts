@@ -2,10 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 
 import { Currency } from 'src/enums/currency.enum';
-<<<<<<< HEAD
-=======
 import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
 export type ProductDocument = Product & Document;
 
@@ -25,11 +22,7 @@ export class Product {
   @Prop({ required: true, type: TranslatedText })
   description: TranslatedText;
 
-<<<<<<< HEAD
-  @Prop({ isRequired: true, type: [String], default: [] })
-=======
   @Prop({ isRequired: false, type: [String], default: [] })
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   images: string[];
 
   @Prop({ type: [MongooseSchema.Types.ObjectId], ref: 'Media', default: null })
@@ -59,14 +52,6 @@ export class Product {
   @Prop({ default: 0 })
   availableCount: number;
 
-<<<<<<< HEAD
-  @Prop({ default: 0 })
-  sellCount: number;
-
-  @Prop({ default: 0 })
-  favoriteCount: number;
-
-=======
   @Prop({ default: 0, min: 0 })
   sellCount: number;
 
@@ -85,22 +70,16 @@ export class Product {
   @Prop({ default: 0 })
   weeklyScore: number;
 
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   @Prop({ default: false, required: false })
   isWishListed: boolean;
 
   @Prop({
     required: true,
-<<<<<<< HEAD
-  })
-  typeHint: string;
-=======
     type: [String],
     enum: Object.values(SystemTypeHints),
     default: [SystemTypeHints.STATIC],
   })
   typeHint: string[];
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
   @Prop({ type: [String], default: [] })
   tags: string[];
@@ -155,14 +134,10 @@ export class Product {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', default: null })
   unDeletedBy: MongooseSchema.Types.ObjectId;
 
-<<<<<<< HEAD
-  @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Comment' }], default: [] })
-=======
   @Prop({
     type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Comment' }],
     default: [],
   })
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   comments: MongooseSchema.Types.ObjectId[];
 }
 
