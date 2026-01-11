@@ -104,6 +104,7 @@
   "products_invalidTypeHint": "Invalid product's type-hint",
   "products_cannotActivateSubCategoryIsInactive": "Cannot activate when sub-category is inactive",
   "products_cannotActivateCategoryIsInactive": "Cannot activate when category is inactive",
+  "products_cannotAssignSystemGeneratedTypeHint": "Cannot assign system generated type-hint",
   "logo_logoAlreadyExists": "Logo already exists",
   "logo_logoCreatedSuccessfully": "Logo created successfully",
   "logo_logoNotFound": "Logo not found",

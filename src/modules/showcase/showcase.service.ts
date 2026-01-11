@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { getMessage } from 'src/common/utils/translator';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { TypeHintConfigService } from '../typeHintConfig/typeHintConfig.service';
@@ -28,6 +28,9 @@ import {
   TypeHintConfigDocument,
 } from 'src/schemas/typeHintConfig.schema';
 import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
+import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
+import { TYPE_HINT_THRESHOLDS } from 'src/configs/typeHint.config';
+import { CRON_JOBS } from 'src/configs/cron.config';
 
 export class ShowcaseService {
   constructor(
@@ -47,7 +50,7 @@ export class ShowcaseService {
     private typeHintConfigService: TypeHintConfigService,
   ) {}
 
-  @Cron(CronExpression.EVERY_2_HOURS)
+  @Cron(CRON_JOBS.SHOWCASE.CHECK_INACTIVE_TYPE_HINT)
   async checkInactiveTypeHints(): Promise<void> {
     const inactiveHints = await this.typeHintConfigModel
       .find({ isActive: false })
@@ -159,6 +162,171 @@ export class ShowcaseService {
     };
   }
 
+  // async getActiveOnes(
+  //   lang?: Locale,
+  //   limit: number = 3,
+  //   userId?: mongoose.Types.ObjectId,
+  // ): Promise<DataListResponse<ShowCase>> {
+  //   const now = new Date();
+
+  //   const findQuery = {
+  //     isActive: true,
+  //     isDeleted: false,
+  //     $or: [
+  //       { $and: [{ startDate: { $lte: now } }, { endDate: { $gte: now } }] },
+  //       {
+  //         $and: [
+  //           { startDate: { $lte: now } },
+  //           { $or: [{ endDate: null }, { endDate: { $exists: false } }] },
+  //         ],
+  //       },
+  //       {
+  //         $and: [
+  //           { $or: [{ startDate: null }, { startDate: { $exists: false } }] },
+  //           { $or: [{ endDate: null }, { endDate: { $exists: false } }] },
+  //         ],
+  //       },
+  //     ],
+  //   };
+
+  //   const showcases = await this.showcaseModel
+  //     .find(findQuery)
+  //     .populate('deletedBy', 'firstName lastName email _id')
+  //     .populate('unDeletedBy', 'firstName lastName email _id')
+  //     .populate('createdBy', 'firstName lastName email _id')
+  //     .lean();
+
+  //   if (showcases.length === 0) {
+  //     throw new NotFoundException(
+  //       getMessage('showcase_noActiveShowcasesFound', lang),
+  //     );
+  //   }
+
+  //   // wishListed products
+  //   let wishListProducts: string[] = [];
+  //   if (userId) {
+  //     const wishList = await this.wishListModel
+  //       .findOne({ user: userId })
+  //       .lean();
+
+  //     if (wishList) {
+  //       wishListProducts = wishList.products.map(p => p.toString());
+  //     }
+
+  //     // if (wishList) {
+  //     //   wishListProducts = wishList.products.map(p => {
+  //     //     return p._id ? p._id.toString() : String(p);
+  //     //   });
+  //     // }
+  //   }
+
+  //   const usedProductIds = new Set<string>();
+  //   const populatedShowcases = [];
+
+  //   // Process sequentially to ensure proper tracking of used products
+  //   for (const showcase of showcases) {
+  //     // Query products that:
+  //     // - match showcase.type
+  //     // - are active and not deleted
+  //     // - not already used in previous showcases (within same request)
+  //     // - randomly selected
+  //     const products = await this.productModel.aggregate([
+  //       {
+  //         $match: {
+  //           typeHint: showcase.type,
+  //           isActive: true,
+  //           isDeleted: false,
+  //           _id: { $nin: Array.from(usedProductIds) }, // exclude used items
+  //         },
+  //       },
+  //       { $sample: { size: Number(limit) } }, // Random selection
+  //       { $project: { __v: 0 } },
+  //     ]);
+
+  //     // Add product IDs to the used set
+  //     products.forEach(p => usedProductIds.add(p._id.toString()));
+
+  //     /*
+  //        You're very close, but the bug is coming from this line:
+
+  //        isWishListed: wishListProducts.includes(p._id.toString())
+
+  //        ⚠️ WHY SOME ITEMS SHOW isWishListed: false EVEN IF THEY ARE WISHLISTED?
+
+  //         Because when you use MongoDB aggregation:
+
+  //           const products = await this.productModel.aggregate([...])
+
+  //          MongoDB returns plain objects, not full Mongoose documents.
+  //          The _id inside an aggregation result may be an ObjectId OR a nested object, depending on your pipeline.
+
+  //          Most commonly when the bug appears, _id inside aggregate() looks like this:
+
+  //          { _id: { $oid: "6742ea..." } }
+
+  //          or:
+
+  //          _id: new ObjectId("6742ea...")
+
+  //          But your wishListProducts array contains only string IDs:
+
+  //          wishListProducts = ["6742ea...", "673bf..."]
+
+  //          So this comparison fails:
+
+  //          wishListProducts.includes(p._id.toString())
+
+  //          Because p._id.toString() from aggregation often returns:
+
+  //          "new ObjectId(\"6742ea...\")"
+
+  //          Not "6742ea...".
+  //     */
+
+  //     // enrichedProducts
+  //     // const enrichedProducts = products.map(p => ({
+  //     //   ...p,
+  //     //   isWishListed: wishListProducts.includes(p._id.toString()),
+  //     // }));
+
+  //     const enrichedProducts = products.map(p => {
+  //       const productId = String(p._id); // SAFE for any aggregation result
+  //       return {
+  //         ...p,
+  //         isWishListed: wishListProducts.includes(productId),
+  //       };
+  //     });
+
+  //     populatedShowcases.push({
+  //       ...showcase,
+  //       items: enrichedProducts,
+  //     });
+  //   }
+
+  //   const showcasesWithPriorityWithPriority = await Promise.all(
+  //     populatedShowcases.map(async showcase => {
+  //       const typeHintConfig = await this.typeHintConfigModel
+  //         .findOne({ key: showcase.type })
+  //         .lean();
+
+  //       return {
+  //         ...showcase,
+  //         priority: typeHintConfig?.priority ?? null,
+  //       };
+  //     }),
+  //   );
+
+  //   return {
+  //     isSuccess: true,
+  //     message: getMessage(
+  //       'showcase_activeShowcasesRetrievedSuccessfully',
+  //       lang,
+  //     ),
+  //     dataCount: showcasesWithPriorityWithPriority.length,
+  //     data: showcasesWithPriorityWithPriority,
+  //   };
+  // }
+
   async getActiveOnes(
     lang?: Locale,
     limit: number = 3,
@@ -166,6 +334,7 @@ export class ShowcaseService {
   ): Promise<DataListResponse<ShowCase>> {
     const now = new Date();
 
+    // 1️⃣ Find active showcases within their dates
     const findQuery = {
       isActive: true,
       isDeleted: false,
@@ -193,112 +362,75 @@ export class ShowcaseService {
       .populate('createdBy', 'firstName lastName email _id')
       .lean();
 
-    if (showcases.length === 0) {
+    if (!showcases.length) {
       throw new NotFoundException(
         getMessage('showcase_noActiveShowcasesFound', lang),
       );
     }
 
-    // wishListed products
-    let wishListProducts: string[] = [];
+    // 2️⃣ Get user's wishlisted products
+    const wishListProducts: string[] = [];
     if (userId) {
       const wishList = await this.wishListModel
         .findOne({ user: userId })
         .lean();
-
       if (wishList) {
-        wishListProducts = wishList.products.map(p => p.toString());
+        wishListProducts.push(...wishList.products.map(p => p.toString()));
       }
-
-      // if (wishList) {
-      //   wishListProducts = wishList.products.map(p => {
-      //     return p._id ? p._id.toString() : String(p);
-      //   });
-      // }
     }
 
     const usedProductIds = new Set<string>();
     const populatedShowcases = [];
 
-    // Process sequentially to ensure proper tracking of used products
+    // 4️⃣ Process each showcase sequentially
     for (const showcase of showcases) {
-      // Query products that:
-      // - match showcase.type
-      // - are active and not deleted
-      // - not already used in previous showcases (within same request)
-      // - randomly selected
+      const productsQuery: any = {
+        isActive: true,
+        isDeleted: false,
+        _id: { $nin: Array.from(usedProductIds) },
+      };
+
+      // Determine dynamic query for system type hints
+      switch (showcase.type) {
+        case SystemTypeHints.MOST_VIEWED:
+          productsQuery.viewCount = {
+            $gte: TYPE_HINT_THRESHOLDS.most_viewed,
+          };
+          break;
+        case SystemTypeHints.BEST_SELLERS:
+          productsQuery.sellCount = { $gte: TYPE_HINT_THRESHOLDS.best_sellers };
+          break;
+
+        case SystemTypeHints.MOST_FAVORITED:
+          productsQuery.favoriteCount = {
+            $gte: TYPE_HINT_THRESHOLDS.most_favorited,
+          };
+          break;
+
+        case SystemTypeHints.TRENDING:
+          productsQuery.weeklyFavoriteCount = {
+            $gte: TYPE_HINT_THRESHOLDS.trending,
+          };
+          break;
+
+        default:
+          productsQuery.typeHint = showcase.type;
+      }
+
       const products = await this.productModel.aggregate([
-        {
-          $match: {
-            typeHint: showcase.type,
-            isActive: true,
-            isDeleted: false,
-            _id: { $nin: Array.from(usedProductIds) }, // exclude used items
-          },
-        },
-        { $sample: { size: Number(limit) } }, // Random selection
+        { $match: productsQuery },
+        { $sample: { size: Number(limit) } },
         { $project: { __v: 0 } },
       ]);
 
-      // Add product IDs to the used set
-      products.forEach(p => usedProductIds.add(p._id.toString()));
+      // Track used product IDs
+      products.forEach(p => usedProductIds.add(String(p._id)));
 
-      /*
-         You're very close, but the bug is coming from this line:
-
-         isWishListed: wishListProducts.includes(p._id.toString())
-
-         ⚠️ WHY SOME ITEMS SHOW isWishListed: false EVEN IF THEY ARE WISHLISTED?
-          
-          Because when you use MongoDB aggregation:
-
-            const products = await this.productModel.aggregate([...])
-
-
-           MongoDB returns plain objects, not full Mongoose documents.
-           The _id inside an aggregation result may be an ObjectId OR a nested object, depending on your pipeline.
-
-           Most commonly when the bug appears, _id inside aggregate() looks like this:
-
-           { _id: { $oid: "6742ea..." } }
-
-
-           or:
-
-           _id: new ObjectId("6742ea...")
-
-
-           But your wishListProducts array contains only string IDs:
-
-           wishListProducts = ["6742ea...", "673bf..."]
-
-
-           So this comparison fails:
-
-           wishListProducts.includes(p._id.toString())
-
-
-           Because p._id.toString() from aggregation often returns:
-
-           "new ObjectId(\"6742ea...\")"
-
-
-           Not "6742ea...".
-      */
-
-      // enrichedProducts
-      // const enrichedProducts = products.map(p => ({
-      //   ...p,
-      //   isWishListed: wishListProducts.includes(p._id.toString()),
-      // }));
-
-      const enrichedProducts = products.map(p => {
-        const productId = String(p._id); // SAFE for any aggregation result
-        return {
-          ...p,
-          isWishListed: wishListProducts.includes(productId),
-        };
-      });
+      // Enrich products with isWishListed flag
+      const enrichedProducts = products.map(p => ({
+        ...p,
+        isWishListed: wishListProducts.includes(String(p._id)),
+      }));
 
       populatedShowcases.push({
         ...showcase,
@@ -306,7 +438,8 @@ export class ShowcaseService {
       });
     }
 
-    const showcasesWithPriorityWithPriority = await Promise.all(
+    // 5️⃣ Add priority from typeHintConfig
+    const showcasesWithPriority = await Promise.all(
       populatedShowcases.map(async showcase => {
         const typeHintConfig = await this.typeHintConfigModel
           .findOne({ key: showcase.type })
@@ -319,14 +452,15 @@ export class ShowcaseService {
       }),
     );
 
+    // 6️⃣ Return structured response
     return {
       isSuccess: true,
       message: getMessage(
         'showcase_activeShowcasesRetrievedSuccessfully',
         lang,
       ),
-      dataCount: showcasesWithPriorityWithPriority.length,
-      data: showcasesWithPriorityWithPriority,
+      dataCount: showcasesWithPriority.length,
+      data: showcasesWithPriority,
     };
   }
 
@@ -380,6 +514,7 @@ export class ShowcaseService {
       isActive: true,
       availableCount: { $gt: 0 },
     });
+
     if (!foundProducts) {
       throw new BadRequestException(
         getMessage('showcase_noProductsWithThisTypeForShowcase', dto.lang),

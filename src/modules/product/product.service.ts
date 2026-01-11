@@ -32,14 +32,25 @@ import {
   SubCategory,
   SubCategoryDocument,
 } from 'src/schemas/subCategory.schema';
-import { TypeHintConfig, TypeHintConfigDocument } from 'src/schemas/typeHintConfig.schema';
+import {
+  TypeHintConfig,
+  TypeHintConfigDocument,
+} from 'src/schemas/typeHintConfig.schema';
+import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
+import { Cron } from '@nestjs/schedule';
+import { WEEKLY_SCORE_WEIGHTS } from 'src/configs/weeklyScoreWeights.config';
+import { CRON_JOBS } from 'src/configs/cron.config';
+import {
+  SYSTEM_GENERATED_HINTS,
+  SystemGeneratedHint,
+} from 'src/configs/typeHint.config';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectModel(Product.name)
     private productModel: Model<ProductDocument>,
-    
+
     private mediaService: MediaService,
 
     @InjectModel(SubCategory.name)
@@ -56,6 +67,35 @@ export class ProductService {
     @InjectModel(TypeHintConfig.name)
     private typeHintConfigModel: Model<TypeHintConfigDocument>,
   ) {}
+
+  @Cron(CRON_JOBS.PRODUCT.RESET_WEEKLY_STATS)
+  async resetWeeklyStats() {
+    await this.productModel.updateMany(
+      {},
+      {
+        $set: {
+          weeklyViewCount: 0,
+          weeklyFavoriteCount: 0,
+          weeklyScore: 0,
+        },
+      },
+    );
+  }
+
+  async incrementView(productId: string) {
+    if (!Types.ObjectId.isValid(productId)) return;
+
+    await this.productModel.updateOne(
+      { _id: productId, isActive: true, isDeleted: false },
+      {
+        $inc: {
+          viewCount: 1,
+          weeklyViewCount: 1,
+          weeklyScore: WEEKLY_SCORE_WEIGHTS.view,
+        },
+      },
+    );
+  }
 
   async getAll(
     params: GetProductsQueryDto,
@@ -79,12 +119,78 @@ export class ProductService {
     } = params;
 
     const query: any = {};
+    const sort: any = { _id: -1 };
 
     if (lastId) {
       query._id = { $lt: new Types.ObjectId(lastId) };
     }
 
-    if (typeHint) query.typeHint = typeHint;
+    // ✅ CRITICAL FIX: System-generated hints (MOST_VIEWED, TRENDING)
+    // should NOT filter by typeHint field - they only affect sorting
+    const isSystemGeneratedHint = SYSTEM_GENERATED_HINTS.includes(
+      typeHint as SystemGeneratedHint,
+    );
+
+    // Only filter by typeHint if it's NOT a system-generated hint
+    if (typeHint && !isSystemGeneratedHint) {
+      query.typeHint = { $in: [typeHint] };
+    }
+
+    // ✅ MOST_VIEWED: Filter active products and sort by viewCount
+    if (typeHint === SystemTypeHints.MOST_VIEWED) {
+      query.isActive = true;
+      query.isDeleted = false;
+      sort.viewCount = -1;
+      delete sort._id;
+    }
+
+    // ✅ TRENDING: Filter active products and sort by weekly metrics
+    if (typeHint === SystemTypeHints.TRENDING) {
+      query.isActive = true;
+      query.isDeleted = false;
+      sort.weeklyScore = -1;
+      sort.weeklyFavoriteCount = -1;
+      sort.weeklyViewCount = -1;
+      delete sort._id;
+    }
+
+    /*
+    ✅ 1.3 Fetch MOST_VIEWED Products (IMPORTANT)
+
+You must SORT, not $sample.
+
+🔥 Add support inside getAll
+
+Extend your typeHint logic:
+
+if (typeHint === SystemTypeHints.MOST_VIEWED) {
+  query.isActive = true;
+  query.isDeleted = false;
+}
+
+
+Then change sorting dynamically:
+
+const sort: any = { _id: -1 };
+
+if (typeHint === SystemTypeHints.MOST_VIEWED) {
+  sort.viewCount = -1;
+  delete sort._id;
+}
+
+
+Use it:
+
+const products = await this.productModel
+  .find(query)
+  .sort(sort)
+  .limit(Number(limit))
+  .populate(...)
+  .lean();
+
+
+✅ MOST_VIEWED now truly means highest viewCount first
+    */
 
     if (categoryId) {
       query.categoryId = new Types.ObjectId(categoryId);
@@ -139,9 +245,28 @@ export class ProductService {
       if (createdTo) query.createdAt.$lte = new Date(createdTo);
     }
 
+    // ✅ MOST_VIEWED: Filter active products and sort by viewCount
+    if (typeHint === SystemTypeHints.MOST_VIEWED) {
+      query.isActive = true;
+      query.isDeleted = false;
+      sort.viewCount = -1;
+      delete sort._id;
+    }
+
+    // ✅ TRENDING: Sort by weekly metrics
+    if (typeHint === SystemTypeHints.TRENDING) {
+      query.isActive = true;
+      query.isDeleted = false;
+      sort.weeklyScore = -1;
+      sort.weeklyFavoriteCount = -1;
+      sort.weeklyViewCount = -1;
+      delete sort._id;
+    }
+
     const products = await this.productModel
       .find(query)
-      .sort({ _id: -1 }) // Sorting by .sort({ createdAt: -1 }) ensures most recent products appear first.
+      // .sort({ _id: -1 }) // Sorting by .sort({ createdAt: -1 }) ensures most recent products appear first.
+      .sort(sort)
       .limit(Number(limit))
       .populate('deletedBy', 'firstName lastName email _id')
       .populate('unDeletedBy', 'firstName lastName email _id')
@@ -393,6 +518,9 @@ export class ProductService {
       );
     }
 
+    // 🔥 increment view BEFORE fetching
+    await this.incrementView(id);
+
     const product = await this.productModel
       .findById(id)
       .populate('deletedBy', 'firstName lastName email _id')
@@ -440,7 +568,7 @@ export class ProductService {
       currency,
       discountRate = 0,
       totalAmountCount = 0,
-      typeHint,
+      typeHint = [],
       categoryId,
       subCategoryId,
       tags = [],
@@ -449,6 +577,21 @@ export class ProductService {
     } = dto;
 
     validateUserRoleAccess(user, lang);
+
+    const rawTypeHint = typeHint;
+    const typeHints: string[] = Array.isArray(rawTypeHint)
+      ? rawTypeHint
+      : rawTypeHint
+        ? [rawTypeHint]
+        : [];
+
+    for (const th of typeHints) {
+      if (SYSTEM_GENERATED_HINTS.includes(th as SystemTypeHints)) {
+        throw new BadRequestException(
+          getMessage('products_cannotAssignSystemGeneratedTypeHint', dto.lang),
+        );
+      }
+    }
 
     const slug = slugify(name_en, { lower: true });
 
@@ -530,13 +673,20 @@ export class ProductService {
       }
     }
 
-    const typeHintKeys = await this.typeHintConfigService.getList(user, {
-      lang: dto.lang,
-    });
+    const typeHintKeysResponse = await this.typeHintConfigService.getList(
+      user,
+      {
+        lang: dto.lang,
+      },
+    );
 
-    if (!typeHintKeys.data.includes(typeHint)) {
+    const allowedTypeHints = typeHintKeysResponse.data;
+
+    const isValid = typeHints.every(th => allowedTypeHints.includes(th));
+
+    if (!isValid) {
       throw new BadRequestException(
-        getMessage('products_invalidTypeHint', dto.lang),
+        getMessage('products_invalidTypeHint', lang),
       );
     }
 
@@ -550,7 +700,7 @@ export class ProductService {
       availableCount: totalAmountCount,
       sellCount: 0,
       favoriteCount: 0,
-      typeHint,
+      typeHint: typeHints.length ? typeHints : [SystemTypeHints.STATIC],
       slug,
       tags,
       categoryId,
@@ -600,6 +750,22 @@ export class ProductService {
 
     validateUserRoleAccess(user, lang);
 
+    // normalize typeHint
+    const rawTypeHint = typeHint;
+    const typeHints: string[] = Array.isArray(rawTypeHint)
+      ? rawTypeHint
+      : rawTypeHint
+        ? [rawTypeHint]
+        : [];
+
+    for (const th of typeHints) {
+      if (SYSTEM_GENERATED_HINTS.includes(th as SystemTypeHints)) {
+        throw new BadRequestException(
+          getMessage('products_cannotAssignSystemGeneratedTypeHint', lang),
+        );
+      }
+    }
+
     const product = await this.productModel.findById(id);
     if (!product) {
       throw new BadRequestException(
@@ -645,7 +811,6 @@ export class ProductService {
       product.name.en = name_en;
       product.slug = slug;
     }
-
     if (description_ar) product.description.ar = description_ar;
     if (description_en) product.description.en = description_en;
     if (price !== undefined) product.price = Number(price);
@@ -655,18 +820,41 @@ export class ProductService {
       product.totalAmountCount = Number(totalAmountCount);
       product.availableCount = Number(totalAmountCount);
     }
-    if (typeHint) {
-      const typeHintKeys = await this.typeHintConfigService.getList(user, {
-        lang,
-      });
+    // if (typeHint) {
+    //   const typeHintKeys = await this.typeHintConfigService.getList(user, {
+    //     lang,
+    //   });
 
-      if (!typeHintKeys.data.includes(typeHint)) {
+    //   if (!typeHintKeys.data.includes(typeHint)) {
+    //     throw new BadRequestException(
+    //       getMessage('products_invalidTypeHint', lang),
+    //     );
+    //   }
+
+    //   product.typeHint = typeHint;
+    // }
+
+    if (rawTypeHint !== undefined) {
+      const typeHintKeysResponse = await this.typeHintConfigService.getList(
+        user,
+        {
+          lang,
+        },
+      );
+
+      const allowedTypeHints = typeHintKeysResponse.data;
+
+      const isValid = typeHints.every(th => allowedTypeHints.includes(th));
+
+      if (!isValid) {
         throw new BadRequestException(
           getMessage('products_invalidTypeHint', lang),
         );
       }
 
-      product.typeHint = typeHint;
+      product.typeHint = typeHints.length
+        ? typeHints
+        : [SystemTypeHints.STATIC];
     }
 
     // Handle ObjectId assignments - use direct assignment, Mongoose will handle conversion

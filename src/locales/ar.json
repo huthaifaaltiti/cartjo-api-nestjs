@@ -101,6 +101,7 @@
   "products_noProductsForCategory": "لا توجد منتجات لهذه الفئة",
   "products_cannotActivateSubCategoryIsInactive": "لا يمكن تفعيل المنتج عندما يكون التصنيف الفرعي غير نشط",
   "products_cannotActivateCategoryIsInactive": "لا يمكن تفعيل المنتج عندما يكون التصنيف الرئيسي غير نشط",
+  "products_cannotAssignSystemGeneratedTypeHint": "لا يمكن تعيين تلميح النوع الذي تم إنشاؤه بواسطة النظام",
   "logo_logoAlreadyExists": "اللجو موجود بالفعل",
   "logo_logoCreatedSuccessfully": "تم إنشاء الشعار بنجاح",
   "logo_logoNotFound": "لم يتم إيجاد الشعار",

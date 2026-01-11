@@ -5,6 +5,8 @@ import { Product, ProductDocument } from 'src/schemas/product.schema';
 import { SearchProductsQueryDto } from './dto/get-search-products.dto';
 import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
 import { getMessage } from 'src/common/utils/translator';
+import { SYSTEM_GENERATED_HINTS, SystemGeneratedHint } from 'src/configs/typeHint.config';
+import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
 
 @Injectable()
 export class SearchService {
@@ -38,6 +40,17 @@ export class SearchService {
       isActive: true,
       isDeleted: false,
     };
+    const sort: any = { _id: -1 };
+
+    // ✅ Cursor pagination
+    if (lastId) {
+      queryMatch._id = { $lt: new Types.ObjectId(lastId) };
+    }
+
+    // ✅ Detect system-generated hints
+    const isSystemGeneratedHint = SYSTEM_GENERATED_HINTS.includes(
+      typeHint as SystemGeneratedHint,
+    );
 
     if (!q && !typeHint) {
       return {
@@ -46,9 +59,10 @@ export class SearchService {
         dataCount: 0,
         data: [],
       };
-    } else {
-      const searchRegex = new RegExp(q, 'i');
+    }
 
+    if (q) {
+      const searchRegex = new RegExp(q, 'i');
       queryMatch.$or = [
         { [`name.${lang}`]: searchRegex },
         { [`description.${lang}`]: searchRegex },
@@ -57,16 +71,17 @@ export class SearchService {
       ];
     }
 
-    if (typeHint) queryMatch.typeHint = typeHint;
-
-    if (lastId) {
-      queryMatch._id = { $lt: new Types.ObjectId(lastId) };
+    // ✅ Only filter by typeHint if NOT system-generated
+    if (typeHint && !isSystemGeneratedHint) {
+      queryMatch.typeHint = { $in: [typeHint] };
     }
 
+    // ✅ Category filters
     if (categoryId) {
       queryMatch.categoryId = new Types.ObjectId(categoryId);
     }
 
+    // ✅ SubCategory filters
     if (subCategoryId) {
       queryMatch.subCategoryId = new Types.ObjectId(subCategoryId);
     }
@@ -85,7 +100,7 @@ export class SearchService {
       if (ratingTo) queryMatch.ratings.$lte = Number(ratingTo);
     }
 
-    // ✅ Created date filters
+    // ✅ Date filters
     if (beforeNumOfDays) {
       let days = Number(beforeNumOfDays);
       if (days > 36500) days = 36500; // ~100 years sanity cap
@@ -100,9 +115,41 @@ export class SearchService {
       if (createdTo) queryMatch.createdAt.$lte = new Date(createdTo);
     }
 
+    // ✅ SYSTEM TYPE HINTS BEHAVIOR
+    // products ordered by views
+    if (typeHint === SystemTypeHints.MOST_VIEWED) {
+      queryMatch.isActive = true;
+      queryMatch.isDeleted = false;
+      sort.viewCount = -1;
+      delete sort._id;
+    }
+
+    if (typeHint === SystemTypeHints.TRENDING) {
+      queryMatch.isActive = true;
+      queryMatch.isDeleted = false;
+      sort.weeklyScore = -1;
+      sort.weeklyFavoriteCount = -1;
+      sort.weeklyViewCount = -1;
+      delete sort._id;
+    }
+
+    if (typeHint === SystemTypeHints.BEST_SELLERS) {
+      queryMatch.isActive = true;
+      queryMatch.isDeleted = false;
+      sort.sellCount = -1;
+      delete sort._id;
+    }
+
+    if (typeHint === SystemTypeHints.MOST_FAVORITED) {
+      queryMatch.isActive = true;
+      queryMatch.isDeleted = false;
+      sort.favoriteCount = -1;
+      delete sort._id;
+    }
+
     const products = await this.productModel
       .find(queryMatch)
-      .sort({ _id: -1 })
+      .sort(sort)
       .limit(Math.min(Number(limit), 100)) // cap at 100 max
       .populate('deletedBy', 'firstName lastName email _id')
       .populate('unDeletedBy', 'firstName lastName email _id')
@@ -113,6 +160,7 @@ export class SearchService {
       .populate('mediaListIds')
       .lean();
 
+    //  ✅ Wishlist enrichment
     // Enrich with isWishListed
     let wishListProducts: string[] = [];
     if (userId) {
@@ -126,11 +174,6 @@ export class SearchService {
         );
       }
     }
-
-    // const enrichedProducts = products.map(p => ({
-    //   ...p,
-    //   isWishListed: wishListProducts.includes(p._id.toString()),
-    // }));
 
     const enrichedProducts = products.map(p => {
       const productId = String(p._id);

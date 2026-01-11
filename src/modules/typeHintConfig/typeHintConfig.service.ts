@@ -14,7 +14,7 @@ import {
   Inject,
   NotFoundException,
 } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { Locale } from 'src/types/Locale';
 import {
   BaseResponse,
@@ -32,6 +32,8 @@ import slugify from 'slugify';
 import { ProductService } from '../product/product.service';
 import { ShowcaseService } from '../showcase/showcase.service';
 import { SYSTEM_TYPE_HINTS } from 'src/database/seeds/type-hints.seed';
+import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
+import { CRON_JOBS } from 'src/configs/cron.config';
 
 export class TypeHintConfigService {
   private SYSTEM_TYPE_KEYS = SYSTEM_TYPE_HINTS.map(hint => hint.key);
@@ -47,7 +49,7 @@ export class TypeHintConfigService {
     private showcaseService: ShowcaseService,
   ) {}
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron(CRON_JOBS.TYPE_HINT.DEACTIVATE_EXPIRED_TYPE_HINTS)
   async deactivateExpiredTypeHintConfigs() {
     await deactivateExpiredDocs(this.typeHintConfigModel);
   }
@@ -218,10 +220,10 @@ export class TypeHintConfigService {
 
     validateUserRoleAccess(reqUser, lang);
 
-    const key = label_en ? slugify(label_en, { lower: true }) : undefined;
+    const key: string = label_en ? slugify(label_en, { lower: true }) : undefined;
 
     // prevent creating system keys
-    if (this.SYSTEM_TYPE_KEYS.includes(key)) {
+    if (this.SYSTEM_TYPE_KEYS.includes(key as SystemTypeHints)) {
       throw new BadRequestException(
         getMessage('typeHintConfig_cannotCreateSystemTypeHint', lang),
       );
@@ -304,7 +306,7 @@ export class TypeHintConfigService {
     }
 
     if (key) {
-      if (this.SYSTEM_TYPE_KEYS.includes(typeHintConfig.key)) {
+      if (this.SYSTEM_TYPE_KEYS.includes(typeHintConfig.key as SystemTypeHints)) {
         throw new BadRequestException(
           getMessage('typeHintConfig_cannotUpdateDefaultKeys', dto.lang),
         );

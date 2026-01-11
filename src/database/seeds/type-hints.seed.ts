@@ -1,47 +1,48 @@
+import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
+
+const SYSTEM_USER_ID =
+  process.env.DB_SYSTEM_OBJ_ID ?? '6847e72641171e61ab2295e6';
+
 export const SYSTEM_TYPE_HINTS = [
   {
-    key: 'static',
+    key: SystemTypeHints.STATIC,
     label: { en: 'Static', ar: 'أساسي' },
-    isSystem: true,
-    isActive: true,
     priority: 1,
-    createdBy: process.env.DB_SYSTEM_OBJ_ID,
-    updatedBy: process.env.DB_SYSTEM_OBJ_ID,
   },
   {
-    key: 'best_sellers',
+    key: SystemTypeHints.BEST_SELLERS,
     label: { en: 'Best Sellers', ar: 'الأفضل مبيعاً' },
-    isSystem: true,
-    isActive: true,
     priority: 2,
-    createdBy: process.env.DB_SYSTEM_OBJ_ID,
-    updatedBy: process.env.DB_SYSTEM_OBJ_ID,
   },
   {
-    key: 'most_viewed',
+    key: SystemTypeHints.MOST_VIEWED,
     label: { en: 'Most Viewed', ar: 'الأكثر مشاهدة' },
-    isSystem: true,
-    isActive: true,
     priority: 3,
-    createdBy: process.env.DB_SYSTEM_OBJ_ID,
-    updatedBy: process.env.DB_SYSTEM_OBJ_ID,
   },
   {
-    key: 'picked',
-    label: { en: 'Picked Items', ar: 'عناصر مختارة' },
-    isSystem: true,
-    isActive: true,
+    key: SystemTypeHints.TRENDING,
+    label: { en: 'Trending', ar: 'الأكثر رواجاً' },
     priority: 4,
-    createdBy: process.env.DB_SYSTEM_OBJ_ID,
-    updatedBy: process.env.DB_SYSTEM_OBJ_ID,
   },
   {
-    key: 'recommended',
-    label: { en: 'Recommended', ar: 'مقترحاتنا' },
-    isSystem: true,
-    isActive: true,
+    key: SystemTypeHints.MOST_FAVORITED,
+    label: { en: 'Most Favorited', ar: 'الأكثر تفضيلاً' },
     priority: 5,
-    createdBy: process.env.DB_SYSTEM_OBJ_ID,
-    updatedBy: process.env.DB_SYSTEM_OBJ_ID,
   },
-];
+  {
+    key: SystemTypeHints.PICKED,
+    label: { en: 'Picked Items', ar: 'عناصر مختارة' },
+    priority: 6,
+  },
+  {
+    key: SystemTypeHints.RECOMMENDED,
+    label: { en: 'Recommended', ar: 'مقترحاتنا' },
+    priority: 7,
+  },
+].map(item => ({
+  ...item,
+  isSystem: true,
+  isActive: true,
+  createdBy: SYSTEM_USER_ID,
+  updatedBy: SYSTEM_USER_ID,
+}));

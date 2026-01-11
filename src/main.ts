@@ -8,6 +8,8 @@ import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 import { AppEnvironments } from './enums/appEnvs.enum';
 import { join } from 'path';
 import { TypeHintsSeeder } from './database/seeders/type-hints.seeder';
+import { ShowcaseSeeder } from './database/seeders/showcases.seeder';
+import { runSeeders } from './database/seeders/run-seeders.seeder';
 
 async function server() {
   const isDev = process.env.NODE_ENV !== AppEnvironments.PRODUCTION;
@@ -44,13 +46,11 @@ async function server() {
     app.useGlobalFilters(new AllExceptionsFilter());
   }
 
-  // Seed email templates
-  const seeder = app.get(EmailTemplateSeeder);
-  await seeder.seed();
-
-  // Seed type hints
-  const typeHintSeeder = app.get(TypeHintsSeeder);
-  await typeHintSeeder.seed();
+  // Run seeders
+  if (process.env.RUN_SEEDS === 'true') {
+    const seeders = [EmailTemplateSeeder, TypeHintsSeeder, ShowcaseSeeder];
+    await runSeeders(app, seeders);
+  }
 
   await app.listen(process.env.PORT ?? 8000);
 }

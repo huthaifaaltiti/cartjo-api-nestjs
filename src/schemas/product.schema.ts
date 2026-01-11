@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 
 import { Currency } from 'src/enums/currency.enum';
+import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
 
 export type ProductDocument = Product & Document;
 
@@ -51,19 +52,34 @@ export class Product {
   @Prop({ default: 0 })
   availableCount: number;
 
-  @Prop({ default: 0 })
+  @Prop({ default: 0, min: 0 })
   sellCount: number;
+
+  @Prop({ default: 0, min: 0 })
+  viewCount: number;
+
+  @Prop({ default: 0 })
+  weeklyViewCount: number;
 
   @Prop({ default: 0 })
   favoriteCount: number;
+
+  @Prop({ default: 0 })
+  weeklyFavoriteCount: number;
+
+  @Prop({ default: 0 })
+  weeklyScore: number;
 
   @Prop({ default: false, required: false })
   isWishListed: boolean;
 
   @Prop({
     required: true,
+    type: [String],
+    enum: Object.values(SystemTypeHints),
+    default: [SystemTypeHints.STATIC],
   })
-  typeHint: string;
+  typeHint: string[];
 
   @Prop({ type: [String], default: [] })
   tags: string[];
@@ -118,7 +134,10 @@ export class Product {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', default: null })
   unDeletedBy: MongooseSchema.Types.ObjectId;
 
-  @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Comment' }], default: [] })
+  @Prop({
+    type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Comment' }],
+    default: [],
+  })
   comments: MongooseSchema.Types.ObjectId[];
 }
 

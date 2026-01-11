@@ -6,15 +6,19 @@ import { CartModule } from '../cart/cart.module';
 import { Cart, CartSchema } from 'src/schemas/cart.schema';
 import { OrderController } from './order.controller';
 import { EmailModule } from '../email/email.module';
+import { ProductModule } from '../product/product.module';
+import { Product, ProductSchema } from 'src/schemas/product.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Order.name, schema: OrderSchema },
       { name: Cart.name, schema: CartSchema },
+      { name: Product.name, schema: ProductSchema },
     ]),
     CartModule,
-    EmailModule
+    EmailModule,
+    ProductModule,
   ],
   controllers: [OrderController],
   providers: [OrderService],
