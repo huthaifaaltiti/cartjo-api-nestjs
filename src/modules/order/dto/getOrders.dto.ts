@@ -6,10 +6,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-<<<<<<< HEAD
-=======
 import { OrderDeliveryStatus } from 'src/enums/orderDeliveryStatus.enum';
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 import { PaymentMethod } from 'src/enums/paymentMethod.enum';
 import { PaymentStatus } from 'src/enums/paymentStatus.enum';
 import { Locale } from 'src/types/Locale';
@@ -44,13 +41,10 @@ export class GetOrdersQueryDto {
   @IsOptional()
   paymentStatus?: PaymentStatus;
 
-<<<<<<< HEAD
-=======
   @IsEnum(OrderDeliveryStatus)
   @IsOptional()
   deliveryStatus?: OrderDeliveryStatus;
 
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   @IsEnum(PaymentMethod)
   @IsOptional()
   paymentMethod?: PaymentMethod;

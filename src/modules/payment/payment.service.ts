@@ -37,13 +37,8 @@ export class PaymentService {
     process.env.APS_PAY_FORT_MERCHANT_IDENTIFIER;
   private readonly shaRequestPhrase =
     process.env.APS_PAY_FORT_SHA_REQUEST_PHRASE;
-<<<<<<< HEAD
-  private readonly shaResponsePhrase =
-    process.env.APS_PAY_FORT_SHA_RESPONSE_PHRASE;
-=======
   // private readonly shaResponsePhrase =
   //   process.env.APS_PAY_FORT_SHA_RESPONSE_PHRASE;
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   private readonly paymentApiUrl = process.env.APS_PAY_FORT_PAYMENT_API_URL;
   private readonly paymentReturnUrl =
     process.env.APS_PAY_FORT_PAYMENT_RETURN_URL;
@@ -217,10 +212,6 @@ export class PaymentService {
       amount,
       customer_email,
       merchant_reference,
-<<<<<<< HEAD
-      shippingAddress,
-=======
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     } = dto;
 
     const check = await this.validateUser(requestingUser, true, language);
@@ -271,15 +262,6 @@ export class PaymentService {
     const order = await this.orderService.createOrderAndClearCart(
       requestingUser,
       cart,
-<<<<<<< HEAD
-      amount,
-      currency,
-      customer_email,
-      merchant_reference,
-      result.fort_id,
-      PaymentMethod.CARD,
-      shippingAddress,
-=======
       {
         ...dto,
         email: dto.customer_email,
@@ -287,7 +269,6 @@ export class PaymentService {
         transactionId: dto.transactionId,
         paymentMethod: PaymentMethod.CARD,
       },
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     );
 
     return {
@@ -305,13 +286,7 @@ export class PaymentService {
   }
 
   async payWithCash(requestingUser: any, dto: CreateCashOrderDto) {
-<<<<<<< HEAD
-    const { language, currency, amount, customer_email, shippingAddress } = dto;
-
-    const check = await this.validateUser(requestingUser, true, language);
-=======
     const check = await this.validateUser(requestingUser, true, dto.lang);
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
     if (!check.valid) {
       return { isSuccess: false, message: check.message, data: null };
@@ -322,36 +297,17 @@ export class PaymentService {
     const order = await this.orderService.createOrderAndClearCart(
       requestingUser,
       cart,
-<<<<<<< HEAD
-      amount,
-      currency,
-      customer_email,
-      generateRandomString(8),
-      null,
-      PaymentMethod.CASH,
-      shippingAddress,
-=======
       dto,
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     );
 
     return {
       isSuccess: true,
-<<<<<<< HEAD
-      message: getMessage('payment_cashOrderCreated', language),
-      data: {
-        payment_method: PaymentMethod.CASH,
-        amount,
-        currency,
-        customer_email,
-=======
       message: getMessage('payment_cashOrderCreated', dto.lang),
       data: {
         payment_method: PaymentMethod.CASH,
         amount: dto.amount,
         currency: dto.currency,
         customer_email: dto.email,
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
         order,
       },
     };

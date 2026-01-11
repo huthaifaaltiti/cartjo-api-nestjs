@@ -3,19 +3,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { MongoClient, GridFSBucket, ObjectId } from 'mongodb';
 import { Readable } from 'stream';
-<<<<<<< HEAD
-
-import { getMessage } from 'src/common/utils/translator';
-
-import { Locale } from 'src/types/Locale';
-import { User, UserDocument } from '../../schemas/user.schema';
-import { Media, MediaDocument } from 'src/schemas/media.schema';
-=======
 import { getMessage } from 'src/common/utils/translator';
 import { Locale } from 'src/types/Locale';
 import { User, UserDocument } from '../../schemas/user.schema';
 import { getAppHostName } from 'src/common/utils/getAppHostName';
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
 @Injectable()
 export class MediaService {
@@ -24,16 +15,8 @@ export class MediaService {
   private metadataCollection: any;
   private accessLogsCollection: any;
 
-<<<<<<< HEAD
-  constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
-    @InjectModel(Media.name) private mediaModel: Model<MediaDocument>,
-  ) {
-    this.hostName = process.env.HOST_NAME;
-=======
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {
     this.hostName = getAppHostName();
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     this.initializeMediaDatabase();
   }
 
@@ -168,12 +151,7 @@ export class MediaService {
         relatedEntity: null, // You can set this when linking to products, locations, etc.
       };
 
-<<<<<<< HEAD
-      const savedMetadata =
-        await this.metadataCollection.insertOne(metadataRecord);
-=======
       await this.metadataCollection.insertOne(metadataRecord);
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
       // Log access (optional)
       await this.logAccess({

@@ -5,13 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-<<<<<<< HEAD
-
 import { MediaService } from '../media/media.service';
-
-=======
-import { MediaService } from '../media/media.service';
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 import {
   BaseResponse,
   DataListResponse,
@@ -19,29 +13,17 @@ import {
 } from 'src/types/service-response.type';
 import { Logo, LogoDocument } from 'src/schemas/logo.schema';
 import { Modules } from 'src/enums/appModules.enum';
-<<<<<<< HEAD
-
-=======
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { activateDefaultIfAllInactive } from 'src/common/functions/helpers/activateDefaultIfAllInactive.helper';
 import { getMessage } from 'src/common/utils/translator';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
-<<<<<<< HEAD
-import { MAX_FILE_SIZES } from 'src/common/utils/file-size.config';
-
-=======
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 import { CreateLogoDto } from './dto/create-logo.dto';
 import { UpdateLogoDto } from './dto/update-logo.dto';
 import { DeleteLogoDto } from './dto/delete-logo.dto';
 import { UnDeleteLogoBodyDto } from './dto/unDelete-logo.dto';
 import { Locale } from 'src/types/Locale';
-<<<<<<< HEAD
-=======
 import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
 import { MEDIA_CONFIG } from 'src/configs/media.config';
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
 @Injectable()
 export class LogoService {
@@ -167,12 +149,8 @@ export class LogoService {
     let mediaId: string | undefined = undefined;
 
     if (image && Object.keys(image).length > 0) {
-<<<<<<< HEAD
-      fileSizeValidator(image, MAX_FILE_SIZES.LOGO_IMAGE, lang);
-=======
       fileSizeValidator(image, MEDIA_CONFIG.LOGO.IMAGE.MAX_SIZE, lang);
       fileTypeValidator(image, MEDIA_CONFIG.LOGO.IMAGE.ALLOWED_TYPES, lang);
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
       const result = await this.mediaService.handleFileUpload(
         image,
@@ -237,12 +215,8 @@ export class LogoService {
     let mediaId: string | undefined = logoToUpdate.media.id?.toString();
 
     if (image && Object.keys(image).length > 0) {
-<<<<<<< HEAD
-      fileSizeValidator(image, MAX_FILE_SIZES.LOGO_IMAGE, lang);
-=======
       fileSizeValidator(image, MEDIA_CONFIG.LOGO.IMAGE.MAX_SIZE, lang);
       fileTypeValidator(image, MEDIA_CONFIG.LOGO.IMAGE.ALLOWED_TYPES, lang);
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
       const result = await this.mediaService.handleFileUpload(
         image,

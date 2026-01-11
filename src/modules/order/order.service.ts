@@ -9,10 +9,6 @@ import { Cart, CartDocument } from 'src/schemas/cart.schema';
 import { Order, OrderDocument } from 'src/schemas/order.schema';
 import { PaymentStatus } from 'src/enums/paymentStatus.enum';
 import { PaymentMethod } from 'src/enums/paymentMethod.enum';
-<<<<<<< HEAD
-import { ShippingAddressDto } from '../payment/dto/checkout.dto';
-=======
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 import { generateRandomString } from 'src/common/utils/generateRandomString';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
@@ -41,8 +37,6 @@ import { ExportOrdersQueryDto } from './dto/exportOrders.dto';
 import * as ExcelJS from 'exceljs';
 import * as PDFDocument from 'pdfkit';
 import { Response } from 'express';
-<<<<<<< HEAD
-=======
 import { getAppUrl } from 'src/common/utils/getAppUrl';
 import commonEmailTemplateData from 'src/common/utils/commonEmailTemplateData';
 import { CreateOrderBodyDto } from './dto/createOrder.dto';
@@ -62,20 +56,12 @@ import {
   GetMyOrderReturnsQueryDto,
 } from './dto/getMyOrderReturns.dto';
 import { Product, ProductDocument } from 'src/schemas/product.schema';
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
 @Injectable()
 export class OrderService {
   constructor(
     @InjectModel(Order.name)
     private readonly orderModel: Model<OrderDocument>,
-<<<<<<< HEAD
-    @InjectModel(Cart.name)
-    private readonly cartModel: Model<CartDocument>,
-    private readonly emailService: EmailService,
-  ) {}
-
-=======
 
     @InjectModel(Cart.name)
     private readonly cartModel: Model<CartDocument>,
@@ -156,7 +142,6 @@ export class OrderService {
     }
   }
 
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   async getUserCart(requestingUser: any) {
     const cartDoc = await this.cartModel.findOne({
       userId: requestingUser.userId,
@@ -172,16 +157,6 @@ export class OrderService {
   async createOrderAndClearCart(
     user: any,
     cart: CartDocument,
-<<<<<<< HEAD
-    amount: number,
-    currency: string,
-    customerEmail: string,
-    merchantReference: string,
-    transactionId: string | null,
-    paymentMethod: PaymentMethod,
-    shippingAddress: ShippingAddressDto,
-  ): Promise<Order> | null {
-=======
     body: CreateOrderBodyDto,
   ): Promise<DataResponse<Order>> {
     const {
@@ -194,18 +169,13 @@ export class OrderService {
       shippingAddress,
       lang,
     } = body;
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     if (
       !checkUserRole({
         userRole: user?.role,
         requiredRole: UserRole.USER,
       })
     ) {
-<<<<<<< HEAD
-      return null;
-=======
       throw new BadRequestException(getMessage('orders_cantCreateOrder', lang));
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     }
 
     const finalTransactionId =
@@ -218,10 +188,6 @@ export class OrderService {
         ? PaymentStatus.PAID
         : PaymentStatus.PENDING;
 
-<<<<<<< HEAD
-    const order = await this.orderModel.create({
-      userId: user?.userId,
-=======
     for (const item of cart.items) {
       const product = await this.productModel.findById(item.productId).lean();
 
@@ -233,7 +199,6 @@ export class OrderService {
     const order = await this.orderModel.create({
       userId: user?.userId,
       createdBy: user?.userId,
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       items: cart.items.map(item => ({
         productId: item.productId,
         price: item.price,
@@ -245,30 +210,11 @@ export class OrderService {
       paymentStatus: finalPaymentStatus,
       paymentMethod,
       transactionId: finalTransactionId,
-<<<<<<< HEAD
-      email: customerEmail,
-=======
       email,
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       merchantReference,
       shippingAddress,
     });
 
-<<<<<<< HEAD
-    if (user.email && order) {
-      await this.emailService.sendTemplateEmail({
-        to: user.email,
-        templateName: EmailTemplates.ORDER_ORDER_CREATED,
-        templateData: {
-          firstName: user.firstName,
-          orderId: order._id,
-          amount: order.amount,
-          currency: order.currency,
-          paymentMethod: order.paymentMethod,
-          orderUrl: `${process.env.APP_URL}/orders/${order._id}`,
-        },
-        prefLang: user.preferredLang || PreferredLanguage.ARABIC,
-=======
     /** ✅ Increment sell count */
     await this.incrementProductsSellCount(
       cart.items.map(item => ({
@@ -301,7 +247,6 @@ export class OrderService {
           ...commonEmailTemplateData(),
         },
         prefLang: preferredLang,
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       });
     }
 
@@ -309,9 +254,6 @@ export class OrderService {
     cart.items = [];
     await cart.save();
 
-<<<<<<< HEAD
-    return order;
-=======
     const responseMessage =
       order.paymentMethod === PaymentMethod.CASH
         ? 'order_cashOrderCreatedSuccessfully'
@@ -431,7 +373,6 @@ export class OrderService {
       message: getMessage('order_deliveryStatusUpdatedSuccessfully', lang),
       data: order,
     };
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   }
 
   async changePaidStatus(
@@ -450,11 +391,6 @@ export class OrderService {
       throw new BadRequestException(getMessage('order_orderNotFound', lang));
     }
 
-<<<<<<< HEAD
-    isStatusPaid
-      ? (order.paymentStatus = PaymentStatus.PAID)
-      : (order.paymentStatus = PaymentStatus.PENDING);
-=======
     if (order.isDelivered) {
       throw new BadRequestException(getMessage('order_deliveredOrder', lang));
     }
@@ -471,7 +407,6 @@ export class OrderService {
       order.isPaid = false;
       order.paymentStatus = status;
     }
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
 
     order.updatedBy = requestingUser.userId;
     order.updatedAt = new Date();
@@ -484,11 +419,7 @@ export class OrderService {
       message: getMessage(
         isStatusPaid
           ? 'order_orderMarkedPaidSuccessfully'
-<<<<<<< HEAD
-          : 'order_orderMarkedUnPaidSuccessfully',
-=======
           : 'order_orderPaymentStatusChanged',
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
         lang,
       ),
       data: order,
@@ -573,8 +504,6 @@ export class OrderService {
     };
   }
 
-<<<<<<< HEAD
-=======
   async getMyOrders(
     requestingUser: any,
     query: GetMyOrdersQueryDto,
@@ -842,7 +771,6 @@ if (search) {
     };
   }
 
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
   async getAll(
     requestingUser: any,
     params: GetOrdersQueryDto,
@@ -855,10 +783,7 @@ if (search) {
       amountMin,
       amountMax,
       paymentStatus,
-<<<<<<< HEAD
-=======
       deliveryStatus,
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       paymentMethod,
       createdAfter,
       createdBefore,
@@ -897,14 +822,11 @@ if (search) {
       query.paymentStatus = paymentStatus;
     }
 
-<<<<<<< HEAD
-=======
     // Filter by deliveryStatus
     if (deliveryStatus) {
       query.deliveryStatus = deliveryStatus;
     }
 
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     // Filter by paymentMethod
     if (paymentMethod) {
       query.paymentMethod = paymentMethod;
@@ -924,11 +846,6 @@ if (search) {
       if (updatedBefore) query.updatedAt.$lte = new Date(updatedBefore);
     }
 
-<<<<<<< HEAD
-    console.log({ query });
-
-=======
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     const orders = await this.orderModel
       .find(query)
       .sort({ _id: -1 })
@@ -1044,11 +961,7 @@ if (search) {
   private async generateExcel(
     orders: any[],
     filename: string,
-<<<<<<< HEAD
-    dateRange: string,
-=======
     _dateRange: string,
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
     res: Response,
   ): Promise<void> {
     const workbook = new ExcelJS.Workbook();
@@ -1192,11 +1105,7 @@ if (search) {
         `${order.amount} ${order.currency}`,
         order.paymentStatus,
         order.paymentMethod,
-<<<<<<< HEAD
-        new Date(order.createdAt).toLocaleString("en-US", { hour12: true }),
-=======
         new Date(order.createdAt).toLocaleString('en-US', { hour12: true }),
->>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
       ];
 
       row.forEach((cell, i) => {
