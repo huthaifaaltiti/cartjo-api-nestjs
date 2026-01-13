@@ -34,6 +34,8 @@ import { ShowcaseService } from '../showcase/showcase.service';
 import { SYSTEM_TYPE_HINTS } from 'src/database/seeds/type-hints.seed';
 import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
 import { CRON_JOBS } from 'src/configs/cron.config';
+import { ShowCase, ShowCaseDocument } from 'src/schemas/showcase.schema';
+import { Product, ProductDocument } from 'src/schemas/product.schema';
 
 export class TypeHintConfigService {
   private SYSTEM_TYPE_KEYS = SYSTEM_TYPE_HINTS.map(hint => hint.key);
@@ -41,6 +43,12 @@ export class TypeHintConfigService {
   constructor(
     @InjectModel(TypeHintConfig.name)
     private typeHintConfigModel: Model<TypeHintConfigDocument>,
+
+    @InjectModel(ShowCase.name)
+    private readonly showcaseModel: Model<ShowCaseDocument>,
+
+    @InjectModel(Product.name)
+    private readonly productModel: Model<ProductDocument>,
 
     @Inject(forwardRef(() => ProductService))
     private productService: ProductService,
@@ -220,7 +228,9 @@ export class TypeHintConfigService {
 
     validateUserRoleAccess(reqUser, lang);
 
-    const key: string = label_en ? slugify(label_en, { lower: true }) : undefined;
+    const key: string = label_en
+      ? slugify(label_en, { lower: true })
+      : undefined;
 
     // prevent creating system keys
     if (this.SYSTEM_TYPE_KEYS.includes(key as SystemTypeHints)) {
@@ -271,6 +281,114 @@ export class TypeHintConfigService {
     };
   }
 
+  // async update(
+  //   reqUser: any,
+  //   dto: UpdateDto,
+  //   id: mongoose.Types.ObjectId,
+  // ): Promise<DataResponse<TypeHintConfig>> {
+  //   validateUserRoleAccess(reqUser, dto.lang);
+
+  //   if (!Types.ObjectId.isValid(id)) {
+  //     throw new NotFoundException(
+  //       getMessage('typeHintConfig_invalidBannerId', dto.lang),
+  //     );
+  //   }
+
+  //   const typeHintConfig = await this.typeHintConfigModel.findById(id);
+
+  //   if (!typeHintConfig || typeHintConfig.isDeleted) {
+  //     throw new NotFoundException(
+  //       getMessage('typeHintConfig_typeHintConfigNotFound', dto.lang),
+  //     );
+  //   }
+
+  //   // prevent updating system's type-hints
+  //   if (typeHintConfig.isSystem) {
+  //     throw new BadRequestException(
+  //       getMessage('typeHintConfig_cannotChangeSystemKey', dto.lang),
+  //     );
+  //   }
+
+  //   let key = typeHintConfig.key;
+
+  //   if (dto.label_en) {
+  //     key = slugify(dto.label_en, { lower: true });
+  //   }
+
+  //   if (key) {
+  //     if (
+  //       this.SYSTEM_TYPE_KEYS.includes(typeHintConfig.key as SystemTypeHints)
+  //     ) {
+  //       throw new BadRequestException(
+  //         getMessage('typeHintConfig_cannotUpdateDefaultKeys', dto.lang),
+  //       );
+  //     }
+
+  //     typeHintConfig.key = key || typeHintConfig?.key;
+  //   }
+
+  //   // Check for conflicts on title if updated
+  //   if (
+  //     (dto.label_ar && dto.label_ar !== typeHintConfig.label.ar) ||
+  //     (dto.label_en && dto.label_en !== typeHintConfig.label.en)
+  //   ) {
+  //     const newKey = slugify(dto.label_en, { lower: true });
+  //     const conflict = await this.typeHintConfigModel.findOne({
+  //       _id: { $ne: id },
+  //       $or: [
+  //         { key: newKey },
+  //         { 'label.ar': dto.label_ar },
+  //         { 'label.en': dto.label_en },
+  //       ],
+  //       isDeleted: false,
+  //     });
+
+  //     if (conflict) {
+  //       throw new BadRequestException(
+  //         getMessage(
+  //           'typeHintConfig_typeHintConfigWithThisDetailsAlreadyExist',
+  //           dto.lang,
+  //         ),
+  //       );
+  //     }
+
+  //     key = newKey;
+  //   }
+
+  //   if (dto.label_ar || dto.label_en) {
+  //     typeHintConfig.label = {
+  //       ar: dto.label_ar || typeHintConfig.label.ar,
+  //       en: dto.label_en || typeHintConfig.label.en,
+  //     };
+  //   }
+
+  //   if (dto.priority) {
+  //     typeHintConfig.priority = dto.priority || typeHintConfig.priority;
+  //   }
+
+  //   if (dto.startDate) {
+  //     typeHintConfig.startDate = new Date(dto.startDate);
+  //   }
+
+  //   if (dto.endDate) {
+  //     typeHintConfig.endDate = new Date(dto.endDate);
+  //   }
+
+  //   typeHintConfig.updatedAt = new Date();
+  //   typeHintConfig.updatedBy = reqUser?.userId;
+
+  //   await typeHintConfig.save();
+
+  //   return {
+  //     isSuccess: true,
+  //     message: getMessage(
+  //       'typeHintConfig_typeHintConfigUpdatedSuccessfully',
+  //       dto.lang,
+  //     ),
+  //     data: typeHintConfig.toObject(),
+  //   };
+  // }
+
   async update(
     reqUser: any,
     dto: UpdateDto,
@@ -292,43 +410,57 @@ export class TypeHintConfigService {
       );
     }
 
-    // prevent updating system's type-hints
+    // ❌ system keys are immutable
     if (typeHintConfig.isSystem) {
       throw new BadRequestException(
         getMessage('typeHintConfig_cannotChangeSystemKey', dto.lang),
       );
     }
 
-    let key = typeHintConfig.key;
+    const oldKey = typeHintConfig.key;
+    const keyFromDto = dto.label_en
+      ? slugify(dto.label_en, { lower: true })
+      : oldKey;
 
-    if (dto.label_en) {
-      key = slugify(dto.label_en, { lower: true });
+    const isKeyChanged = keyFromDto !== oldKey;
+
+    // ❌ prevent changing default/system keys
+    if (
+      isKeyChanged &&
+      this.SYSTEM_TYPE_KEYS.includes(oldKey as SystemTypeHints)
+    ) {
+      throw new BadRequestException(
+        getMessage('typeHintConfig_cannotUpdateDefaultKeys', dto.lang),
+      );
     }
 
-    if (key) {
-      if (this.SYSTEM_TYPE_KEYS.includes(typeHintConfig.key as SystemTypeHints)) {
+    // ❌ prevent key change if used
+    if (isKeyChanged) {
+      const [showcaseExists, productExists] = await Promise.all([
+        this.showcaseModel.exists({ type: oldKey, isDeleted: false }),
+        this.productModel.exists({ typeHint: oldKey, isDeleted: false }),
+      ]);
+
+      if (showcaseExists || productExists) {
         throw new BadRequestException(
-          getMessage('typeHintConfig_cannotUpdateDefaultKeys', dto.lang),
+          getMessage('typeHintConfig_cannotUpdateKeyBecauseItIsUsed', dto.lang),
         );
       }
-
-      typeHintConfig.key = key || typeHintConfig?.key;
     }
 
-    // Check for conflicts on title if updated
+    // ❌ uniqueness check (key + labels)
     if (
       (dto.label_ar && dto.label_ar !== typeHintConfig.label.ar) ||
       (dto.label_en && dto.label_en !== typeHintConfig.label.en)
     ) {
-      const newKey = slugify(dto.label_en, { lower: true });
       const conflict = await this.typeHintConfigModel.findOne({
         _id: { $ne: id },
+        isDeleted: false,
         $or: [
-          { key: newKey },
+          { key: keyFromDto },
           { 'label.ar': dto.label_ar },
           { 'label.en': dto.label_en },
         ],
-        isDeleted: false,
       });
 
       if (conflict) {
@@ -339,19 +471,22 @@ export class TypeHintConfigService {
           ),
         );
       }
+    }
 
-      key = newKey;
+    // ✅ apply updates
+    if (isKeyChanged) {
+      typeHintConfig.key = keyFromDto;
     }
 
     if (dto.label_ar || dto.label_en) {
       typeHintConfig.label = {
-        ar: dto.label_ar || typeHintConfig.label.ar,
-        en: dto.label_en || typeHintConfig.label.en,
+        ar: dto.label_ar ?? typeHintConfig.label.ar,
+        en: dto.label_en ?? typeHintConfig.label.en,
       };
     }
 
-    if (dto.priority) {
-      typeHintConfig.priority = dto.priority || typeHintConfig.priority;
+    if (dto.priority !== undefined) {
+      typeHintConfig.priority = dto.priority;
     }
 
     if (dto.startDate) {

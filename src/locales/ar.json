@@ -181,6 +181,7 @@
   "typeHintConfig_cannotUpdateDefaultKeys": "لا يمكن تعديل رموز أدلة النوع الأساسية",
   "typeHintConfig_cannotCreateSystemTypeHint": "لا يمكن تعديل أو إضافة أدوات عرض النظام الرئيسية",
   "typeHintConfig_cannotChangeSystemKey": "لا يمكن تعديل أدوات عرض النظام الرئيسية",
+  "typeHintConfig_cannotUpdateKeyBecauseItIsUsed": "لا يمكن تحديث مفتاح تلميح النوع هذا لأنه مستخدم بالفعل بواسطة المنتجات أو العروض التوضيحية",
   "wishList_wishListRetrievedSuccessfully": "تم استرجاع قائمة الأمنيات بنجاح",
   "wishList_productAddedToWishlistSuccessfully": "تمت إضافة المنتج إلى قائمة الأمنيات بنجاح",
   "wishList_productIsInWishList": "المنتج موجود بالفعل في قائمة الأمنيات",
