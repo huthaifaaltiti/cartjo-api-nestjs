@@ -176,4 +176,8 @@ export const ApiPaths = {
     MyReturns: 'my-orders/:uid/returns',
     MyOrder: 'my-order/:uid/:oid',
   },
+  UserContext: {
+    Root: '/api/v1/user-context',
+    Get: '',
+  },
 };
