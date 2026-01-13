@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import {
   IsNotEmpty,
   IsString,
@@ -6,9 +7,7 @@ import {
   IsOptional,
   IsDateString,
 } from 'class-validator';
-
 import { validationConfig } from 'src/configs/validationConfig';
-
 import { Locale } from 'src/types/Locale';
 
 const {
@@ -63,6 +62,7 @@ export class CreateDto {
   @IsOptional()
   @MinLength(showAllButtonLinkMinChars)
   @MaxLength(showAllButtonLinkMaxChars)
+  @Transform(({ value }) => value === '' ? undefined : value)
   showAllButtonLink: string;
 
   @IsString()

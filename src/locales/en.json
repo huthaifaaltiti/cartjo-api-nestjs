@@ -186,6 +186,7 @@
   "typeHintConfig_cannotUpdateDefaultKeys": "Cannot update default type-hint keys",
   "typeHintConfig_cannotCreateSystemTypeHint": "Cannot create system-type-hint",
   "typeHintConfig_cannotChangeSystemKey": "Cannot update system-type-hint",
+  "typeHintConfig_cannotUpdateKeyBecauseItIsUsed": "This type hint key cannot be updated because it is already used by products or showcases",
   "wishList_wishListRetrievedSuccessfully": "Wishlist retrieved successfully",
   "wishList_productAddedToWishlistSuccessfully": "Product added to wishlist successfully",
   "wishList_productIsInWishList": "Product is already wish-listed",
