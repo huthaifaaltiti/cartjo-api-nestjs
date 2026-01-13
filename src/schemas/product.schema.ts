@@ -76,7 +76,6 @@ export class Product {
   @Prop({
     required: true,
     type: [String],
-    enum: Object.values(SystemTypeHints),
     default: [SystemTypeHints.STATIC],
   })
   typeHint: string[];

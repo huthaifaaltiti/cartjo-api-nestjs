@@ -371,79 +371,6 @@ const products = await this.productModel
     };
   }
 
-  // async getOne(
-  //   id: string,
-  //   lang?: Locale,
-  //   userId?: mongoose.Types.ObjectId,
-  // ): Promise<DataResponse<Product>> {
-  //   try {
-  //     if (!Types.ObjectId.isValid(id)) {
-  //       return {
-  //         isSuccess: false,
-  //         message: getMessage('products_invalidProductId', lang),
-  //         data: null,
-  //         error: {
-  //           code: ItemErrorCode.INVALID_ID,
-  //           details: getMessage('products_invalidProductId', lang),
-  //         },
-  //       };
-  //     }
-
-  //     const product = await this.productModel
-  //       .findById(id)
-  //       .populate('deletedBy', 'firstName lastName email _id')
-  //       .populate('unDeletedBy', 'firstName lastName email _id')
-  //       .populate('createdBy', 'firstName lastName email _id')
-  //       .lean();
-
-  //     if (!product) {
-  //       return {
-  //         isSuccess: false,
-  //         message: getMessage('products_productNotFound', lang),
-  //         data: null,
-  //         error: {
-  //           code: ItemErrorCode.NOT_FOUND,
-  //           details: getMessage('products_productNotFound', lang),
-  //         },
-  //       };
-  //     }
-
-  //     // Enrich with isWishListed per user
-  //     let isWishListed = false;
-  //     if (userId) {
-  //       const wishList = await this.wishListModel.findOne({
-  //         user: userId,
-  //         products: new Types.ObjectId(id),
-  //       });
-
-  //       isWishListed = !!wishList;
-  //     }
-
-  //     return {
-  //       isSuccess: true,
-  //       message: getMessage('products_productRetrievedSuccessfully', lang),
-  //       error: null,
-  //       data: {
-  //         ...product,
-  //         isWishListed,
-  //       },
-  //     };
-  //   } catch (error) {
-  //     return {
-  //       isSuccess: false,
-  //       message: getMessage('general_databaseError', lang),
-  //       data: null,
-  //       error: {
-  //         code: GeneralErrorCode.DATABASE_ERROR,
-  //         details:
-  //           error instanceof Error
-  //             ? error.message
-  //             : getMessage('general_unknownDatabaseError', lang),
-  //       },
-  //     };
-  //   }
-  // }
-
   async geSuggestedItems(
     params: {
       lang?: Locale;
@@ -820,19 +747,6 @@ const products = await this.productModel
       product.totalAmountCount = Number(totalAmountCount);
       product.availableCount = Number(totalAmountCount);
     }
-    // if (typeHint) {
-    //   const typeHintKeys = await this.typeHintConfigService.getList(user, {
-    //     lang,
-    //   });
-
-    //   if (!typeHintKeys.data.includes(typeHint)) {
-    //     throw new BadRequestException(
-    //       getMessage('products_invalidTypeHint', lang),
-    //     );
-    //   }
-
-    //   product.typeHint = typeHint;
-    // }
 
     if (rawTypeHint !== undefined) {
       const typeHintKeysResponse = await this.typeHintConfigService.getList(

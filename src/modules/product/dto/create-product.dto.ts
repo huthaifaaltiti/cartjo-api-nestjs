@@ -11,9 +11,7 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
-
 import { Currency } from 'src/enums/currency.enum';
-import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
 import { Locale } from 'src/types/Locale';
 
 export class CreateProductDto {
@@ -84,8 +82,7 @@ export class CreateProductDto {
 
   @IsNotEmpty()
   @IsArray()
-  @IsEnum(SystemTypeHints, { each: true })
-  typeHint: SystemTypeHints[];
+  typeHint: string[];
 
   @IsNotEmpty()
   @IsMongoId()
