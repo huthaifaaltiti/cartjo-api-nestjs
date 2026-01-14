@@ -2,9 +2,9 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
 import { hashSync } from 'bcrypt';
 import { UserRole } from 'src/enums/user-role.enum';
-import { NameRef } from './common.schema';
 import { Gender } from 'src/enums/gender.enum';
 import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
+import { NATIONALITY_CODES } from 'src/common/constants/nationalities';
 
 export type UserDocument = User & Document;
 
@@ -14,14 +14,6 @@ class MapLocation {
 
   @Prop({ required: true })
   longitude: number;
-}
-
-class Nationality {
-  @Prop({ required: true })
-  code: string;
-
-  @Prop({ required: true })
-  name: NameRef;
 }
 
 export class DefaultShippingAddress {
@@ -47,8 +39,8 @@ export class User extends Document {
   @Prop({ required: false })
   username?: string;
 
-  @Prop({ type: Nationality, required: false })
-  nationality?: Nationality;
+  @Prop({ type: String, required: false, enum: NATIONALITY_CODES })
+  nationality?: string;
 
   @Prop({ required: false, default: null })
   usernameUpdatedAt?: Date;

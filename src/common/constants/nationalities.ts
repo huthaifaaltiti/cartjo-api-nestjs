@@ -66,4 +66,20 @@ export const NATIONALITIES = [
   { code: 'MY', name: { en: 'Malaysian', ar: 'ماليزي' }, flag: '🇲🇾' },
   { code: 'CH', name: { en: 'Swiss', ar: 'سويسري' }, flag: '🇨🇭' },
   { code: 'AT', name: { en: 'Austrian', ar: 'نمساوي' }, flag: '🇦🇹' },
+
+  // Not-listed
+  {
+    code: 'OTHER',
+    name: {
+      en: 'Other / Not listed',
+      ar: 'أخرى / غير مدرجة',
+    },
+    flag: '🌍',
+  },
 ];
+
+export type NationalityCode = (typeof NATIONALITIES)[number]['code'];
+
+export const NATIONALITY_CODES: NationalityCode[] = NATIONALITIES.map(
+  n => n.code,
+);

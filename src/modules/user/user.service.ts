@@ -588,26 +588,23 @@ export class UserService {
     requestingUser: any,
     profilePic?: Express.Multer.File,
   ): Promise<{ isSuccess: boolean; message: string; user: User }> {
-    const { firstName, lastName, email, phoneNumber, countryCode, lang } = dto;
+    const {
+      firstName,
+      lastName,
+      gender,
+      birthDate,
+      nationality,
+      email,
+      phoneNumber,
+      countryCode,
+      lang,
+    } = dto;
 
     validateSameUserAccess(
       requestingUser?.userId?.toString(),
       userId?.toString(),
       lang,
     );
-
-    if (
-      !checkUserRole({
-        userRole: requestingUser?.role,
-        requiredRole: UserRole.USER,
-      })
-    ) {
-      return {
-        isSuccess: false,
-        message: getMessage('users_OnlyOwnersCanUpdateAdmins', lang),
-        user: null,
-      };
-    }
 
     const user = await this.userModel.findById(userId);
 
@@ -665,6 +662,9 @@ export class UserService {
     if (countryCode) user.countryCode = countryCode;
     if (phoneNumber) user.phoneNumber = phoneNumber;
     if (email) user.email = email;
+    if (gender) user.gender = gender;
+    if (birthDate) user.birthDate = birthDate;
+    if (nationality) user.nationality = nationality;
 
     await user.save();
 
@@ -678,9 +678,9 @@ export class UserService {
   async updateDefaultShippingAddress(
     requestingUser: any,
     dto: UpdateDefaultAddressDto,
-  ):Promise<BaseResponse>{
+  ): Promise<BaseResponse> {
     const { lang, shippingAddress } = dto;
-    
+
     if (
       !checkUserRole({
         userRole: requestingUser?.role,
@@ -699,10 +699,12 @@ export class UserService {
       { new: true },
     );
 
-    
     return {
       isSuccess: true,
-      message: getMessage('users_defaultShippingAddressChangedSuccessfully', lang),
-    }; 
+      message: getMessage(
+        'users_defaultShippingAddressChangedSuccessfully',
+        lang,
+      ),
+    };
   }
 }
