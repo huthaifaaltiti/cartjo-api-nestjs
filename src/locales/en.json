@@ -251,5 +251,6 @@
   "order_canceledOrder": "Orders with canceled status cant be edit",
   "order_invalidDeliveryStatusTransition": "Invalid Delivery Status Transition",
   "order_deliveryStatusUpdatedSuccessfully": "Delivery Status Updated Successfully",
-  "order_ordersReturnsRetrieved": "Orders Returns Retrieved Successfully"
+  "order_ordersReturnsRetrieved": "Orders Returns Retrieved Successfully",
+  "userContext_contextRetrieved": "User's context data retrieved successfully"
 }

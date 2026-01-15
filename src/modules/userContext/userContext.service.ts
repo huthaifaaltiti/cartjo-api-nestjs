@@ -1,28 +1,38 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { Cart, CartDocument } from 'src/schemas/cart.schema';
+import { Model } from 'mongoose';
 import {
   UserContext,
   UserContextDocument,
 } from 'src/schemas/userContext.schema';
-import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
+import { WishListService } from '../wishList/wishList.service';
+import { Product } from 'src/schemas/product.schema';
+import { CartService } from '../cart/cart.service';
+import { DataResponse } from 'src/types/service-response.type';
+import { getMessage } from 'src/common/utils/translator';
+import { GetUserContextQuery } from './dto/get-user-context.dto';
+import { User, UserDocument } from 'src/schemas/user.schema';
+import { CartItem } from 'src/schemas/cart.schema';
 
 @Injectable()
 export class UserContextService {
   constructor(
     @InjectModel(UserContext.name)
     private readonly userContextModel: Model<UserContextDocument>,
-
-    @InjectModel(WishList.name)
-    private readonly wishListModel: Model<WishListDocument>,
-
-    @InjectModel(Cart.name)
-    private readonly cartModel: Model<CartDocument>,
+    @InjectModel(User.name)
+    private readonly userModel: Model<UserDocument>,
+    private readonly cartService: CartService,
+    private readonly wishlistService: WishListService,
   ) {}
 
-  async getUserContext({ user }: { user: any }) {
-    const userId = new Types.ObjectId(user._id);
+  async getUserContext({
+    user,
+    query,
+  }: {
+    user: any;
+    query: GetUserContextQuery;
+  }): Promise<DataResponse<any>> {
+    const userId = user?.userId;
 
     let userContext = await this.userContextModel.findOne({ userId });
 
@@ -31,23 +41,25 @@ export class UserContextService {
         userId,
         firstName: user.firstName,
         lastName: user.lastName,
-        profilePic: user.profilePic,
       });
     }
 
-    // Wishlist count
-    const wishlistItemsCount = await this.wishListModel.countDocuments({
-      userId,
-      isDeleted: false,
-      isActive: true,
-      
-    });
+    // Wishlist
+    const wishlist = await this.wishlistService.getWishList(user, {});
+    const wishlistItems = wishlist?.data?.products ?? [];
+    const wishlistItemsCount =
+      wishlistItems.filter((i: Product) => i.isActive && !i.isDeleted).length ??
+      0;
 
-    // Cart items count
-    const cartItemsCount = await this.cartModel.countDocuments({
-      userId,
-      isDeleted: false,
-      isActive: true,
+    // Cart
+    const cart = await this.cartService.getCart(user, {});
+    const cartItems = cart?.data?.items ?? [];
+    const cartItemsCount = cartItems
+      .filter((i: Product) => i.isActive && !i.isDeleted)
+      .reduce((acc: number, i: CartItem) => acc + (i.quantity || 0), 0);
+
+    const fullUserData = await this.userModel.findOne({
+      email: user.email,
     });
 
     userContext.counters = {
@@ -57,9 +69,16 @@ export class UserContextService {
     };
 
     userContext.lastCalculatedAt = new Date();
+    userContext.dateJoined = fullUserData.dateJoined;
 
     await userContext.save();
 
-    return userContext.toObject();
+    const userContextData = userContext.toObject();
+
+    return {
+      isSuccess: true,
+      message: getMessage('userContext_contextRetrieved', query.lang),
+      data: userContextData,
+    };
   }
 }

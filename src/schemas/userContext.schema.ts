@@ -77,7 +77,9 @@ export class UserContext extends Document {
 
   @Prop({ default: Date.now })
   lastCalculatedAt: Date;
+
+  @Prop({ type: Date })
+  dateJoined: Date;
 }
 
-export const UserContextSchema =
-  SchemaFactory.createForClass(UserContext);
+export const UserContextSchema = SchemaFactory.createForClass(UserContext);
