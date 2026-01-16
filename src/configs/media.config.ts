@@ -2,13 +2,13 @@ export const MEDIA_CONFIG = {
   CATEGORY: {
     IMAGE: {
       ALLOWED_TYPES: ['webp', 'gif', 'avif', 'png', 'jpg', 'jpeg', 'tiff'],
-      MAX_SIZE: 2 * 1024 * 1024,
+      MAX_SIZE: 1 * 1024 * 1024,
     },
   },
   SUB_CATEGORY: {
     IMAGE: {
       ALLOWED_TYPES: ['webp', 'gif', 'avif', 'png', 'jpg', 'jpeg', 'tiff'],
-      MAX_SIZE: 2 * 1024 * 1024,
+      MAX_SIZE: 1 * 1024 * 1024,
     },
   },
   BANNER: {
@@ -26,7 +26,7 @@ export const MEDIA_CONFIG = {
   PRODUCT: {
     IMAGE: {
       ALLOWED_TYPES: ['webp', 'gif', 'avif', 'png', 'jpg', 'jpeg', 'tiff'],
-      MAX_SIZE: 3 * 1024 * 1024,
+      MAX_SIZE: 2 * 1024 * 1024,
     },
   },
   USER: {

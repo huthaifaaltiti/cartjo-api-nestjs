@@ -30,7 +30,7 @@ export class MediaService {
       this.mediaDbClient = new MongoClient(mediaDbUri);
       await this.mediaDbClient.connect();
 
-      const mediaDb = this.mediaDbClient.db('test_media');
+      const mediaDb = this.mediaDbClient.db();
 
       // Initialize GridFS bucket for file storage
       this.gridFSBucket = new GridFSBucket(mediaDb, { bucketName: 'files' });

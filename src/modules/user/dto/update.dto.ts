@@ -9,11 +9,13 @@ import {
   IsMongoId,
   IsNotEmpty,
   ValidateNested,
+  IsIn,
 } from 'class-validator';
 import { Locale } from 'src/types/Locale';
 import { Gender } from 'src/enums/gender.enum';
 import { ShippingAddressDto } from 'src/modules/payment/dto/checkout.dto';
 import { Type } from 'class-transformer';
+import { NATIONALITY_CODES } from 'src/common/constants/nationalities';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -45,8 +47,12 @@ export class UpdateUserDto {
   gender?: Gender;
 
   @IsOptional()
+  @IsIn(NATIONALITY_CODES)
+  nationality?: string;
+
+  @IsOptional()
   @IsDateString()
-  birthDate?: string;
+  birthDate?: Date;
 
   @IsOptional()
   @IsString()
