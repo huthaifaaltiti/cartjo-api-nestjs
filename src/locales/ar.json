@@ -246,5 +246,6 @@
   "order_canceledOrder": "لا يمكن تعديل الطلب بعد إلغائه",
   "order_invalidDeliveryStatusTransition": "انتقال غير صالح لحالة التوصيل",
   "order_deliveryStatusUpdatedSuccessfully": "تم تحديث حالة التوصيل بنجاح",
-  "order_ordersReturnsRetrieved": "تم استرداد المرتجعات بنجاح"
+  "order_ordersReturnsRetrieved": "تم استرداد المرتجعات بنجاح",
+  "userContext_contextRetrieved": "تم استرداد بيانات سياق المستخدم بنجاح"
 }
