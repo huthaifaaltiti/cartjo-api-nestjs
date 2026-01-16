@@ -27,6 +27,7 @@ import { EmailModule } from './modules/email/email.module';
 import { CartModule } from './modules/cart/cart.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { OrderModule } from './modules/order/order.module';
+import { UserContextModule } from './modules/userContext/userContext.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { OrderModule } from './modules/order/order.module';
     CartModule,
     PaymentModule,
     OrderModule,
+    UserContextModule
   ],
   controllers: [AppController],
   providers: [AppService],
