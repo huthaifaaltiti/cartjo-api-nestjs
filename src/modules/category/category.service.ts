@@ -7,7 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model, Types } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import slugify from 'slugify';
 import { MediaService } from '../media/media.service';
 import {
@@ -78,7 +78,7 @@ export class CategoryService {
         file,
         { userId: requestingUser?.userId },
         lang,
-        Modules.BANNER,
+        Modules.CATEGORY,
       );
 
       if (!result?.isSuccess) {
@@ -98,25 +98,6 @@ export class CategoryService {
       image_en,
       'categories_categoryShouldHasEnImage',
     );
-
-    // let mediaUrl: string | undefined = undefined;
-    // let mediaId: string | undefined = undefined;
-
-    // if (image && Object.keys(image).length > 0) {
-    //   fileSizeValidator(image, MAX_FILE_SIZES.CATEGORY_IMAGE, lang);
-
-    //   const result = await this.mediaService.handleFileUpload(
-    //     image,
-    //     { userId: requestingUser?.userId },
-    //     lang,
-    //     Modules.CATEGORY,
-    //   );
-
-    //   if (result?.isSuccess) {
-    //     mediaUrl = result.fileUrl;
-    //     mediaId = result.mediaId;
-    //   }
-    // }
 
     const category = new this.categoryModel({
       media: { ar: media_ar, en: media_en },
@@ -182,31 +163,6 @@ export class CategoryService {
       }
     }
 
-    const uploadMedia = async (
-      file: Express.Multer.File,
-      requiredMsg: string,
-    ): Promise<MediaPreview | undefined> => {
-      if (!file || Object.keys(file).length === 0) {
-        throw new ForbiddenException(getMessage(requiredMsg, lang));
-      }
-
-      fileSizeValidator(file, MEDIA_CONFIG.CATEGORY.IMAGE.MAX_SIZE, lang);
-      fileTypeValidator(file, MEDIA_CONFIG.CATEGORY.IMAGE.ALLOWED_TYPES, lang);
-
-      const result = await this.mediaService.handleFileUpload(
-        file,
-        { userId: requestingUser?.userId },
-        lang,
-        Modules.BANNER,
-      );
-
-      if (!result?.isSuccess) {
-        throw new BadRequestException(getMessage('banner_uploadFailed', lang));
-      }
-
-      return { id: result.mediaId, url: result.fileUrl };
-    };
-
     const updateData: any = {
       updatedBy: requestingUser?.userId,
       updatedAt: new Date(),
@@ -216,25 +172,49 @@ export class CategoryService {
       let media_ar: MediaPreview, media_en: MediaPreview;
 
       if (image_ar) {
-        media_ar = await uploadMedia(
-          image_ar,
-          'categories_categoryShouldHasArImage',
-        );
+        media_ar = image_ar
+          ? await this.mediaService.softDeleteAndUpload(
+              categoryToUpdate.media?.ar?.id?.toString(),
+              image_ar,
+              requestingUser.userId,
+              lang,
+              Modules.CATEGORY,
+              MEDIA_CONFIG.CATEGORY.IMAGE.MAX_SIZE,
+              MEDIA_CONFIG.CATEGORY.IMAGE.ALLOWED_TYPES,
+            )
+          : categoryToUpdate.media?.ar
+            ? {
+                ...categoryToUpdate.media.en,
+                id: categoryToUpdate.media.en.id.toString(), // Force string here
+              }
+            : undefined;
       }
 
       if (image_en) {
-        media_en = await uploadMedia(
-          image_en,
-          'categories_categoryShouldHasEnImage',
-        );
+        media_en = image_en
+          ? await this.mediaService.softDeleteAndUpload(
+              categoryToUpdate.media?.en?.id?.toString(),
+              image_en,
+              requestingUser.userId,
+              lang,
+              Modules.CATEGORY,
+              MEDIA_CONFIG.CATEGORY.IMAGE.MAX_SIZE,
+              MEDIA_CONFIG.CATEGORY.IMAGE.ALLOWED_TYPES,
+            )
+          : categoryToUpdate.media?.en
+            ? {
+                ...categoryToUpdate.media.en,
+                id: categoryToUpdate.media.en.id.toString(), // Force string here
+              }
+            : undefined;
       }
 
       updateData.media = {
         ar: media_ar
-          ? { ...media_ar, id: new mongoose.Types.ObjectId(media_ar.id) }
+          ? { ...media_ar, id: String(media_ar.id) }
           : categoryToUpdate?.media?.ar,
         en: media_en
-          ? { ...media_en, id: new mongoose.Types.ObjectId(media_en.id) }
+          ? { ...media_en, id: String(media_en.id) }
           : categoryToUpdate?.media?.en,
       };
     }

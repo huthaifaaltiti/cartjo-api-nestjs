@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { MongoClient, GridFSBucket, ObjectId } from 'mongodb';
@@ -7,6 +11,11 @@ import { getMessage } from 'src/common/utils/translator';
 import { Locale } from 'src/types/Locale';
 import { User, UserDocument } from '../../schemas/user.schema';
 import { getAppHostName } from 'src/common/utils/getAppHostName';
+import { Cron } from '@nestjs/schedule';
+import { CRON_JOBS } from 'src/configs/cron.config';
+import { MediaPreview } from 'src/schemas/common.schema';
+import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
+import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
 
 @Injectable()
 export class MediaService {
@@ -34,7 +43,6 @@ export class MediaService {
 
       // Initialize GridFS bucket for file storage
       this.gridFSBucket = new GridFSBucket(mediaDb, { bucketName: 'files' });
-
       // Initialize collections
       this.metadataCollection = mediaDb.collection('metadata');
       this.accessLogsCollection = mediaDb.collection('access_logs');
@@ -43,6 +51,34 @@ export class MediaService {
     } catch (error) {
       console.error('Failed to initialize media database:', error);
       throw error;
+    }
+  }
+
+  @Cron(CRON_JOBS.MEDIA.PURGE_DELETED_MEDIA)
+  async purgeDeletedMedia() {
+    const threshold = new Date();
+    threshold.setDate(
+      threshold.getDate() -
+        CRON_JOBS.MEDIA.PURGE_DELETED_MEDIA_THRESHOLD_IN_DAYS,
+    );
+
+    // const threshold = new Date(
+    //   Date.now() - CRON_JOBS.MEDIA.PURGE_DELETED_MEDIA_THRESHOLD_SECONDS * 1000, // seconds → ms
+    // );
+
+    const mediaToDelete = await this.metadataCollection
+      .find({
+        isActive: false,
+        isDeleted: true,
+        deletedAt: { $lte: threshold },
+      })
+      .toArray();
+
+    console.log(
+      `🧹 Purging ${mediaToDelete.length} soft-deleted media files...`,
+    );
+    for (const media of mediaToDelete) {
+      await this.hardDeleteMedia(media.fileId.toString());
     }
   }
 
@@ -147,6 +183,9 @@ export class MediaService {
         description: '',
         uploadedAt: new Date(),
         isActive: true,
+        isDeleted: false,
+        deletedAt: null,
+        deactivatedAt: null,
         // Reference to your main database entities if needed
         relatedEntity: null, // You can set this when linking to products, locations, etc.
       };
@@ -177,6 +216,39 @@ export class MediaService {
         fileUrl: null,
       };
     }
+  }
+
+  async softDeleteMedia(fileId: string, userId: string): Promise<void> {
+    const _id = new ObjectId(fileId);
+    const update = {
+      isActive: false,
+      isDeleted: true,
+      deactivatedAt: new Date(),
+      deletedAt: new Date(),
+    };
+    await this.metadataCollection.updateOne({ fileId: _id }, { $set: update });
+    await this.logAccess({
+      fileId: _id,
+      userId: new ObjectId(userId),
+      action: 'soft-delete',
+      timestamp: new Date(),
+    });
+  }
+
+  async hardDeleteMedia(fileId: string): Promise<void> {
+    const _id = new ObjectId(fileId);
+    // Delete from GridFS (files + chunks)
+    try {
+      await this.gridFSBucket.delete(_id);
+    } catch (error) {
+      console.error(`GridFS delete failed for fileId=${fileId}:`, error);
+    }
+
+    // Delete metadata and logs
+    await this.metadataCollection.deleteOne({ fileId: _id });
+    await this.accessLogsCollection.deleteMany({ fileId: _id });
+
+    console.log(`✅ Hard deleted media ${fileId}`);
   }
 
   async getFileById(fileId: string): Promise<{
@@ -214,5 +286,43 @@ export class MediaService {
       console.error('Error logging access:', error);
       // Don't throw error for logging failures
     }
+  }
+
+  async softDeleteAndUpload(
+    oldMediaId: string | undefined,
+    file: Express.Multer.File,
+    requestingUserId: string,
+    lang: Locale,
+    key: string,
+    maxSize: number,
+    allowedTypes: string[],
+  ): Promise<MediaPreview> {
+    // Soft delete old media if exists
+    if (oldMediaId) {
+      await this.softDeleteMedia(oldMediaId, requestingUserId);
+    }
+
+    // Validate & upload new media
+    if (!file || Object.keys(file).length === 0) {
+      throw new ForbiddenException(getMessage('media_noMediaFound', lang));
+    }
+
+    fileSizeValidator(file, maxSize, lang);
+    fileTypeValidator(file, allowedTypes, lang);
+
+    const result = await this.handleFileUpload(
+      file,
+      { userId: requestingUserId },
+      lang,
+      key,
+    );
+
+    if (!result?.isSuccess) {
+      throw new BadRequestException(
+        getMessage('media_mediaUploadFailed', lang),
+      );
+    }
+
+    return { id: String(result.mediaId), url: String(result.fileUrl) };
   }
 }

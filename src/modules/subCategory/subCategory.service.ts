@@ -7,7 +7,7 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model, Types } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
 import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
@@ -99,7 +99,7 @@ export class SubCategoryService {
         file,
         { userId: user?.userId },
         lang,
-        Modules.BANNER,
+        Modules.SUB_CATEGORY,
       );
 
       if (!result?.isSuccess) {
@@ -199,37 +199,6 @@ export class SubCategoryService {
       }
     }
 
-    const uploadMedia = async (
-      file: Express.Multer.File,
-      requiredMsg: string,
-    ): Promise<MediaPreview | undefined> => {
-      if (!file || Object.keys(file).length === 0) {
-        throw new ForbiddenException(getMessage(requiredMsg, lang));
-      }
-
-      fileSizeValidator(file, MEDIA_CONFIG.SUB_CATEGORY.IMAGE.MAX_SIZE, lang);
-      fileTypeValidator(
-        file,
-        MEDIA_CONFIG.SUB_CATEGORY.IMAGE.ALLOWED_TYPES,
-        lang,
-      );
-
-      const result = await this.mediaService.handleFileUpload(
-        file,
-        { userId: requestingUser?.userId },
-        lang,
-        Modules.BANNER,
-      );
-
-      if (!result?.isSuccess) {
-        throw new BadRequestException(
-          getMessage('subCategories_subCategoryImageUploadFailed', lang),
-        );
-      }
-
-      return { id: result.mediaId, url: result.fileUrl };
-    };
-
     const updateData: any = {
       updatedBy: requestingUser?.userId,
       updatedAt: new Date(),
@@ -239,25 +208,49 @@ export class SubCategoryService {
       let media_ar: MediaPreview, media_en: MediaPreview;
 
       if (image_ar) {
-        media_ar = await uploadMedia(
-          image_ar,
-          'subCategories_subCategoryShouldHasArImage',
-        );
+        media_ar = image_ar
+          ? await this.mediaService.softDeleteAndUpload(
+              subCategoryToUpdate.media?.ar?.id?.toString(),
+              image_ar,
+              requestingUser.userId,
+              lang,
+              Modules.SUB_CATEGORY,
+              MEDIA_CONFIG.SUB_CATEGORY.IMAGE.MAX_SIZE,
+              MEDIA_CONFIG.SUB_CATEGORY.IMAGE.ALLOWED_TYPES,
+            )
+          : subCategoryToUpdate.media?.ar
+            ? {
+                ...subCategoryToUpdate.media.en,
+                id: subCategoryToUpdate.media.en.id.toString(), // Force string here
+              }
+            : undefined;
       }
 
       if (image_en) {
-        media_en = await uploadMedia(
-          image_en,
-          'subCategories_subCategoryShouldHasEnImage',
-        );
+        media_en = image_en
+          ? await this.mediaService.softDeleteAndUpload(
+              subCategoryToUpdate.media?.en?.id?.toString(),
+              image_en,
+              requestingUser.userId,
+              lang,
+              Modules.SUB_CATEGORY,
+              MEDIA_CONFIG.SUB_CATEGORY.IMAGE.MAX_SIZE,
+              MEDIA_CONFIG.SUB_CATEGORY.IMAGE.ALLOWED_TYPES,
+            )
+          : subCategoryToUpdate.media?.en
+            ? {
+                ...subCategoryToUpdate.media.en,
+                id: subCategoryToUpdate.media.en.id.toString(), // Force string here
+              }
+            : undefined;
       }
 
       updateData.media = {
         ar: media_ar
-          ? { ...media_ar, id: new mongoose.Types.ObjectId(media_ar.id) }
+          ? { ...media_ar, id: String(media_ar.id) }
           : subCategoryToUpdate?.media?.ar,
         en: media_en
-          ? { ...media_en, id: new mongoose.Types.ObjectId(media_en.id) }
+          ? { ...media_en, id: String(media_en.id) }
           : subCategoryToUpdate?.media?.en,
       };
     }

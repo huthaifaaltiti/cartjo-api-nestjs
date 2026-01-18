@@ -23,9 +23,6 @@ export class Media {
   @Prop({ required: true })
   fileUrl: string;
 
-  @Prop({ required: false })
-  supabaseBackupUrl: string;
-
   @Prop({ required: true })
   mimetype: string;
 
@@ -56,6 +53,15 @@ export class Media {
 
   @Prop({ default: true })
   isActive: boolean;
+
+  @Prop({ default: null })
+  deactivatedAt?: Date;
+
+  @Prop({ default: false })
+  isDeleted: boolean;
+
+  @Prop({ default: null })
+  deletedAt?: Date;
 
   @Prop({ default: 0 })
   downloadCount: number;
@@ -98,7 +104,8 @@ export const MediaSchema = SchemaFactory.createForClass(Media);
 MediaSchema.index({ uploadedBy: 1, category: 1 });
 MediaSchema.index({ uploadKey: 1 });
 MediaSchema.index({ uploadedAt: -1 });
-MediaSchema.index({ isActive: 1 });
+MediaSchema.index({ isActive: 1, isDeleted: 1 });
+MediaSchema.index({ deactivatedAt: 1, deletedAt: 1 });
 MediaSchema.index({ tags: 1 });
 
 // Add a virtual for file size in human readable format
