@@ -5,6 +5,7 @@ import { UserRole } from 'src/enums/user-role.enum';
 import { Gender } from 'src/enums/gender.enum';
 import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
 import { NATIONALITY_CODES } from 'src/common/constants/nationalities';
+import { MediaPreview } from './common.schema';
 
 export type UserDocument = User & Document;
 
@@ -52,7 +53,7 @@ export class User extends Document {
   mapLocation?: MapLocation;
 
   @Prop({ required: false, default: null })
-  profilePic?: string;
+  profilePic?: MediaPreview;
 
   @Prop({ required: false, unique: true })
   email?: string;

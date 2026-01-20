@@ -2,7 +2,6 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
-  ForbiddenException,
   Inject,
   forwardRef,
 } from '@nestjs/common';
@@ -10,7 +9,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
-import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
 import { MediaService } from '../media/media.service';
 import {
   SubCategory,
@@ -29,7 +27,6 @@ import { UpdateSubCategoryDto } from './dto/update-subCategory.dto';
 import { DeleteSubCategoryDto } from './dto/delete-subCategory.dto';
 import { UnDeleteSubCategoryBodyDto } from './dto/unDelete-subCategory.dto';
 import { MediaPreview } from 'src/schemas/common.schema';
-import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
 import slugify from 'slugify';
 import { revalidateTag } from 'src/common/utils/revalidate';
 import { REVALIDATION_TAGS } from 'src/common/constants/revalidation-tags';
@@ -51,14 +48,14 @@ export class SubCategoryService {
   ) {}
 
   async create(
-    user: any,
+    req: any,
     dto: CreateSubCategoryDto,
     image_ar: Express.Multer.File,
     image_en: Express.Multer.File,
   ): Promise<DataResponse<SubCategory>> {
     const { lang, name_ar, name_en, categoryId } = dto;
 
-    validateUserRoleAccess(user, lang);
+    validateUserRoleAccess(req?.user, lang);
 
     const slug = name_en ? slugify(name_en, { lower: true }) : undefined;
 
@@ -80,52 +77,34 @@ export class SubCategoryService {
       );
     }
 
-    const uploadMedia = async (
-      file: Express.Multer.File,
-      requiredMsg: string,
-    ): Promise<MediaPreview | undefined> => {
-      if (!file || Object.keys(file).length === 0) {
-        throw new ForbiddenException(getMessage(requiredMsg, lang));
-      }
+    const media_ar = await this.mediaService.mediaProcessor({
+      file: image_ar,
+      reqMsg: 'subCategories_subCategoryShouldHasArImage',
+      user: req?.user,
+      maxSize: MEDIA_CONFIG.SUB_CATEGORY.IMAGE.MAX_SIZE,
+      allowedTypes: MEDIA_CONFIG.SUB_CATEGORY.IMAGE.ALLOWED_TYPES,
+      lang,
+      key: Modules.SUB_CATEGORY,
+      req,
+    });
 
-      fileSizeValidator(file, MEDIA_CONFIG.SUB_CATEGORY.IMAGE.MAX_SIZE, lang);
-      fileTypeValidator(
-        file,
-        MEDIA_CONFIG.SUB_CATEGORY.IMAGE.ALLOWED_TYPES,
-        lang,
-      );
-
-      const result = await this.mediaService.handleFileUpload(
-        file,
-        { userId: user?.userId },
-        lang,
-        Modules.BANNER,
-      );
-
-      if (!result?.isSuccess) {
-        throw new BadRequestException(
-          getMessage('subCategories_subCategoryImageUploadFailed', lang),
-        );
-      }
-
-      return { id: result.mediaId, url: result.fileUrl };
-    };
-
-    const media_ar = await uploadMedia(
-      image_ar,
-      'subCategories_subCategoryShouldHasArImage',
-    );
-    const media_en = await uploadMedia(
-      image_en,
-      'subCategories_subCategoryShouldHasEnImage',
-    );
+    const media_en = await this.mediaService.mediaProcessor({
+      file: image_en,
+      reqMsg: 'subCategories_subCategoryShouldHasEnImage',
+      user: req?.user,
+      maxSize: MEDIA_CONFIG.SUB_CATEGORY.IMAGE.MAX_SIZE,
+      allowedTypes: MEDIA_CONFIG.SUB_CATEGORY.IMAGE.ALLOWED_TYPES,
+      lang,
+      key: Modules.SUB_CATEGORY,
+      req,
+    });
 
     const subCategory = new this.subCategoryModel({
       name: { ar: name_ar, en: name_en },
       categoryId,
       media: { ar: media_ar, en: media_en },
       slug,
-      createdBy: user?.userId,
+      createdBy: req?.user?.userId,
       isActive: true,
       isDeleted: false,
     });
@@ -150,7 +129,7 @@ export class SubCategoryService {
   }
 
   async update(
-    requestingUser: any,
+    req: any,
     dto: UpdateSubCategoryDto,
     image_ar: Express.Multer.File,
     image_en: Express.Multer.File,
@@ -158,7 +137,7 @@ export class SubCategoryService {
   ): Promise<DataResponse<SubCategory>> {
     const { lang, name_ar, name_en, categoryId } = dto;
 
-    validateUserRoleAccess(requestingUser, lang);
+    validateUserRoleAccess(req?.user, lang);
 
     const subCategoryToUpdate = await this.subCategoryModel.findById(id);
 
@@ -199,57 +178,45 @@ export class SubCategoryService {
       }
     }
 
-    const uploadMedia = async (
-      file: Express.Multer.File,
-      requiredMsg: string,
-    ): Promise<MediaPreview | undefined> => {
-      if (!file || Object.keys(file).length === 0) {
-        throw new ForbiddenException(getMessage(requiredMsg, lang));
-      }
-
-      fileSizeValidator(file, MEDIA_CONFIG.SUB_CATEGORY.IMAGE.MAX_SIZE, lang);
-      fileTypeValidator(
-        file,
-        MEDIA_CONFIG.SUB_CATEGORY.IMAGE.ALLOWED_TYPES,
-        lang,
-      );
-
-      const result = await this.mediaService.handleFileUpload(
-        file,
-        { userId: requestingUser?.userId },
-        lang,
-        Modules.BANNER,
-      );
-
-      if (!result?.isSuccess) {
-        throw new BadRequestException(
-          getMessage('subCategories_subCategoryImageUploadFailed', lang),
-        );
-      }
-
-      return { id: result.mediaId, url: result.fileUrl };
-    };
-
     const updateData: any = {
-      updatedBy: requestingUser?.userId,
+      updatedBy: req?.user?.userId,
       updatedAt: new Date(),
     };
 
     if (image_ar || image_en) {
-      let media_ar: MediaPreview, media_en: MediaPreview;
+      let media_ar: MediaPreview = undefined,
+        media_en: MediaPreview = undefined;
 
       if (image_ar) {
-        media_ar = await uploadMedia(
-          image_ar,
-          'subCategories_subCategoryShouldHasArImage',
-        );
+        const result = await this.mediaService.hardDeleteAndUpload({
+          file: image_ar,
+          user: req?.user,
+          reqMsg: 'subCategories_subCategoryShouldHasArImage',
+          maxSize: MEDIA_CONFIG.SUB_CATEGORY.IMAGE.MAX_SIZE,
+          allowedTypes: MEDIA_CONFIG.SUB_CATEGORY.IMAGE.ALLOWED_TYPES,
+          lang,
+          key: Modules.SUB_CATEGORY,
+          req,
+          existingMediaId: subCategoryToUpdate.media.ar.id,
+        });
+
+        media_ar = result;
       }
 
       if (image_en) {
-        media_en = await uploadMedia(
-          image_en,
-          'subCategories_subCategoryShouldHasEnImage',
-        );
+        const result = await this.mediaService.hardDeleteAndUpload({
+          file: image_en,
+          user: req?.user,
+          reqMsg: 'subCategories_subCategoryShouldHasEnImage',
+          maxSize: MEDIA_CONFIG.SUB_CATEGORY.IMAGE.MAX_SIZE,
+          allowedTypes: MEDIA_CONFIG.SUB_CATEGORY.IMAGE.ALLOWED_TYPES,
+          lang,
+          key: Modules.SUB_CATEGORY,
+          req,
+          existingMediaId: subCategoryToUpdate.media.en.id,
+        });
+
+        media_en = result;
       }
 
       updateData.media = {

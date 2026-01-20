@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-
 import { Banner, BannerSchema } from 'src/schemas/banner.schema';
-
 import { MediaModule } from '../media/media.module';
 import { JwtModule } from '../jwt/jwt.module';
 import { BannerService } from './banner.service';

@@ -32,7 +32,11 @@ import { GetUserParamDto, GetUserQueryDto } from './dto/get-user.dto';
 import { CreateAdminBodyDto } from './dto/create-admin.dto';
 import { UpdateAdminUserParamsDto } from './dto/update-admin.dto';
 import { ApiPaths } from 'src/common/constants/api-paths';
-import { UpdateDefaultAddressDto, UpdateUserDto, UpdateUserParamsDto } from './dto/update.dto';
+import {
+  UpdateDefaultAddressDto,
+  UpdateUserDto,
+  UpdateUserParamsDto,
+} from './dto/update.dto';
 
 @Controller(ApiPaths.User.Root)
 export class UserController {
@@ -129,9 +133,7 @@ export class UserController {
     @Request() req: any,
     @Body() body: CreateAdminBodyDto,
   ) {
-    const { user } = req;
-
-    return this.userService.createAdminUser(body, user, profilePic);
+    return this.userService.createAdminUser(body, req, profilePic);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -143,10 +145,9 @@ export class UserController {
     @Request() req: any,
     @Body() body: Partial<CreateAdminBodyDto>,
   ) {
-    const { user } = req;
     const { id } = param;
 
-    return this.userService.updateAdminUser(id, body, user, profilePic);
+    return this.userService.updateAdminUser(id, body, req, profilePic);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -158,10 +159,9 @@ export class UserController {
     @Request() req: any,
     @Body() body: UpdateUserDto,
   ) {
-    const { user } = req;
     const { id } = param;
 
-    return this.userService.updateUser(id, body, user, profilePic);
+    return this.userService.updateUser(id, body, req, profilePic);
   }
 
   @UseGuards(AuthGuard('jwt'))

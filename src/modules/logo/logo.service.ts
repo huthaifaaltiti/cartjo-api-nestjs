@@ -16,14 +16,13 @@ import { Modules } from 'src/enums/appModules.enum';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { activateDefaultIfAllInactive } from 'src/common/functions/helpers/activateDefaultIfAllInactive.helper';
 import { getMessage } from 'src/common/utils/translator';
-import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
 import { CreateLogoDto } from './dto/create-logo.dto';
 import { UpdateLogoDto } from './dto/update-logo.dto';
 import { DeleteLogoDto } from './dto/delete-logo.dto';
 import { UnDeleteLogoBodyDto } from './dto/unDelete-logo.dto';
 import { Locale } from 'src/types/Locale';
-import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
 import { MEDIA_CONFIG } from 'src/configs/media.config';
+import { MediaPreview } from 'src/schemas/common.schema';
 
 @Injectable()
 export class LogoService {
@@ -122,13 +121,13 @@ export class LogoService {
   }
 
   async create(
-    requestingUser: any,
+    req: any,
     dto: CreateLogoDto,
     image: Express.Multer.File,
   ): Promise<DataResponse<Logo>> {
     const { lang, name, altText } = dto;
 
-    validateUserRoleAccess(requestingUser, lang);
+    validateUserRoleAccess(req?.user, lang);
 
     const existingLogo = await this.logoModel.findOne({
       $or: [{ name }, { altText }],
@@ -145,31 +144,30 @@ export class LogoService {
       await activeLogo.save();
     }
 
-    let mediaUrl: string | undefined = undefined;
-    let mediaId: string | undefined = undefined;
+    let createdMedia: MediaPreview | undefined = undefined;
 
     if (image && Object.keys(image).length > 0) {
-      fileSizeValidator(image, MEDIA_CONFIG.LOGO.IMAGE.MAX_SIZE, lang);
-      fileTypeValidator(image, MEDIA_CONFIG.LOGO.IMAGE.ALLOWED_TYPES, lang);
-
-      const result = await this.mediaService.handleFileUpload(
-        image,
-        { userId: requestingUser?.userId },
+      const logoImage = await this.mediaService.mediaProcessor({
+        file: image,
+        reqMsg: 'logo_shouldHasImage',
+        user: req?.user,
+        maxSize: MEDIA_CONFIG.LOGO.IMAGE.MAX_SIZE,
+        allowedTypes: MEDIA_CONFIG.LOGO.IMAGE.ALLOWED_TYPES,
         lang,
-        Modules.LOGO,
-      );
+        key: Modules.LOGO,
+        req,
+      });
 
-      if (result?.isSuccess) {
-        mediaUrl = result.fileUrl;
-        mediaId = result.mediaId;
+      if (logoImage) {
+        createdMedia = logoImage;
       }
     }
 
     const logo = new this.logoModel({
-      media: { id: mediaId, url: mediaUrl },
+      media: createdMedia,
       name,
       altText,
-      createdBy: requestingUser?.userId,
+      createdBy: req?.user?.userId,
       isActive: true,
       isDeleted: false,
     });
@@ -184,14 +182,14 @@ export class LogoService {
   }
 
   async update(
-    requestingUser: any,
+    req: any,
     dto: UpdateLogoDto,
     image: Express.Multer.File,
     id: string,
   ): Promise<DataResponse<Logo>> {
     const { lang, name, altText } = dto;
 
-    validateUserRoleAccess(requestingUser, lang);
+    validateUserRoleAccess(req?.user, lang);
 
     const logoToUpdate = await this.logoModel.findById(id);
     if (!logoToUpdate) {
@@ -211,36 +209,31 @@ export class LogoService {
       }
     }
 
-    let mediaUrl: string | undefined = logoToUpdate.media.url;
-    let mediaId: string | undefined = logoToUpdate.media.id?.toString();
+    let mediaObj: MediaPreview | undefined;
 
-    if (image && Object.keys(image).length > 0) {
-      fileSizeValidator(image, MEDIA_CONFIG.LOGO.IMAGE.MAX_SIZE, lang);
-      fileTypeValidator(image, MEDIA_CONFIG.LOGO.IMAGE.ALLOWED_TYPES, lang);
-
-      const result = await this.mediaService.handleFileUpload(
-        image,
-        { userId: requestingUser?.userId },
+    if (image) {
+      const result = await this.mediaService.hardDeleteAndUpload({
+        file: image,
+        user: req?.user,
+        reqMsg: 'logo_shouldHasImage',
+        maxSize: MEDIA_CONFIG.LOGO.IMAGE.MAX_SIZE,
+        allowedTypes: MEDIA_CONFIG.LOGO.IMAGE.ALLOWED_TYPES,
         lang,
-        Modules.LOGO,
-      );
+        key: Modules.LOGO,
+        req,
+        existingMediaId: logoToUpdate.media.id,
+      });
 
-      if (result?.isSuccess) {
-        mediaUrl = result.fileUrl;
-        mediaId = result.mediaId;
-      }
+      mediaObj = result;
     }
 
     const updateData: Partial<Logo> = {
-      updatedBy: requestingUser?.userId,
+      updatedBy: req?.user?.userId,
       updatedAt: new Date(),
     };
 
-    if (mediaUrl !== logoToUpdate.media?.url) {
-      updateData.media = {
-        id: mediaId,
-        url: mediaUrl,
-      };
+    if (mediaObj.url !== logoToUpdate.media?.url) {
+      updateData.media = mediaObj;
     }
 
     if (name) updateData.name = name;
