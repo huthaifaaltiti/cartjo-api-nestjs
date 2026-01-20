@@ -13,9 +13,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import {
-  FileFieldsInterceptor,
-} from '@nestjs/platform-express';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { SubCategoryService } from './subCategory.service';
 import { CreateSubCategoryDto } from './dto/create-subCategory.dto';
 import {
@@ -62,11 +60,10 @@ export class SubCategoryController {
     @Request() req: any,
     @Body() body: CreateSubCategoryDto,
   ) {
-    const { user } = req;
     const image_ar = files.image_ar?.[0];
     const image_en = files.image_en?.[0];
 
-    return this.subCategoryService.create(user, body, image_ar, image_en);
+    return this.subCategoryService.create(req, body, image_ar, image_en);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -87,12 +84,11 @@ export class SubCategoryController {
     @Body() body: UpdateSubCategoryDto,
     @Param() param: UpdateSubCategoryParamsDto,
   ) {
-    const { user } = req;
     const { id } = param;
     const image_ar = files.image_ar?.[0];
     const image_en = files.image_en?.[0];
 
-    return this.subCategoryService.update(user, body, image_ar, image_en, id);
+    return this.subCategoryService.update(req, body, image_ar, image_en, id);
   }
 
   @UseGuards(AuthGuard('jwt'))

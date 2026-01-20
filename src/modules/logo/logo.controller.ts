@@ -73,9 +73,7 @@ export class LogoController {
     @Request() req: any,
     @Body() body: CreateLogoDto,
   ) {
-    const { user } = req;
-
-    return this.logoService.create(user, body, image);
+    return this.logoService.create(req, body, image);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -87,10 +85,9 @@ export class LogoController {
     @Body() body: UpdateLogoDto,
     @Param() param: UpdateLogoParamsDto,
   ) {
-    const { user } = req;
     const { id } = param;
 
-    return this.logoService.update(user, body, image, id);
+    return this.logoService.update(req, body, image, id);
   }
 
   @UseGuards(AuthGuard('jwt'))

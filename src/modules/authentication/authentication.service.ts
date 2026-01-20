@@ -10,7 +10,6 @@ import { Model } from 'mongoose';
 import { MongoError } from 'mongodb';
 import { getMessage } from 'src/common/utils/translator';
 import { generateUsername } from 'src/common/utils/generators';
-import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
 import { RolePermissions } from 'src/common/constants/roles-permissions.constant';
 import { UserRole } from 'src/enums/user-role.enum';
 import { User, UserDocument } from 'src/schemas/user.schema';
@@ -32,8 +31,8 @@ import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
 import { BaseResponse } from 'src/types/service-response.type';
 import { getAppUrl } from 'src/common/utils/getAppUrl';
 import commonEmailTemplateData from 'src/common/utils/commonEmailTemplateData';
-import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
 import { MEDIA_CONFIG } from 'src/configs/media.config';
+import { MediaPreview } from 'src/schemas/common.schema';
 
 @Injectable()
 export class AuthService {
@@ -45,6 +44,7 @@ export class AuthService {
   ) {}
 
   async register(
+    req: any,
     dto: RegisterDto,
     profilePic: Express.Multer.File,
   ): Promise<{ isSuccess: boolean; msg: string; user: User; token: string }> {
@@ -61,29 +61,22 @@ export class AuthService {
       preferredLang,
     } = dto;
 
-    let profilePicUrl: string | undefined = undefined;
+    let newProfilePic: MediaPreview | undefined;
 
     if (profilePic && Object.keys(profilePic).length > 0) {
-      fileSizeValidator(
-        profilePic,
-        MEDIA_CONFIG.USER.PROFILE_IMAGE.MAX_SIZE,
+      const uploadedProfilePic = await this.mediaService.mediaProcessor({
+        file: profilePic,
+        reqMsg: 'user_shouldHasProfilePic',
+        user: req?.user,
+        maxSize: MEDIA_CONFIG.USER.PROFILE_IMAGE.MAX_SIZE,
+        allowedTypes: MEDIA_CONFIG.USER.PROFILE_IMAGE.ALLOWED_TYPES,
         lang,
-      );
-      fileTypeValidator(
-        profilePic,
-        MEDIA_CONFIG.USER.PROFILE_IMAGE.ALLOWED_TYPES,
-        lang,
-      );
+        key: Modules.USER,
+        req,
+      });
 
-      const result = await this.mediaService.handleFileUpload(
-        profilePic,
-        { userId: process.env.DB_SYSTEM_OBJ_ID }, // fake user since user is not registered yet
-        lang,
-        Modules.AUTHENTICATION,
-      );
-
-      if (result?.isSuccess) {
-        profilePicUrl = result.fileUrl;
+      if (uploadedProfilePic) {
+        newProfilePic = uploadedProfilePic;
       }
     }
 
@@ -142,7 +135,7 @@ export class AuthService {
         createdBy: process.env.DB_SYSTEM_OBJ_ID,
         role: defaultRole,
         permissions,
-        profilePic: profilePicUrl,
+        profilePic: newProfilePic,
         preferredLang,
       };
 

@@ -85,7 +85,7 @@ export class BannerController {
     const image_ar = files.image_ar?.[0];
     const image_en = files.image_en?.[0];
 
-    return this.bannerService.create(req.user, body, image_ar, image_en);
+    return this.bannerService.create(req, body, image_ar, image_en);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -109,13 +109,7 @@ export class BannerController {
     const image_ar = files.image_ar?.[0];
     const image_en = files.image_en?.[0];
 
-    return this.bannerService.update(
-      req.user,
-      body,
-      param.id,
-      image_ar,
-      image_en,
-    );
+    return this.bannerService.update(req, body, param.id, image_ar, image_en);
   }
 
   @UseGuards(AuthGuard('jwt'))

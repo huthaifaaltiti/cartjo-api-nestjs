@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  ForbiddenException,
   forwardRef,
   Inject,
   Injectable,
@@ -24,8 +23,6 @@ import { UnDeleteCategoryBodyDto } from './dto/unDelete-category.dto';
 import { Modules } from 'src/enums/appModules.enum';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
-import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
-import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
 import { MediaPreview } from 'src/schemas/common.schema';
 import { GetActiveOnesQueryDto } from './dto/get-active-ones.dto';
 import { MEDIA_CONFIG } from 'src/configs/media.config';
@@ -46,6 +43,7 @@ export class CategoryService {
     dto: CreateCategoryDto,
     image_ar: Express.Multer.File,
     image_en: Express.Multer.File,
+    req: any,
   ): Promise<DataResponse<Category>> {
     const { lang, name_ar, name_en } = dto;
 
@@ -63,60 +61,26 @@ export class CategoryService {
       );
     }
 
-    const uploadMedia = async (
-      file: Express.Multer.File,
-      requiredMsg: string,
-    ): Promise<MediaPreview | undefined> => {
-      if (!file || Object.keys(file).length === 0) {
-        throw new ForbiddenException(getMessage(requiredMsg, lang));
-      }
-
-      fileSizeValidator(file, MEDIA_CONFIG.CATEGORY.IMAGE.MAX_SIZE, lang);
-      fileTypeValidator(file, MEDIA_CONFIG.CATEGORY.IMAGE.ALLOWED_TYPES, lang);
-
-      const result = await this.mediaService.handleFileUpload(
-        file,
-        { userId: requestingUser?.userId },
-        lang,
-        Modules.BANNER,
-      );
-
-      if (!result?.isSuccess) {
-        throw new BadRequestException(
-          getMessage('categories_categoryImageUploadFailed', lang),
-        );
-      }
-
-      return { id: result.mediaId, url: result.fileUrl };
-    };
-
-    const media_ar = await uploadMedia(
-      image_ar,
-      'categories_categoryShouldHasArImage',
-    );
-    const media_en = await uploadMedia(
-      image_en,
-      'categories_categoryShouldHasEnImage',
-    );
-
-    // let mediaUrl: string | undefined = undefined;
-    // let mediaId: string | undefined = undefined;
-
-    // if (image && Object.keys(image).length > 0) {
-    //   fileSizeValidator(image, MAX_FILE_SIZES.CATEGORY_IMAGE, lang);
-
-    //   const result = await this.mediaService.handleFileUpload(
-    //     image,
-    //     { userId: requestingUser?.userId },
-    //     lang,
-    //     Modules.CATEGORY,
-    //   );
-
-    //   if (result?.isSuccess) {
-    //     mediaUrl = result.fileUrl;
-    //     mediaId = result.mediaId;
-    //   }
-    // }
+    const media_ar = await this.mediaService.mediaProcessor({
+      file: image_ar,
+      user: requestingUser,
+      reqMsg: 'categories_categoryShouldHasArImage',
+      maxSize: MEDIA_CONFIG.CATEGORY.IMAGE.MAX_SIZE,
+      allowedTypes: MEDIA_CONFIG.CATEGORY.IMAGE.ALLOWED_TYPES,
+      lang,
+      key: Modules.CATEGORY,
+      req,
+    });
+    const media_en = await this.mediaService.mediaProcessor({
+      file: image_en,
+      user: requestingUser,
+      reqMsg: 'categories_categoryShouldHasEnImage',
+      maxSize: MEDIA_CONFIG.CATEGORY.IMAGE.MAX_SIZE,
+      allowedTypes: MEDIA_CONFIG.CATEGORY.IMAGE.ALLOWED_TYPES,
+      lang,
+      key: Modules.CATEGORY,
+      req,
+    });
 
     const category = new this.categoryModel({
       media: { ar: media_ar, en: media_en },
@@ -142,6 +106,7 @@ export class CategoryService {
     image_ar: Express.Multer.File,
     image_en: Express.Multer.File,
     id: string,
+    req: any,
   ): Promise<DataResponse<Category>> {
     const { lang, name_ar, name_en } = dto;
 
@@ -182,51 +147,45 @@ export class CategoryService {
       }
     }
 
-    const uploadMedia = async (
-      file: Express.Multer.File,
-      requiredMsg: string,
-    ): Promise<MediaPreview | undefined> => {
-      if (!file || Object.keys(file).length === 0) {
-        throw new ForbiddenException(getMessage(requiredMsg, lang));
-      }
-
-      fileSizeValidator(file, MEDIA_CONFIG.CATEGORY.IMAGE.MAX_SIZE, lang);
-      fileTypeValidator(file, MEDIA_CONFIG.CATEGORY.IMAGE.ALLOWED_TYPES, lang);
-
-      const result = await this.mediaService.handleFileUpload(
-        file,
-        { userId: requestingUser?.userId },
-        lang,
-        Modules.BANNER,
-      );
-
-      if (!result?.isSuccess) {
-        throw new BadRequestException(getMessage('banner_uploadFailed', lang));
-      }
-
-      return { id: result.mediaId, url: result.fileUrl };
-    };
-
     const updateData: any = {
       updatedBy: requestingUser?.userId,
       updatedAt: new Date(),
     };
 
     if (image_ar || image_en) {
-      let media_ar: MediaPreview, media_en: MediaPreview;
+      let media_ar: MediaPreview = undefined,
+        media_en: MediaPreview = undefined;
 
       if (image_ar) {
-        media_ar = await uploadMedia(
-          image_ar,
-          'categories_categoryShouldHasArImage',
-        );
+        const result = await this.mediaService.hardDeleteAndUpload({
+          file: image_ar,
+          user: requestingUser,
+          reqMsg: 'categories_categoryShouldHasArImage',
+          maxSize: MEDIA_CONFIG.CATEGORY.IMAGE.MAX_SIZE,
+          allowedTypes: MEDIA_CONFIG.CATEGORY.IMAGE.ALLOWED_TYPES,
+          lang,
+          key: Modules.CATEGORY,
+          req,
+          existingMediaId: categoryToUpdate.media.ar.id,
+        });
+
+        media_ar = result;
       }
 
       if (image_en) {
-        media_en = await uploadMedia(
-          image_en,
-          'categories_categoryShouldHasEnImage',
-        );
+        const result = await this.mediaService.hardDeleteAndUpload({
+          file: image_en,
+          user: requestingUser,
+          reqMsg: 'categories_categoryShouldHasEnImage',
+          maxSize: MEDIA_CONFIG.CATEGORY.IMAGE.MAX_SIZE,
+          allowedTypes: MEDIA_CONFIG.CATEGORY.IMAGE.ALLOWED_TYPES,
+          lang,
+          key: Modules.CATEGORY,
+          req,
+          existingMediaId: categoryToUpdate.media.en.id,
+        });
+
+        media_en = result;
       }
 
       updateData.media = {

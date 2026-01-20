@@ -7,7 +7,6 @@ import { MediaModule } from '../media/media.module';
 import { JwtModule } from '../jwt/jwt.module';
 import { SubCategoryModule } from '../subCategory/subCategory.module';
 
-
 @Module({
   imports: [
     MongooseModule.forFeature([

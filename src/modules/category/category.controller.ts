@@ -65,7 +65,7 @@ export class CategoryController {
     const image_ar = files.image_ar?.[0];
     const image_en = files.image_en?.[0];
 
-    return this.categoryService.create(user, body, image_ar, image_en);
+    return this.categoryService.create(user, body, image_ar, image_en, req);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -91,7 +91,7 @@ export class CategoryController {
     const image_ar = files.image_ar?.[0];
     const image_en = files.image_en?.[0];
 
-    return this.categoryService.update(user, body, image_ar, image_en, id);
+    return this.categoryService.update(user, body, image_ar, image_en, id, req);
   }
 
   @UseGuards(AuthGuard('jwt'))
