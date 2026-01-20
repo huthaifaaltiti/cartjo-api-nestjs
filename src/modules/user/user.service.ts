@@ -14,7 +14,6 @@ import { RolePermissions } from 'src/common/constants/roles-permissions.constant
 import { generateUsername } from 'src/common/functions/generators/uniqueUsername';
 import { checkUserRole } from 'src/common/utils/checkUserRole';
 import { validateSameUsersRoleLevel } from 'src/common/utils/validateSameUsersRoleLevel';
-import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
 import { UserRole } from 'src/enums/user-role.enum';
 import { User, UserDocument } from 'src/schemas/user.schema';
 import { Locale } from 'src/types/Locale';
@@ -25,7 +24,7 @@ import { Modules } from 'src/enums/appModules.enum';
 import { UpdateDefaultAddressDto, UpdateUserDto } from './dto/update.dto';
 import { BaseResponse } from 'src/types/service-response.type';
 import { MEDIA_CONFIG } from 'src/configs/media.config';
-import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
+import { MediaPreview } from 'src/schemas/common.schema';
 @Injectable()
 export class UserService {
   constructor(
@@ -326,7 +325,7 @@ export class UserService {
 
   async createAdminUser(
     body: CreateAdminBodyDto,
-    requestingUser: any,
+    req: any,
     profilePic: Express.Multer.File,
   ): Promise<{
     isSuccess: boolean;
@@ -348,7 +347,7 @@ export class UserService {
 
     if (
       !checkUserRole({
-        userRole: requestingUser?.role,
+        userRole: req?.user?.role,
         requiredRole: UserRole.OWNER,
       })
     ) {
@@ -358,29 +357,23 @@ export class UserService {
       };
     }
 
-    let profilePicUrl: string | undefined = undefined;
+    let profilePicData: MediaPreview | undefined = undefined;
 
     if (profilePic && Object.keys(profilePic).length > 0) {
-      fileSizeValidator(
-        profilePic,
-        MEDIA_CONFIG.USER.PROFILE_IMAGE.MAX_SIZE,
+      const result = await this.mediaService.mediaProcessor({
+        file: profilePic,
+        // user: { ...req?.user, userId: process.env.DB_SYSTEM_OBJ_ID },
+        user: req?.user,
+        reqMsg: 'user_shouldHasImage',
+        maxSize: MEDIA_CONFIG.USER.PROFILE_IMAGE.MAX_SIZE,
+        allowedTypes: MEDIA_CONFIG.USER.PROFILE_IMAGE.ALLOWED_TYPES,
         lang,
-      );
-      fileTypeValidator(
-        profilePic,
-        MEDIA_CONFIG.USER.PROFILE_IMAGE.ALLOWED_TYPES,
-        lang,
-      );
+        key: Modules.USER,
+        req,
+      });
 
-      const result = await this.mediaService.handleFileUpload(
-        profilePic,
-        { userId: process.env.DB_SYSTEM_OBJ_ID }, // fake user since user is not registered yet
-        lang,
-        Modules.USER,
-      );
-
-      if (result?.isSuccess) {
-        profilePicUrl = result.fileUrl;
+      if (result) {
+        profilePicData = result;
       }
     }
 
@@ -437,10 +430,10 @@ export class UserService {
         password,
         countryCode,
         phoneNumber,
-        createdBy: requestingUser?.userId || process.env.DB_SYSTEM_OBJ_ID,
+        createdBy: req?.user?.userId || process.env.DB_SYSTEM_OBJ_ID,
         role: defaultRole,
         permissions,
-        profilePic: profilePicUrl,
+        profilePic: profilePicData,
       };
 
       const user = await this.userModel.create({ ...newUserData });
@@ -480,7 +473,7 @@ export class UserService {
   async updateAdminUser(
     userId: string,
     body: Partial<CreateAdminBodyDto>,
-    requestingUser: any,
+    req: any,
     profilePic?: Express.Multer.File,
   ): Promise<{ isSuccess: boolean; message: string; user?: User }> {
     const {
@@ -496,7 +489,7 @@ export class UserService {
 
     if (
       !checkUserRole({
-        userRole: requestingUser?.role,
+        userRole: req?.user?.role,
         requiredRole: UserRole.OWNER,
       })
     ) {
@@ -508,7 +501,7 @@ export class UserService {
 
     const user = await this.userModel.findById(userId);
 
-    validateSameUsersRoleLevel(user?.role, requestingUser?.role, lang);
+    validateSameUsersRoleLevel(user?.role, req?.user?.role, lang);
 
     if (!user) {
       throw new BadRequestException(getMessage('users_userNotFound', lang));
@@ -542,25 +535,20 @@ export class UserService {
     }
 
     if (profilePic && Object.keys(profilePic).length > 0) {
-      fileSizeValidator(
-        profilePic,
-        MEDIA_CONFIG.USER.PROFILE_IMAGE.MAX_SIZE,
+      const result = await this.mediaService.hardDeleteAndUpload({
+        file: profilePic,
+        user: req?.user,
+        reqMsg: 'user_shouldHasImage',
+        maxSize: MEDIA_CONFIG.USER.PROFILE_IMAGE.MAX_SIZE,
+        allowedTypes: MEDIA_CONFIG.USER.PROFILE_IMAGE.ALLOWED_TYPES,
         lang,
-      );
-      fileTypeValidator(
-        profilePic,
-        MEDIA_CONFIG.USER.PROFILE_IMAGE.ALLOWED_TYPES,
-        lang,
-      );
+        key: Modules.CATEGORY,
+        req,
+        existingMediaId: user.profilePic.id,
+      });
 
-      const result = await this.mediaService.handleFileUpload(
-        profilePic,
-        { userId: requestingUser?.userId },
-        lang,
-        Modules.USER,
-      );
-      if (result?.isSuccess) {
-        user.profilePic = result.fileUrl;
+      if (result) {
+        user.profilePic = result;
       }
     }
 
@@ -585,7 +573,7 @@ export class UserService {
   async updateUser(
     userId: string,
     dto: UpdateUserDto,
-    requestingUser: any,
+    req: any,
     profilePic?: Express.Multer.File,
   ): Promise<{ isSuccess: boolean; message: string; user: User }> {
     const {
@@ -600,11 +588,7 @@ export class UserService {
       lang,
     } = dto;
 
-    validateSameUserAccess(
-      requestingUser?.userId?.toString(),
-      userId?.toString(),
-      lang,
-    );
+    validateSameUserAccess(req?.userId?.toString(), userId?.toString(), lang);
 
     const user = await this.userModel.findById(userId);
 
@@ -634,26 +618,20 @@ export class UserService {
     }
 
     if (profilePic && Object.keys(profilePic).length > 0) {
-      fileSizeValidator(
-        profilePic,
-        MEDIA_CONFIG.USER.PROFILE_IMAGE.MAX_SIZE,
+      const result = await this.mediaService.hardDeleteAndUpload({
+        file: profilePic,
+        user: req?.user,
+        reqMsg: 'user_shouldHasImage',
+        maxSize: MEDIA_CONFIG.USER.PROFILE_IMAGE.MAX_SIZE,
+        allowedTypes: MEDIA_CONFIG.USER.PROFILE_IMAGE.ALLOWED_TYPES,
         lang,
-      );
-      fileTypeValidator(
-        profilePic,
-        MEDIA_CONFIG.USER.PROFILE_IMAGE.ALLOWED_TYPES,
-        lang,
-      );
+        key: Modules.CATEGORY,
+        req,
+        existingMediaId: user.profilePic.id,
+      });
 
-      const result = await this.mediaService.handleFileUpload(
-        profilePic,
-        { userId: requestingUser?.userId },
-        lang,
-        Modules.USER,
-      );
-
-      if (result?.isSuccess) {
-        user.profilePic = result.fileUrl;
+      if (result) {
+        user.profilePic = { ...result };
       }
     }
 

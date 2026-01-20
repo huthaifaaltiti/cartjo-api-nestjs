@@ -3,9 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { MongoClient, GridFSBucket, ObjectId } from 'mongodb';
 import { Readable } from 'stream';
-
 import { getMessage } from 'src/common/utils/translator';
-
 import { Locale } from 'src/types/Locale';
 import { User, UserDocument } from '../../schemas/user.schema';
 // import { Media, MediaDocument } from 'src/schemas/media.schema';
@@ -78,7 +76,7 @@ export class MediaService {
       };
     }
 
-    console.log({file})
+    console.log({ file });
 
     try {
       // Determine file category
@@ -106,14 +104,14 @@ export class MediaService {
         .replace(/\s+/g, '-');
       const fileName = `${key}-${Date.now()}-${sanitizedBaseName}.${fileExtension}`;
 
-      console.log({fileName})
+      console.log({ fileName });
 
       // Create readable stream from file buffer
       const fileStream = new Readable();
       fileStream.push(file.buffer);
       fileStream.push(null);
 
-      console.log({fileStream})
+      console.log({ fileStream });
 
       // Upload file to GridFS
       const uploadStream = this.gridFSBucket.openUploadStream(fileName, {
@@ -127,7 +125,7 @@ export class MediaService {
         },
       });
 
-      console.log({uploadStream})
+      console.log({ uploadStream });
 
       // Store the file in GridFS and get the file ID
       const fileId = await new Promise<ObjectId>((resolve, reject) => {
@@ -142,7 +140,7 @@ export class MediaService {
       // Generate public URL (you'll need to create an endpoint to serve files)
       const fileUrl = `${this.hostName}/api/v1/media/file/${fileId.toString()}`;
 
-      console.log({fileUrl})
+      console.log({ fileUrl });
 
       // Save metadata to metadata collection
       // const metadataRecord = {

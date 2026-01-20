@@ -40,8 +40,8 @@ export class MediaController {
 
     fileSizeValidator(file, MEDIA_CONFIG.OTHERS.ANY.MAX_SIZE, lang);
     fileTypeValidator(file, MEDIA_CONFIG.OTHERS.ANY.ALLOWED_TYPES, lang);
-    
-    return this.mediaService.handleFileUpload(
+
+    return this.mediaService.mediaUploader(
       file,
       user,
       lang,
