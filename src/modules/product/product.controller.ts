@@ -51,9 +51,11 @@ export class ProductController {
     @Request() req: any,
   ) {
     const mainImage = files.find(file => file.fieldname === 'mainImage');
-    const images = files.filter(file => file.fieldname === 'images');
+    const images = files.filter(
+      file => file.fieldname === 'images' || file.fieldname === 'images[]',
+    );
 
-    return this.productService.create(req?.user, dto, mainImage, images);
+    return this.productService.create(req, dto, mainImage, images);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -65,13 +67,14 @@ export class ProductController {
     @Request() req: any,
     @Param() param: UpdateProductParamsDto,
   ) {
-    const { user } = req;
     const { id } = param;
 
     const mainImage = files.find(file => file.fieldname === 'mainImage');
-    const images = files.filter(file => file.fieldname === 'images');
+    const images = files.filter(
+      file => file.fieldname === 'images' || file.fieldname === 'images[]',
+    );
 
-    return this.productService.update(id, user, body, mainImage, images);
+    return this.productService.update(id, req, body, mainImage, images);
   }
 
   @UseGuards(OptionalJwtAuthGuard)

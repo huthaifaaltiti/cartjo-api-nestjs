@@ -4,6 +4,7 @@ import {
   Get,
   Post,
   Query,
+  Request,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -28,8 +29,9 @@ export class AuthController {
   async register(
     @UploadedFile() profilePic: Express.Multer.File,
     @Body() dto: RegisterDto,
+    @Request() req: any,
   ) {
-    return this.authService.register(dto, profilePic);
+    return this.authService.register(req, dto, profilePic);
   }
 
   @Get(ApiPaths.Authentication.VerifyEmail)

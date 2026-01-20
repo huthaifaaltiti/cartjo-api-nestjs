@@ -1,14 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-
 import { MediaService } from '../media/media.service';
-
 import { getMessage } from 'src/common/utils/translator';
 import { excelSheetParser } from 'src/common/utils/excelSheetParser';
 import { buildTownHierarchy } from 'src/common/utils/buildTownHierarchy';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
-
 import { Location, LocationDocument } from 'src/schemas/location.schema';
 import { DeleteLocationBodyDto } from './dto/delete-location-body.dto';
 import { Modules } from 'src/enums/appModules.enum';
@@ -42,10 +39,18 @@ export class LocationService {
       (file?.mimetype?.startsWith('application/') &&
         file?.mimetype?.includes('sheet'))
     ) {
-       fileSizeValidator(file, MEDIA_CONFIG.LOCATION.BULK_UPLOAD_FILE.MAX_SIZE, lang);
-       fileTypeValidator(file, MEDIA_CONFIG.LOCATION.BULK_UPLOAD_FILE.ALLOWED_TYPES, lang);
+      fileSizeValidator(
+        file,
+        MEDIA_CONFIG.LOCATION.BULK_UPLOAD_FILE.MAX_SIZE,
+        lang,
+      );
+      fileTypeValidator(
+        file,
+        MEDIA_CONFIG.LOCATION.BULK_UPLOAD_FILE.ALLOWED_TYPES,
+        lang,
+      );
 
-      const uploadResult = await this.mediaService.handleFileUpload(
+      const uploadResult = await this.mediaService.mediaUploader(
         file,
         requestingUser,
         lang,

@@ -23,11 +23,9 @@ import { MediaService } from '../media/media.service';
 import { TypeHintConfigService } from '../typeHintConfig/typeHintConfig.service';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
-import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
 import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
 import { GetProductsQueryDto } from './dto/get-products.dto';
 import { MEDIA_CONFIG } from 'src/configs/media.config';
-import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
 import {
   SubCategory,
   SubCategoryDocument,
@@ -481,7 +479,7 @@ const products = await this.productModel
   }
 
   async create(
-    user: any,
+    req: any,
     dto: CreateProductDto,
     mainImage: Express.Multer.File,
     images: Express.Multer.File[],
@@ -503,7 +501,7 @@ const products = await this.productModel
       lang,
     } = dto;
 
-    validateUserRoleAccess(user, lang);
+    validateUserRoleAccess(req?.user, lang);
 
     const rawTypeHint = typeHint;
     const typeHints: string[] = Array.isArray(rawTypeHint)
@@ -562,46 +560,45 @@ const products = await this.productModel
     let mainImageUrl: string | undefined;
 
     if (mainImage) {
-      fileSizeValidator(mainImage, MEDIA_CONFIG.PRODUCT.IMAGE.MAX_SIZE, lang);
-      fileTypeValidator(
-        mainImage,
-        MEDIA_CONFIG.PRODUCT.IMAGE.ALLOWED_TYPES,
+      const mainUpload = await this.mediaService.mediaProcessor({
+        file: mainImage,
+        user: req?.user,
+        reqMsg: 'products_productShouldHasMainImage',
+        maxSize: MEDIA_CONFIG.PRODUCT.IMAGE.MAX_SIZE,
+        allowedTypes: MEDIA_CONFIG.PRODUCT.IMAGE.ALLOWED_TYPES,
         lang,
-      );
+        key: Modules.PRODUCT,
+        req,
+      });
 
-      const mainUpload = await this.mediaService.handleFileUpload(
-        mainImage,
-        { userId: user?.userId },
-        lang,
-        Modules.PRODUCT,
-      );
-      if (mainUpload?.isSuccess) {
-        mainImageUrl = mainUpload.fileUrl;
-        mainMediaId = mainUpload.mediaId;
+      if (mainUpload) {
+        mainImageUrl = mainUpload.url;
+        mainMediaId = mainUpload.id;
       }
     }
 
     if (Array.isArray(images) && images.length > 0) {
       for (const img of images) {
-        fileSizeValidator(img, MEDIA_CONFIG.PRODUCT.IMAGE.MAX_SIZE, lang);
-        fileTypeValidator(img, MEDIA_CONFIG.PRODUCT.IMAGE.ALLOWED_TYPES, lang);
-
-        const upload = await this.mediaService.handleFileUpload(
-          img,
-          { userId: user?.userId },
+        const upload = await this.mediaService.mediaProcessor({
+          file: img,
+          user: req?.user,
+          reqMsg: 'products_productShouldHasImage',
+          maxSize: MEDIA_CONFIG.PRODUCT.IMAGE.MAX_SIZE,
+          allowedTypes: MEDIA_CONFIG.PRODUCT.IMAGE.ALLOWED_TYPES,
           lang,
-          Modules.PRODUCT,
-        );
+          key: Modules.PRODUCT,
+          req,
+        });
 
-        if (upload?.isSuccess) {
-          imageUrls.push(upload.fileUrl);
-          mediaListIds.push(upload.mediaId);
+        if (upload) {
+          imageUrls.push(upload.url);
+          mediaListIds.push(upload.id);
         }
       }
     }
 
     const typeHintKeysResponse = await this.typeHintConfigService.getList(
-      user,
+      req?.user,
       {
         lang: dto.lang,
       },
@@ -639,7 +636,7 @@ const products = await this.productModel
       isAvailable,
       isActive: true,
       isDeleted: false,
-      createdBy: user?.userId,
+      createdBy: req?.user?.userId,
     });
 
     await product.save();
@@ -653,7 +650,7 @@ const products = await this.productModel
 
   async update(
     id: string,
-    user: any,
+    req: any,
     body: UpdateProductBodyDto,
     mainImage?: Express.Multer.File,
     images?: Express.Multer.File[],
@@ -673,9 +670,10 @@ const products = await this.productModel
       tags,
       isAvailable,
       lang,
+      deletedImages,
     } = body;
 
-    validateUserRoleAccess(user, lang);
+    validateUserRoleAccess(req?.user, lang);
 
     // normalize typeHint
     const rawTypeHint = typeHint;
@@ -750,7 +748,7 @@ const products = await this.productModel
 
     if (rawTypeHint !== undefined) {
       const typeHintKeysResponse = await this.typeHintConfigService.getList(
-        user,
+        req?.user,
         {
           lang,
         },
@@ -779,57 +777,72 @@ const products = await this.productModel
     if (isAvailable !== undefined) product.isAvailable = isAvailable;
 
     // Update metadata
-    product.updatedBy = user?.userId;
+    product.updatedBy = req?.user?.userId;
     product.updatedAt = new Date();
+
+    let updatedMediaListIds: string[] = [];
+    let updatedImageUrls: string[] = [];
 
     // Handle main image upload
     if (mainImage) {
-      fileSizeValidator(mainImage, MEDIA_CONFIG.PRODUCT.IMAGE.MAX_SIZE, lang);
-      fileTypeValidator(
-        mainImage,
-        MEDIA_CONFIG.PRODUCT.IMAGE.ALLOWED_TYPES,
+      const mainUpload = await this.mediaService.hardDeleteAndUpload({
+        file: mainImage,
+        user: req?.user,
+        reqMsg: 'products_productShouldHasMainImage',
+        maxSize: MEDIA_CONFIG.PRODUCT.IMAGE.MAX_SIZE,
+        allowedTypes: MEDIA_CONFIG.CATEGORY.IMAGE.ALLOWED_TYPES,
         lang,
-      );
+        key: Modules.PRODUCT,
+        req,
+        existingMediaId: product.mainMediaId,
+      });
 
-      const mainUpload = await this.mediaService.handleFileUpload(
-        mainImage,
-        { userId: user?.userId },
-        lang,
-        Modules.PRODUCT,
-      );
-      if (mainUpload?.isSuccess) {
-        product.mainImage = mainUpload.fileUrl;
-        product.mainMediaId = mainUpload.mediaId;
+      if (mainUpload) {
+        product.mainImage = mainUpload.url;
+        product.mainMediaId = mainUpload.id;
       }
     }
 
-    // Handle multiple images upload
-    if (images?.length) {
-      const newImageUrls: string[] = [];
-      const newMediaListIds: string[] = [];
+    // 1. Handle Deleted Images (Logic for the "Gallery" images)
+    if (deletedImages && Array.isArray(deletedImages)) {
+      for (const urlToDelete of deletedImages) {
+        const index = product.images.indexOf(urlToDelete);
 
-      for (const img of images) {
-        fileSizeValidator(img, MEDIA_CONFIG.PRODUCT.IMAGE.MAX_SIZE, lang);
-        fileTypeValidator(img, MEDIA_CONFIG.PRODUCT.IMAGE.ALLOWED_TYPES, lang);
+        if (index > -1) {
+          // Delete from S3 and Media Metadata collection via URL
+          await this.mediaService.deleteByUrl(urlToDelete);
 
-        const upload = await this.mediaService.handleFileUpload(
-          img,
-          { userId: user?.userId },
-          lang,
-          Modules.PRODUCT,
-        );
-
-        if (upload?.isSuccess) {
-          newImageUrls.push(upload.fileUrl);
-          newMediaListIds.push(upload.mediaId);
+          // Remove from the product's internal arrays
+          product.images.splice(index, 1);
+          product.mediaListIds.splice(index, 1);
         }
       }
+    }
 
-      product.images = [...(product.images || []), ...newImageUrls];
-      product.mediaListIds = [
-        ...(product.mediaListIds || []),
-        ...newMediaListIds,
-      ];
+    // 3. Handle NEW multiple images upload
+    if (images?.length) {
+      for (const img of images) {
+        const upload = await this.mediaService.mediaProcessor({
+          file: img,
+          user: req?.user,
+          reqMsg: 'products_productShouldHasImage',
+          maxSize: MEDIA_CONFIG.PRODUCT.IMAGE.MAX_SIZE,
+          allowedTypes: MEDIA_CONFIG.PRODUCT.IMAGE.ALLOWED_TYPES,
+          lang,
+          key: Modules.PRODUCT,
+          req,
+        });
+
+        if (upload) {
+          updatedImageUrls.push(upload.url);
+          updatedMediaListIds.push(upload.id);
+        }
+      }
+    }
+
+    if (updatedImageUrls.length) {
+      product.images.push(...updatedImageUrls);
+      product.mediaListIds.push(...updatedMediaListIds);
     }
 
     await product.save();

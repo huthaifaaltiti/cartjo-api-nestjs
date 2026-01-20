@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
-
 import { Currency } from 'src/enums/currency.enum';
 import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
 

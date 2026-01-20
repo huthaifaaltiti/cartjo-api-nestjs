@@ -20,8 +20,6 @@ import { Modules } from 'src/enums/appModules.enum';
 import { activateDefaultIfAllInactive } from 'src/common/functions/helpers/activateDefaultIfAllInactive.helper';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
-import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
-import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
 import { UpdateBannerDto } from './dto/update.dto';
 import { DeleteDto } from './dto/delete.dto';
 import { UnDeleteDto } from './dto/unDelete.dto';
@@ -197,7 +195,7 @@ export class BannerService {
   }
 
   async create(
-    requestingUser: any,
+    req: any,
     dto: CreateBannerDto,
     image_ar?: Express.Multer.File,
     image_en?: Express.Multer.File,
@@ -205,7 +203,7 @@ export class BannerService {
     const { title_ar, title_en, lang, withAction, link, startDate, endDate } =
       dto;
 
-    validateUserRoleAccess(requestingUser, lang);
+    validateUserRoleAccess(req?.user, lang);
 
     const existing = await this.bannerModel.findOne({
       $or: [{ 'title.ar': title_ar }, { 'title.en': title_en }],
@@ -217,33 +215,27 @@ export class BannerService {
       );
     }
 
-    const uploadMedia = async (
-      file: Express.Multer.File,
-      requiredMsg: string,
-    ): Promise<{ id: string; url: string }> => {
-      if (!file || Object.keys(file).length === 0) {
-        throw new ForbiddenException(getMessage(requiredMsg, lang));
-      }
+    const media_ar = await this.mediaService.mediaProcessor({
+      file: image_ar,
+      reqMsg: 'banner_shouldHasArImage',
+      user: req?.user,
+      maxSize: MEDIA_CONFIG.BANNER.IMAGE.MAX_SIZE,
+      allowedTypes: MEDIA_CONFIG.BANNER.IMAGE.ALLOWED_TYPES,
+      lang,
+      key: Modules.BANNER,
+      req,
+    });
 
-      fileSizeValidator(file, MEDIA_CONFIG.BANNER.IMAGE.MAX_SIZE, lang);
-      fileTypeValidator(file, MEDIA_CONFIG.BANNER.IMAGE.ALLOWED_TYPES, lang);
-      
-      const result = await this.mediaService.handleFileUpload(
-        file,
-        { userId: requestingUser?.userId },
-        lang,
-        Modules.BANNER,
-      );
-
-      if (!result?.isSuccess) {
-        throw new BadRequestException(getMessage('banner_uploadFailed', lang));
-      }
-
-      return { id: result.mediaId, url: result.fileUrl };
-    };
-
-    const media_ar = await uploadMedia(image_ar, 'banner_shouldHasArImage');
-    const media_en = await uploadMedia(image_en, 'banner_shouldHasEnImage');
+    const media_en = await this.mediaService.mediaProcessor({
+      file: image_en,
+      reqMsg: 'banner_shouldHasEnImage',
+      user: req?.user,
+      maxSize: MEDIA_CONFIG.BANNER.IMAGE.MAX_SIZE,
+      allowedTypes: MEDIA_CONFIG.BANNER.IMAGE.ALLOWED_TYPES,
+      lang,
+      key: Modules.BANNER,
+      req,
+    });
 
     const banner = await this.bannerModel.create({
       title: { ar: title_ar, en: title_en },
@@ -252,7 +244,7 @@ export class BannerService {
       media: { ar: media_ar, en: media_en },
       startDate: startDate ? new Date(startDate) : new Date(),
       endDate: endDate ? new Date(endDate) : undefined,
-      createdBy: requestingUser?.userId,
+      createdBy: req?.user?.userId,
       isActive: true,
       isDeleted: false,
     });
@@ -265,7 +257,7 @@ export class BannerService {
   }
 
   async update(
-    requestingUser: any,
+    req: any,
     dto: UpdateBannerDto,
     id: string,
     image_ar: Express.Multer.File,
@@ -274,7 +266,7 @@ export class BannerService {
     const { title_ar, title_en, lang, withAction, link, startDate, endDate } =
       dto;
 
-    validateUserRoleAccess(requestingUser, lang);
+    validateUserRoleAccess(req?.user, lang);
 
     const bannerToUpdate = await this.bannerModel.findById(id);
 
@@ -302,41 +294,40 @@ export class BannerService {
       }
     }
 
-    // ---------------- Helper for Upload ----------------
-    const uploadMedia = async (
-      file: Express.Multer.File,
-      requiredMsg: string,
-    ): Promise<MediaPreview | undefined> => {
-      if (!file || Object.keys(file).length === 0) {
-        throw new ForbiddenException(getMessage(requiredMsg, lang));
-      }
-
-      fileSizeValidator(file, MEDIA_CONFIG.BANNER.IMAGE.MAX_SIZE, lang);
-      fileTypeValidator(file, MEDIA_CONFIG.BANNER.IMAGE.ALLOWED_TYPES, lang);
-
-      const result = await this.mediaService.handleFileUpload(
-        file,
-        { userId: requestingUser?.userId },
-        lang,
-        Modules.BANNER,
-      );
-
-      if (!result?.isSuccess) {
-        throw new BadRequestException(getMessage('banner_uploadFailed', lang));
-      }
-
-      return { id: result.mediaId, url: result.fileUrl };
-    };
-
     if (image_ar || image_en) {
-      let media_ar: MediaPreview, media_en: MediaPreview;
+      let media_ar: MediaPreview = undefined,
+        media_en: MediaPreview = undefined;
 
       if (image_ar) {
-        media_ar = await uploadMedia(image_ar, 'banner_shouldHasArImage');
+        const result = await this.mediaService.hardDeleteAndUpload({
+          file: image_ar,
+          user: req?.user,
+          reqMsg: 'banner_shouldHasEnImage',
+          maxSize: MEDIA_CONFIG.BANNER.IMAGE.MAX_SIZE,
+          allowedTypes: MEDIA_CONFIG.BANNER.IMAGE.ALLOWED_TYPES,
+          lang,
+          key: Modules.BANNER,
+          req,
+          existingMediaId: bannerToUpdate.media.ar.id,
+        });
+
+        media_ar = result;
       }
 
       if (image_en) {
-        media_en = await uploadMedia(image_en, 'banner_shouldHasEnImage');
+        const result = await this.mediaService.hardDeleteAndUpload({
+          file: image_en,
+          user: req?.user,
+          reqMsg: 'banner_shouldHasEnImage',
+          maxSize: MEDIA_CONFIG.BANNER.IMAGE.MAX_SIZE,
+          allowedTypes: MEDIA_CONFIG.BANNER.IMAGE.ALLOWED_TYPES,
+          lang,
+          key: Modules.BANNER,
+          req,
+          existingMediaId: bannerToUpdate.media.en.id,
+        });
+
+        media_en = result;
       }
 
       bannerToUpdate.media = {
@@ -384,7 +375,7 @@ export class BannerService {
 
     const updateData: Partial<Banner> = {
       ...bannerToUpdate,
-      updatedBy: requestingUser?.userId,
+      updatedBy: req?.user?.userId,
       updatedAt: new Date(),
     };
 
