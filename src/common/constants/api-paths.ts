@@ -10,6 +10,8 @@ export const ApiPaths = {
       VerifyResetPasswordCode: 'verify-reset-password-code',
       ResetPassword: 'reset-password',
     },
+    Google: 'google',
+    GoogleCallback: 'google/callback',
   },
   Authorization: {
     Root: 'api/v1/authorization',

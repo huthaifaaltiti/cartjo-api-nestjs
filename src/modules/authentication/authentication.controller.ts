@@ -4,7 +4,9 @@ import {
   Get,
   Post,
   Query,
+  Req,
   Request,
+  Res,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -66,5 +68,17 @@ export class AuthController {
   )
   async resetPassword(@Body() dto: ResetPasswordBodyDto) {
     return this.authService.resetPassword(dto);
+  }
+
+  // Login with Google
+  @Get(ApiPaths.Authentication.Google)
+  async googleLogin(@Res() res) {
+    return this.authService.googleLogin(res);
+  }
+
+  // Google callback uri
+  @Get(ApiPaths.Authentication.GoogleCallback)
+  async googleCallback(@Req() req, @Res() res) {
+    return this.authService.handleGoogleCallback(req, res);
   }
 }

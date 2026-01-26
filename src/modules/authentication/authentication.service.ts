@@ -33,15 +33,32 @@ import { getAppUrl } from 'src/common/utils/getAppUrl';
 import commonEmailTemplateData from 'src/common/utils/commonEmailTemplateData';
 import { MEDIA_CONFIG } from 'src/configs/media.config';
 import { MediaPreview } from 'src/schemas/common.schema';
+import { OAuth2Client } from 'google-auth-library';
+import { GOOGLE_OAUTH_CONFIG } from 'src/configs/google-oauth.config';
+import { Response } from 'express';
 
 @Injectable()
 export class AuthService {
+  private googleClient: OAuth2Client;
+
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private jwtService: JwtService,
     private mediaService: MediaService,
     private emailService: EmailService,
-  ) {}
+  ) {
+    const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
+    const redirectUri = GOOGLE_OAUTH_CONFIG.redirectUri;
+
+    if (!clientId || !clientSecret) {
+      console.error(
+        '❌ CRITICAL: Google OAuth Client ID or Secret is missing from .env',
+      );
+    }
+
+    this.googleClient = new OAuth2Client(clientId, clientSecret, redirectUri);
+  }
 
   async register(
     req: any,
@@ -435,5 +452,95 @@ export class AuthService {
       isSuccess: true,
       message: getMessage('authentication_passwordResetSuccessfully', lang),
     };
+  }
+
+  async googleLogin(res: Response) {
+    const url = this.googleClient.generateAuthUrl({
+      access_type: 'offline',
+      scope: ['profile', 'email'],
+      redirect_uri: GOOGLE_OAUTH_CONFIG.redirectUri,
+    });
+
+    return res.redirect(url);
+  }
+
+  async handleGoogleCallback(req: any, res: Response) {
+    const { code } = req.query;
+    const clientUrl = getAppUrl();
+
+    // 1. Validate Code
+    if (!code) {
+      return res.redirect(`${clientUrl}/auth?authError=GOOGLE_NO_CODE`);
+    }
+
+    try {
+      // 2. Exchange code for tokens
+      const { tokens } = await this.googleClient.getToken(code as string);
+      this.googleClient.setCredentials(tokens);
+
+      // 3. Verify the Google ID Token
+      const ticket = await this.googleClient.verifyIdToken({
+        idToken: tokens.id_token!,
+        audience: GOOGLE_OAUTH_CONFIG.clientId,
+      });
+
+      const payload = ticket.getPayload();
+      if (!payload?.email) {
+        return res.redirect(`${clientUrl}/auth?authError=GOOGLE_EMAIL_MISSING`);
+      }
+
+      const { email, given_name, family_name, picture, locale } = payload;
+
+      // 4. Find or Create User
+      let user = await this.userModel.findOne({ email });
+
+      if (!user) {
+        const username = await generateUsername(
+          given_name,
+          family_name,
+          this.userModel,
+        );
+
+        user = await this.userModel.create({
+          email,
+          firstName: given_name,
+          lastName: family_name || '',
+          username: username || `${given_name}_${Date.now()}`,
+          role: UserRole.USER,
+          permissions: RolePermissions[UserRole.USER],
+          isEmailVerified: true,
+          preferredLang: locale?.startsWith('ar')
+            ? PreferredLanguage.ARABIC
+            : PreferredLanguage.ENGLISH,
+          termsAccepted: true,
+          marketingEmails: false,
+          authProvider: 'google',
+          createdBy: process.env.DB_SYSTEM_OBJ_ID,
+          profilePic: picture ? { url: picture } : undefined,
+        });
+      }
+
+      // 5. Generate JWT
+      const token = this.jwtService.generateToken(
+        user._id.toString(),
+        user.firstName,
+        user.lastName,
+        user.phoneNumber || '',
+        user.email,
+        user.username,
+        user.role,
+        user.permissions,
+        user.countryCode || '',
+        user.createdBy?.toString(),
+      );
+
+      // 6. Final Redirect to Frontend with Token
+      return res.redirect(
+        `${clientUrl}/auth?authToken=${token}&provider=google`,
+      );
+    } catch (error) {
+      console.error('Google Auth Error:', error);
+      return res.redirect(`${clientUrl}/auth?authError=GOOGLE_AUTH_FAILED`);
+    }
   }
 }
