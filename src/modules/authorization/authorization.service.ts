@@ -2,17 +2,17 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
-import { JwtService } from '@nestjs/jwt';
 import { User, UserDocument } from '../../schemas/user.schema';
 import { getMessage } from 'src/common/utils/translator';
 import { validateUserActiveStatus } from 'src/common/utils/validateUserActiveStatus';
 import { LoginDto } from './dto/login.dto';
+import { AuthJwtService } from '../auth-jwt/auth-jwt.service';
 
 @Injectable()
 export class AuthorizationService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
-    private jwtService: JwtService,
+    private authJwtService: AuthJwtService,
   ) {}
 
   async validateUser(
@@ -52,29 +52,10 @@ export class AuthorizationService {
       });
     }
 
-    if (rememberMe) {
-      // Update rememberMe field in DB
+    if (rememberMe)
       await this.userModel.findByIdAndUpdate(user._id, { rememberMe });
-    }
 
-    const payload = {
-      userId: user._id,
-      phoneNumber: user.phoneNumber,
-      email: user.email,
-      role: user.role,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      canManage: user.canManage,
-    };
-
-    const expiresIn = rememberMe
-      ? process.env.JWT_MAX_EXPIRATION_TIME
-      : process.env.JWT_MIN_EXPIRATION_TIME;
-
-    const token = this.jwtService.sign(payload, {
-      secret: process.env.JWT_SECRET_KEY,
-      expiresIn,
-    });
+    const token = this.authJwtService.generateToken(user, false);
 
     return {
       token,

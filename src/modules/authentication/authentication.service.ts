@@ -22,7 +22,6 @@ import {
   VerifyResetPasswordCodeBodyDto,
 } from './dto/register.dto';
 import { Modules } from 'src/enums/appModules.enum';
-import { JwtService } from '../jwt/jwt.service';
 import { MediaService } from '../media/media.service';
 import { randomBytes } from 'crypto';
 import { EmailService } from '../email/email.service';
@@ -36,6 +35,7 @@ import { MediaPreview } from 'src/schemas/common.schema';
 import { OAuth2Client } from 'google-auth-library';
 import { GOOGLE_OAUTH_CONFIG } from 'src/configs/google-oauth.config';
 import { Response } from 'express';
+import { AuthJwtService } from '../auth-jwt/auth-jwt.service';
 
 @Injectable()
 export class AuthService {
@@ -43,7 +43,7 @@ export class AuthService {
 
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
-    private jwtService: JwtService,
+    private authJwtService: AuthJwtService,
     private mediaService: MediaService,
     private emailService: EmailService,
   ) {
@@ -184,18 +184,7 @@ export class AuthService {
         });
       }
 
-      const token = this.jwtService.generateToken(
-        user?._id?.toString(),
-        user.firstName,
-        user.lastName,
-        user.phoneNumber,
-        user.email,
-        user.username,
-        user.role,
-        user.permissions,
-        user.countryCode,
-        user.createdBy.toString(),
-      );
+      const token = this.authJwtService.generateToken(user, false);
 
       return {
         isSuccess: true,
@@ -470,7 +459,9 @@ export class AuthService {
 
     // 1. Validate Code
     if (!code) {
-      return res.redirect(`${clientUrl}/auth?authError=GOOGLE_NO_CODE`);
+      return res.redirect(
+        `${clientUrl}/auth/callback?authError=GOOGLE_NO_CODE`,
+      );
     }
 
     try {
@@ -486,7 +477,9 @@ export class AuthService {
 
       const payload = ticket.getPayload();
       if (!payload?.email) {
-        return res.redirect(`${clientUrl}/auth?authError=GOOGLE_EMAIL_MISSING`);
+        return res.redirect(
+          `${clientUrl}/auth/callback?authError=GOOGLE_EMAIL_MISSING`,
+        );
       }
 
       const { email, given_name, family_name, picture, locale } = payload;
@@ -521,26 +514,17 @@ export class AuthService {
       }
 
       // 5. Generate JWT
-      const token = this.jwtService.generateToken(
-        user._id.toString(),
-        user.firstName,
-        user.lastName,
-        user.phoneNumber || '',
-        user.email,
-        user.username,
-        user.role,
-        user.permissions,
-        user.countryCode || '',
-        user.createdBy?.toString(),
-      );
+      const token = this.authJwtService.generateToken(user, false);
 
       // 6. Final Redirect to Frontend with Token
       return res.redirect(
-        `${clientUrl}/auth?authToken=${token}&provider=google`,
+        `${clientUrl}/auth/callback?authToken=${token}&provider=google`,
       );
     } catch (error) {
       console.error('Google Auth Error:', error);
-      return res.redirect(`${clientUrl}/auth?authError=GOOGLE_AUTH_FAILED`);
+      return res.redirect(
+        `${clientUrl}/auth/callback?authError=GOOGLE_AUTH_FAILED`,
+      );
     }
   }
 }

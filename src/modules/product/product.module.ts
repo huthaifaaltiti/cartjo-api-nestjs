@@ -3,7 +3,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Product, ProductSchema } from 'src/schemas/product.schema';
 import { Category, CategorySchema } from 'src/schemas/category.schema';
 import { MediaModule } from '../media/media.module';
-import { JwtModule } from '../jwt/jwt.module';
 import { ProductService } from './product.service';
 import { ProductController } from './product.controller';
 import { CategoryModule } from '../category/category.module';
@@ -26,7 +25,6 @@ import {
       { name: TypeHintConfig.name, schema: TypeHintConfigSchema },
     ]),
     MediaModule,
-    JwtModule,
     forwardRef(() => CategoryModule),
     forwardRef(() => TypeHintConfigModule),
     forwardRef(() => SubCategoryModule),

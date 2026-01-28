@@ -2,15 +2,14 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
 import { MulterModule } from '@nestjs/platform-express';
-
 import { User, UserSchema } from 'src/schemas/user.schema';
 import { createMulterOptions } from 'src/common/utils/multerConfig';
 import { AuthController } from './authentication.controller';
 import { AuthService } from './authentication.service';
-import { JwtService } from '../jwt/jwt.service';
 import { MediaModule } from '../media/media.module';
 import { Modules } from 'src/enums/appModules.enum';
 import { EmailModule } from '../email/email.module';
+import { AuthJwtService } from '../auth-jwt/auth-jwt.service';
 
 @Module({
   imports: [
@@ -21,9 +20,9 @@ import { EmailModule } from '../email/email.module';
     }),
     MulterModule.register(createMulterOptions(Modules.AUTHENTICATION)),
     MediaModule,
-    EmailModule
+    EmailModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtService],
+  providers: [AuthService, AuthJwtService],
 })
 export class AuthModule {}

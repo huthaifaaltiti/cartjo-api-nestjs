@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { JwtModule as JwtCoreModule } from '@nestjs/jwt';
-
-import { JwtService } from './jwt.service';
+import { AuthJwtService } from './auth-jwt.service';
 
 @Module({
   imports: [
@@ -10,7 +9,7 @@ import { JwtService } from './jwt.service';
       signOptions: { expiresIn: process.env.JWT_MIN_EXPIRATION_TIME },
     }),
   ],
-  providers: [JwtService],
-  exports: [JwtService],
+  providers: [AuthJwtService],
+  exports: [AuthJwtService],
 })
-export class JwtModule {}
+export class AuthJwtModule {}

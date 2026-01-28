@@ -20,7 +20,6 @@ import { UserRole } from 'src/enums/user-role.enum';
 import { User, UserDocument } from 'src/schemas/user.schema';
 import { Locale } from 'src/types/Locale';
 import { CreateAdminBodyDto } from './dto/create-admin.dto';
-import { JwtService } from '../jwt/jwt.service';
 import { MediaService } from '../media/media.service';
 import { Modules } from 'src/enums/appModules.enum';
 import { UpdateDefaultAddressDto, UpdateUserDto } from './dto/update.dto';
@@ -32,12 +31,13 @@ import { EmailService } from '../email/email.service';
 import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
 import { getClientIp } from 'src/common/utils/getClientIp';
 import commonEmailTemplateData from 'src/common/utils/commonEmailTemplateData';
+import { AuthJwtService } from '../auth-jwt/auth-jwt.service';
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(User.name)
     private userModel: Model<UserDocument>,
-    private jwtService: JwtService,
+    private authJwtService: AuthJwtService,
     private mediaService: MediaService,
     private emailService: EmailService,
   ) {}
@@ -446,18 +446,7 @@ export class UserService {
 
       const user = await this.userModel.create({ ...newUserData });
 
-      const token = this.jwtService.generateToken(
-        user?._id?.toString(),
-        user.firstName,
-        user.lastName,
-        user.phoneNumber,
-        user.email,
-        user.username,
-        user.role,
-        user.permissions,
-        user.countryCode,
-        user.createdBy?.toString?.() || 'System',
-      );
+      const token = this.authJwtService.generateToken(user, false);
 
       return {
         isSuccess: true,

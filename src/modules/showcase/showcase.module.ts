@@ -1,7 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ShowCase, ShowCaseSchema } from 'src/schemas/showcase.schema';
-import { JwtModule } from '../jwt/jwt.module';
 import { ShowcaseService } from './showcase.service';
 import { ShowcaseController } from './showcase.controller';
 import { ProductModule } from '../product/product.module';
@@ -22,7 +21,6 @@ import { ShowcaseSeeder } from 'src/database/seeders/showcases.seeder';
       { name: TypeHintConfig.name, schema: TypeHintConfigSchema },
       { name: WishList.name, schema: WishListSchema },
     ]),
-    JwtModule,
     forwardRef(() => ProductModule),
     forwardRef(() => TypeHintConfigModule),
   ],
