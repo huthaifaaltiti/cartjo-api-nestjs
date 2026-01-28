@@ -16,6 +16,7 @@ import {
   orderDeliveryFailedTemplate,
   orderCanceledTemplate,
   orderReturnedTemplate,
+  passwordChangedTemplate,
 } from './email-templates';
 
 @Injectable()
@@ -34,6 +35,7 @@ export class EmailTemplateSeeder {
     await this.seedResendVerificationEmail();
     await this.seedResetPasswordEmail();
     await this.seedPasswordResetSuccessEmail();
+    await this.seedPasswordChangedSuccessEmail();
 
     // Order
     await this.seedOrderCreatedSuccessEmail();
@@ -207,5 +209,19 @@ export class EmailTemplateSeeder {
     });
 
     Logger.log('✅ Order-Delivery-Returned email template created (EN & AR)');
+  }
+
+  private async seedPasswordChangedSuccessEmail() {
+    const name = EmailTemplates.PASSWORD_CHANGED_SUCCESS;
+    const exists = await this.templateModel.findOne({ name });
+
+    if (exists) return Logger.log(`✅ "${name}" template already exists`);
+
+    await this.templateModel.create({
+      name,
+      ...passwordChangedTemplate,
+    });
+
+    Logger.log('✅ Password success changed email template created (EN & AR)');
   }
 }

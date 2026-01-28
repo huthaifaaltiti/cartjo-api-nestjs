@@ -39,6 +39,14 @@ export class UpdateUserDto {
   countryCode?: string;
 
   @IsOptional()
+  @IsString()
+  currentPassword?: string;
+
+  @IsOptional()
+  @IsString()
+  newPassword?: string;
+
+  @IsOptional()
   @IsBoolean()
   marketingEmails?: boolean;
 

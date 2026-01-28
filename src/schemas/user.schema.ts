@@ -1,13 +1,16 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
-import { hashSync } from 'bcrypt';
+import { hashSync, compareSync } from 'bcrypt';
 import { UserRole } from 'src/enums/user-role.enum';
 import { Gender } from 'src/enums/gender.enum';
 import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
 import { NATIONALITY_CODES } from 'src/common/constants/nationalities';
 import { MediaPreview } from './common.schema';
 
-export type UserDocument = User & Document;
+export type UserDocument = User &
+  Document & {
+    comparePassword(password: string): boolean;
+  };
 
 class MapLocation {
   @Prop({ required: true })
@@ -74,7 +77,70 @@ export class User extends Document {
     required: false,
     set: (value: string) => hashSync(value, 12),
   })
-  password?: string;
+  password: string;
+
+  @Prop({
+    required: false,
+    default: 0,
+  })
+  passwordChangeAttempts?: number;
+
+  @Prop({
+    type: Date,
+    required: false,
+    default: null,
+  })
+  lockUntil?: Date | null;
+
+  @Prop({
+    type: {
+      oldPassword: { type: String },
+      currentPassword: { type: String },
+      changedAt: { type: Date, default: null },
+      device: { type: String, default: null },
+      ipAddress: { type: String, default: null },
+      changedBy: {
+        type: MongooseSchema.Types.ObjectId,
+        ref: 'User',
+        default: null,
+      },
+      location: { type: String, default: null },
+    },
+    _id: false, // Prevents creating a sub-document ID for this object
+    required: false,
+  })
+  passwordMetadata: {
+    oldPassword: string;
+    currentPassword: string;
+    changedAt: Date;
+    device: string;
+    ipAddress: string;
+    changedBy: mongoose.Types.ObjectId;
+    location?: string;
+  };
+
+  @Prop({
+    type: [
+      {
+        oldPassword: { type: String },
+        currentPassword: { type: String },
+        changedAt: { type: Date },
+        device: { type: String },
+        ipAddress: { type: String },
+        changedBy: { type: MongooseSchema.Types.ObjectId, ref: 'User' },
+      },
+    ],
+    default: [],
+    _id: false,
+  })
+  passwordHistory: Array<{
+    oldPassword: string;
+    currentPassword: string;
+    changedAt: Date;
+    device: string;
+    ipAddress: string;
+    changedBy: mongoose.Types.ObjectId;
+  }>;
 
   @Prop({ default: undefined })
   resetCode?: string | undefined;
@@ -162,6 +228,11 @@ export class User extends Document {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+
+UserSchema.methods.comparePassword = function (password: string): boolean {
+  if (!this.password) return false;
+  return compareSync(password, this.password);
+};
 
 UserSchema.pre<UserDocument>('save', function (next) {
   if (this.role === UserRole.ADMINISTRATOR || this.role === UserRole.OWNER) {
