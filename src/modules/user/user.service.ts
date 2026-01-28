@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -7,6 +8,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { MongoError } from 'mongodb';
+import { compareSync } from 'bcrypt';
 import { getMessage } from 'src/common/utils/translator';
 import { validateSameUserAccess } from 'src/common/utils/validateSameUserAccess';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
@@ -18,20 +20,26 @@ import { UserRole } from 'src/enums/user-role.enum';
 import { User, UserDocument } from 'src/schemas/user.schema';
 import { Locale } from 'src/types/Locale';
 import { CreateAdminBodyDto } from './dto/create-admin.dto';
-import { JwtService } from '../jwt/jwt.service';
 import { MediaService } from '../media/media.service';
 import { Modules } from 'src/enums/appModules.enum';
 import { UpdateDefaultAddressDto, UpdateUserDto } from './dto/update.dto';
 import { BaseResponse } from 'src/types/service-response.type';
 import { MEDIA_CONFIG } from 'src/configs/media.config';
 import { MediaPreview } from 'src/schemas/common.schema';
+import { EmailTemplates } from 'src/enums/emailTemplates.enum';
+import { EmailService } from '../email/email.service';
+import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
+import { getClientIp } from 'src/common/utils/getClientIp';
+import commonEmailTemplateData from 'src/common/utils/commonEmailTemplateData';
+import { AuthJwtService } from '../auth-jwt/auth-jwt.service';
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(User.name)
     private userModel: Model<UserDocument>,
-    private jwtService: JwtService,
+    private authJwtService: AuthJwtService,
     private mediaService: MediaService,
+    private emailService: EmailService,
   ) {}
 
   async getUsers(params: {
@@ -438,18 +446,7 @@ export class UserService {
 
       const user = await this.userModel.create({ ...newUserData });
 
-      const token = this.jwtService.generateToken(
-        user?._id?.toString(),
-        user.firstName,
-        user.lastName,
-        user.phoneNumber,
-        user.email,
-        user.username,
-        user.role,
-        user.permissions,
-        user.countryCode,
-        user.createdBy?.toString?.() || 'System',
-      );
+      const token = this.authJwtService.generateToken(user, false);
 
       return {
         isSuccess: true,
@@ -586,9 +583,19 @@ export class UserService {
       phoneNumber,
       countryCode,
       lang,
+      newPassword,
+      currentPassword,
     } = dto;
 
-    validateSameUserAccess(req?.userId?.toString(), userId?.toString(), lang);
+    validateSameUserAccess(
+      req?.user?.userId?.toString(),
+      userId?.toString(),
+      lang,
+    );
+
+    // Extract security metadata
+    const ipAddress = getClientIp(req);
+    const userAgent = req.headers['user-agent'] || 'Unknown Device';
 
     const user = await this.userModel.findById(userId);
 
@@ -643,6 +650,109 @@ export class UserService {
     if (gender) user.gender = gender;
     if (birthDate) user.birthDate = birthDate;
     if (nationality) user.nationality = nationality;
+
+    // Password logic
+    if (newPassword) {
+      // 1. STRIKE ONE: Check if the account is currently locked
+      if (user.lockUntil && user.lockUntil > new Date()) {
+        const remainingMinutes = Math.ceil(
+          (user.lockUntil.getTime() - Date.now()) / (1000 * 60),
+        );
+
+        throw new ForbiddenException(
+          `${getMessage('authentication_accountLockedTemporarily', lang)} ${remainingMinutes} ${getMessage('general_minutes', lang)}`,
+        );
+      }
+
+      if (!currentPassword) {
+        throw new BadRequestException(
+          getMessage('authentication_currentPasswordRequired', lang),
+        );
+      }
+
+      // Verify the current password
+      const isMatch = await user.comparePassword(currentPassword);
+
+      if (!isMatch) {
+        user.passwordChangeAttempts += 1;
+
+        // 2. Lock account if attempts exceed limit (e.g., 5)
+        if (user.passwordChangeAttempts >= 5) {
+          const lockDuration =
+            Number(process.env.PASSWORD_LUCK_DURATION_TIME ?? 15) * 60 * 1000;
+          user.lockUntil = new Date(Date.now() + lockDuration);
+
+          await user.save(); // Save immediately to persist the lock
+
+          throw new ForbiddenException(
+            getMessage(
+              'authentication_tooManyFailedAttemptsAccountLocked',
+              lang,
+            ),
+          );
+        }
+
+        await user.save(); // Save the incremented attempt count
+
+        throw new BadRequestException(
+          getMessage('authentication_invalidCurrentPassword', lang),
+        );
+      }
+
+      const isReused = user.passwordHistory.some(
+        historyItem =>
+          historyItem?.currentPassword &&
+          compareSync(newPassword, historyItem.currentPassword),
+      );
+
+      if (isReused) {
+        throw new BadRequestException(
+          getMessage('authentication_passwordUsedRecently', lang),
+        );
+      }
+
+      // SUCCESS: Reset attempts and lockout on successful change
+      user.passwordChangeAttempts = 0;
+      user.lockUntil = null;
+
+      // Store the current state (before update) into history
+      if (user.passwordMetadata && user.passwordMetadata.changedAt) {
+        user.passwordHistory.unshift({
+          ...user.passwordMetadata,
+        });
+      }
+
+      // Limit history size
+      if (user.passwordHistory.length > 5) {
+        user.passwordHistory = user.passwordHistory.slice(0, 5);
+      }
+
+      const previousHash = user.password;
+      user.password = newPassword; // This triggers the hashSync setter
+      const newHash = user.password;
+
+      // Update metadata with HASHED values
+      user.passwordMetadata = {
+        oldPassword: previousHash,
+        currentPassword: newHash,
+        changedAt: new Date(),
+        device: userAgent,
+        ipAddress: ipAddress,
+        changedBy: req.user.userId,
+      };
+
+      // Send Email Notification
+      this.emailService.sendTemplateEmail({
+        to: user.email,
+        templateName: EmailTemplates.PASSWORD_CHANGED_SUCCESS,
+        templateData: {
+          firstName: user.firstName,
+          date: user.passwordMetadata.changedAt.toLocaleString(),
+          ...commonEmailTemplateData(),
+        },
+        prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
+      });
+    }
 
     await user.save();
 

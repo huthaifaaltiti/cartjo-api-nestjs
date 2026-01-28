@@ -1,6 +1,5 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { JwtModule } from '../jwt/jwt.module';
 import {
   TypeHintConfig,
   TypeHintConfigSchema,
@@ -19,7 +18,6 @@ import { Product, ProductSchema } from 'src/schemas/product.schema';
       { name: ShowCase.name, schema: ShowCaseSchema },
       { name: Product.name, schema: ProductSchema },
     ]),
-    JwtModule,
     forwardRef(() => ProductModule),
     forwardRef(() => ShowcaseModule),
   ],

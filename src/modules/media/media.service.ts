@@ -31,6 +31,7 @@ export class MediaService {
   private readonly logger = new Logger(MediaService.name);
   private bucketName: string;
   private region: string;
+  private cloudFrontDomain: string;
   private metadataCollection: any;
 
   constructor(
@@ -50,6 +51,7 @@ export class MediaService {
         ),
       },
     });
+    this.cloudFrontDomain = this.configService.get<string>('AWS_CLOUDFRONT_DOMAIN');
 
     // Initialize media collections
     this.metadataCollection = this.connection.collection('mediaMetadata');
@@ -91,7 +93,8 @@ export class MediaService {
         }),
       );
 
-      const fileUrl = `https://${this.bucketName}.s3.${this.region}.amazonaws.com/${s3Key}`;
+      // const fileUrl = `https://${this.bucketName}.s3.${this.region}.amazonaws.com/${s3Key}`;
+      const fileUrl = `https://${this.cloudFrontDomain}/${s3Key}`;
 
       // 4. Save Metadata to main MongoDB
       const metadataRecord = this.createMetadataRecord(

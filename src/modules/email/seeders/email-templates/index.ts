@@ -10,3 +10,4 @@ export { orderDeliveredTemplate } from './order-delivered.template';
 export { orderDeliveryFailedTemplate } from './order-delivery-failed.template';
 export { orderCanceledTemplate } from './order-canceled.template';
 export { orderReturnedTemplate } from './order-returned.template';
+export { passwordChangedTemplate } from './password-changed.template';
