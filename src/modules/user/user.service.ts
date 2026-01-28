@@ -679,7 +679,7 @@ export class UserService {
         // 2. Lock account if attempts exceed limit (e.g., 5)
         if (user.passwordChangeAttempts >= 5) {
           const lockDuration =
-            Number(process.env.PASSWORD_LUCK_DURATION_TIME) * 60 * 1000;
+            Number(process.env.PASSWORD_LUCK_DURATION_TIME ?? 15) * 60 * 1000;
           user.lockUntil = new Date(Date.now() + lockDuration);
 
           await user.save(); // Save immediately to persist the lock
