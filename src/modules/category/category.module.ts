@@ -4,7 +4,6 @@ import { Category, CategorySchema } from 'src/schemas/category.schema';
 import { CategoryController } from './category.controller';
 import { CategoryService } from './category.service';
 import { MediaModule } from '../media/media.module';
-import { JwtModule } from '../jwt/jwt.module';
 import { SubCategoryModule } from '../subCategory/subCategory.module';
 
 @Module({
@@ -13,7 +12,6 @@ import { SubCategoryModule } from '../subCategory/subCategory.module';
       { name: Category.name, schema: CategorySchema },
     ]),
     MediaModule,
-    JwtModule,
     forwardRef(() => SubCategoryModule),
   ],
   providers: [CategoryService],

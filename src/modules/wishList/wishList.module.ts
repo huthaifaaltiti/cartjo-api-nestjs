@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { JwtModule } from '../jwt/jwt.module';
 import { ProductModule } from '../product/product.module';
 import { Product, ProductSchema } from 'src/schemas/product.schema';
 import { WishListController } from './wishList.controller';
@@ -16,7 +15,6 @@ import { CartModule } from '../cart/cart.module';
       { name: Product.name, schema: ProductSchema },
       { name: Cart.name, schema: CartSchema },
     ]),
-    JwtModule,
     ProductModule,
     CartModule,
   ],

@@ -7,7 +7,6 @@ import * as path from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/authentication/authentication.module';
-import { JwtModule } from './modules/jwt/jwt.module';
 import { AuthorizationModule } from './modules/authorization/authorization.module';
 import { MediaModule } from './modules/media/media.module';
 import { LocationModule } from './modules/location/location.module';
@@ -28,6 +27,7 @@ import { CartModule } from './modules/cart/cart.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { OrderModule } from './modules/order/order.module';
 import { UserContextModule } from './modules/userContext/userContext.module';
+import { AuthJwtModule } from './modules/auth-jwt/auth-jwt.module';
 
 @Module({
   imports: [
@@ -42,7 +42,7 @@ import { UserContextModule } from './modules/userContext/userContext.module';
     }),
     MongooseModule.forRoot(process.env.MONGODB_URI),
     AuthModule,
-    JwtModule,
+    AuthJwtModule,
     AuthorizationModule,
     MediaModule,
     LocationModule,
@@ -62,7 +62,7 @@ import { UserContextModule } from './modules/userContext/userContext.module';
     CartModule,
     PaymentModule,
     OrderModule,
-    UserContextModule
+    UserContextModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -349,7 +349,6 @@ export class ShowcaseService {
       isActive: true,
       availableCount: { $gt: 0 },
     });
-
     if (!foundProducts) {
       throw new BadRequestException(
         getMessage('showcase_noProductsWithThisTypeForShowcase', dto.lang),

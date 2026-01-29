@@ -54,4 +54,7 @@ pids
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+<<<<<<< HEAD
+=======
 sendgrid.env
+>>>>>>> e2218e093cb759b61b7b96f0a7e2b9ccb5b89594
