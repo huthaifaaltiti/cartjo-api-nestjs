@@ -33,9 +33,9 @@ import commonEmailTemplateData from 'src/common/utils/commonEmailTemplateData';
 import { MEDIA_CONFIG } from 'src/configs/media.config';
 import { MediaPreview } from 'src/schemas/common.schema';
 import { OAuth2Client } from 'google-auth-library';
-import { GOOGLE_OAUTH_CONFIG } from 'src/configs/google-oauth.config';
 import { Response } from 'express';
 import { AuthJwtService } from '../auth-jwt/auth-jwt.service';
+import { buildGoogleOAuthConfig } from 'src/configs/google-oauth.config';
 
 @Injectable()
 export class AuthService {
@@ -49,7 +49,7 @@ export class AuthService {
   ) {
     const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
-    const redirectUri = GOOGLE_OAUTH_CONFIG.redirectUri;
+    const redirectUri = buildGoogleOAuthConfig(process.env)?.redirectUri;
 
     if (!clientId || !clientSecret) {
       console.error(
@@ -447,7 +447,7 @@ export class AuthService {
     const url = this.googleClient.generateAuthUrl({
       access_type: 'offline',
       scope: ['profile', 'email'],
-      redirect_uri: GOOGLE_OAUTH_CONFIG.redirectUri,
+      redirect_uri: buildGoogleOAuthConfig(process.env)?.redirectUri,
     });
 
     return res.redirect(url);
@@ -472,7 +472,7 @@ export class AuthService {
       // 3. Verify the Google ID Token
       const ticket = await this.googleClient.verifyIdToken({
         idToken: tokens.id_token!,
-        audience: GOOGLE_OAUTH_CONFIG.clientId,
+        audience: buildGoogleOAuthConfig(process.env).clientId,
       });
 
       const payload = ticket.getPayload();
