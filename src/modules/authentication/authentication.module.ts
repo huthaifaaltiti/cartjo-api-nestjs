@@ -10,6 +10,7 @@ import { MediaModule } from '../media/media.module';
 import { Modules } from 'src/enums/appModules.enum';
 import { EmailModule } from '../email/email.module';
 import { AuthJwtService } from '../auth-jwt/auth-jwt.service';
+import { RefreshTokenModule } from '../refresh-token/refresh-token.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { AuthJwtService } from '../auth-jwt/auth-jwt.service';
     MulterModule.register(createMulterOptions(Modules.AUTHENTICATION)),
     MediaModule,
     EmailModule,
+    RefreshTokenModule
   ],
   controllers: [AuthController],
   providers: [AuthService, AuthJwtService],

@@ -184,7 +184,7 @@ export class AuthService {
         });
       }
 
-      const token = this.authJwtService.generateToken(user, false);
+      const token = this.authJwtService.generateAccessToken(user, false);
 
       return {
         isSuccess: true,
@@ -514,7 +514,7 @@ export class AuthService {
       }
 
       // 5. Generate JWT
-      const token = this.authJwtService.generateToken(user, false);
+      const token = this.authJwtService.generateAccessToken(user, false);
 
       // 6. Final Redirect to Frontend with Token
       return res.redirect(

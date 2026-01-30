@@ -12,6 +12,7 @@ export const ApiPaths = {
     },
     Google: 'google',
     GoogleCallback: 'google/callback',
+    RefreshToken:'refresh-token'
   },
   Authorization: {
     Root: 'api/v1/authorization',

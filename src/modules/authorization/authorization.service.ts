@@ -27,16 +27,14 @@ export class AuthorizationService {
       ],
     });
 
-    if (user && (await bcrypt.compare(password, user.password))) {
-      return user;
-    }
+    if (!user) return null;
 
-    return null;
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    return passwordMatch ? user : null;
   }
 
-  async login(
-    body: LoginDto,
-  ): Promise<{ isSuccess?: boolean; message?: string; token?: string | null }> {
+  async login(body: LoginDto) {
     const { identifier, password, rememberMe, lang } = body;
 
     const user = await this.validateUser(identifier, password);
@@ -48,18 +46,21 @@ export class AuthorizationService {
         statusCode: 401,
         isSuccess: false,
         message: getMessage('authorization_InvalidCredentials', lang),
-        token: null,
       });
     }
 
-    if (rememberMe)
-      await this.userModel.findByIdAndUpdate(user._id, { rememberMe });
+    if (rememberMe) {
+      await this.userModel.findByIdAndUpdate(user._id, {
+        rememberMe,
+      });
+    }
 
-    const token = this.authJwtService.generateToken(user, false);
+    const tokens = await this.authJwtService.issueTokens(user, rememberMe);
 
     return {
-      token,
+      isSuccess: true,
       message: getMessage('authorization_loginSuccessful', lang),
+      ...tokens,
     };
   }
 }

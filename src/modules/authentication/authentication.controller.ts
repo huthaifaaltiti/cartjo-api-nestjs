@@ -21,10 +21,15 @@ import {
   VerifyResetPasswordCodeBodyDto,
 } from './dto/register.dto';
 import { ApiPaths } from 'src/common/constants/api-paths';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { AuthJwtService } from '../auth-jwt/auth-jwt.service';
 
 @Controller(ApiPaths.Authentication.Root)
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly authJwtService: AuthJwtService,
+  ) {}
 
   @Post(ApiPaths.Authentication.Register)
   @UseInterceptors(FileInterceptor('profilePic'))
@@ -80,5 +85,11 @@ export class AuthController {
   @Get(ApiPaths.Authentication.GoogleCallback)
   async googleCallback(@Req() req, @Res() res) {
     return this.authService.handleGoogleCallback(req, res);
+  }
+
+  // Refresh-token
+  @Post(ApiPaths.Authentication.RefreshToken)
+  async refreshToken(@Body() dto: RefreshTokenDto) {
+    return this.authJwtService.refresh(dto.refreshToken);
   }
 }

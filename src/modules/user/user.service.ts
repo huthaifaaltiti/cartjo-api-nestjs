@@ -446,7 +446,7 @@ export class UserService {
 
       const user = await this.userModel.create({ ...newUserData });
 
-      const token = this.authJwtService.generateToken(user, false);
+      const token = this.authJwtService.generateAccessToken(user, false);
 
       return {
         isSuccess: true,
