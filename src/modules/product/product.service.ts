@@ -845,12 +845,16 @@ const products = await this.productModel
       product.mediaListIds.push(...updatedMediaListIds);
     }
 
-    await product.save();
+    const productToBeUpdated = await this.productModel.findByIdAndUpdate(
+      id,
+      product,
+      { new: true },
+    );
 
     return {
       isSuccess: true,
       message: getMessage('products_productUpdatedSuccessfully', lang),
-      data: product,
+      data: productToBeUpdated,
     };
   }
 
