@@ -533,7 +533,7 @@ export class OrderService {
       uid?.toString(),
       lang,
     );
-    validateUserRoleAccess(requestingUser, lang, 'user');
+    // validateUserRoleAccess(requestingUser, lang, 'user');
 
     const dbQuery: any = { isDeleted: false, userId: uid };
 
@@ -657,7 +657,7 @@ if (search) {
       uid?.toString(),
       lang,
     );
-    validateUserRoleAccess(requestingUser, lang, 'user');
+    // validateUserRoleAccess(requestingUser, lang, 'user');
 
     const dbQuery: any = {
       isDeleted: false,
@@ -745,7 +745,7 @@ if (search) {
       uid?.toString(),
       lang,
     );
-    validateUserRoleAccess(requestingUser, lang, 'user');
+    // validateUserRoleAccess(requestingUser, lang, 'user');
 
     if (!Types.ObjectId.isValid(oid)) {
       throw new NotFoundException(getMessage('order_invalidId', lang));
