@@ -29,7 +29,7 @@ export class DefaultShippingAddress {
   street: string;
   building?: string;
   additionalInfo?: string;
-  location: { lat: number; lng: number; name: string };
+  location?: { lat: number; lng: number; name: string };
 }
 
 @Schema({ collection: 'users', timestamps: true })

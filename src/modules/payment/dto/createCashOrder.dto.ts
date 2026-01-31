@@ -17,6 +17,10 @@ export class CreateCashOrderDto {
   @IsNotEmpty()
   amount: number;
 
+  @IsNumber()
+  @IsNotEmpty()
+  deliveryCost: number;
+
   @IsEnum(Currency)
   @IsNotEmpty()
   currency: Currency;
