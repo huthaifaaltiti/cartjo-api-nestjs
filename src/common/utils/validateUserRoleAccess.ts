@@ -11,10 +11,12 @@ import { getMessage } from './translator';
 export const validateUserRoleAccess = (
   requestingUser: any,
   lang: 'en' | 'ar',
-): void => {
+): void | boolean => {
   const { role } = requestingUser;
 
-  if (!ALLOWED_AUTHENTICATED_ROLES.includes(role)) {
+  if (ALLOWED_AUTHENTICATED_ROLES.includes(role)) {
     throw new ForbiddenException(getMessage('authorization_noAccess', lang));
   }
+
+  return true;
 };

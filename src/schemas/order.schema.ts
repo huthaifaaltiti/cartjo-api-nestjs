@@ -38,6 +38,9 @@ export class Order extends Document {
   amount: number;
 
   @Prop({ required: true })
+  deliveryCost: number;
+
+  @Prop({ required: true })
   currency: Currency;
 
   @Prop({ type: String, enum: PaymentStatus, default: PaymentStatus.PENDING })
