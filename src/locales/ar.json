@@ -23,6 +23,8 @@
   "authentication_passwordUsedRecently": "تم استخدام كلمة مرور سابقًا، اختر كلمة مرور جديدة.",
   "authentication_tooManyFailedAttemptsAccountLocked": "تم قفل الحساب بسبب كثرة محاولات تسجيل الدخول الفاشلة.",
   "authentication_accountLockedTemporarily": "تم قفل حسابك مؤقتًا لمدة.",
+  "authentication_emailAlreadyVerified": "بريدك الإلكتروني موثق بالفعل",
+  "authentication_verificationEmailSent": "تم إرسال بريد التحقق إلى عنوانك",
   "users_userAlreadyExists": "المستخدم موجود بالفعل",
   "users_errWhileCreatingUser": "حدث خطأ غير متوقع أثناء إنشاء المستخدم",
   "authorization_accountDeleted": "تم حذف حسابك. يرجى التواصل مع الدعم.",
