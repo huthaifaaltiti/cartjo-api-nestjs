@@ -244,13 +244,38 @@ export class ShowcaseService {
           strategy[showcase.type] || { typeHint: showcase.type },
         );
 
-        const pipeline = [
-          { $match: productsQuery },
-          { $sample: { size: Number(limit) } },
-          // { $project: { __v: 0 } },
-        ]
+        // => With aggregator
+        // const pipeline = [
+        //   { $match: productsQuery },
+        //   { $sample: { size: Number(limit) } },
+        //   { $project: { __v: 0 } },
+        // ]
+        // const products = await this.productModel.aggregate(pipeline);
 
-        const products = await this.productModel.aggregate(pipeline);
+        // => With random index
+        const r = Math.random();
+        let products = await this.productModel
+          .find({
+            ...productsQuery,
+            random: { $gte: r },
+          })
+          .sort({ random: 1 })
+          .limit(Number(limit))
+          .lean();
+
+        if (products.length < limit) {
+          const more = await this.productModel
+            .find({
+              ...productsQuery,
+              random: { $lt: r },
+              _id: { $nin: products.map(p => p._id) },
+            })
+            .sort({ random: 1 })
+            .limit(Number(limit) - products.length)
+            .lean();
+
+          products.push(...more);
+        }
 
         return {
           ...showcase,
@@ -262,20 +287,7 @@ export class ShowcaseService {
         };
       }),
     );
-
-    // 5️⃣ Add priority from typeHintConfig
-    // const showcasesWithPriority = await Promise.all(
-    //   populatedShowcases.map(async showcase => {
-    //     const typeHintConfig = typeHintsConfigs.find((thc) => thc.key === showcase.type)
-
-    //     return {
-    //       ...showcase,
-    //       priority: typeHintConfig?.priority ?? null,
-    //     };
-    //   }),
-    // );
-
-    // 6️⃣ Return structured response
+    
     return {
       isSuccess: true,
       message: getMessage(
