@@ -121,7 +121,6 @@ export class SearchService {
       queryMatch.isActive = true;
       queryMatch.isDeleted = false;
       sort.viewCount = -1;
-      delete sort._id;
     }
 
     if (typeHint === SystemTypeHints.TRENDING) {
@@ -130,21 +129,18 @@ export class SearchService {
       sort.weeklyScore = -1;
       sort.weeklyFavoriteCount = -1;
       sort.weeklyViewCount = -1;
-      delete sort._id;
     }
 
     if (typeHint === SystemTypeHints.BEST_SELLERS) {
       queryMatch.isActive = true;
       queryMatch.isDeleted = false;
       sort.sellCount = -1;
-      delete sort._id;
     }
 
     if (typeHint === SystemTypeHints.MOST_FAVORITED) {
       queryMatch.isActive = true;
       queryMatch.isDeleted = false;
       sort.favoriteCount = -1;
-      delete sort._id;
     }
 
     const products = await this.productModel
@@ -160,7 +156,6 @@ export class SearchService {
       .populate('mediaListIds')
       .lean();
 
-    //  ✅ Wishlist enrichment
     // Enrich with isWishListed
     let wishListProducts: string[] = [];
     if (userId) {

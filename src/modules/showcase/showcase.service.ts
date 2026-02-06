@@ -169,7 +169,6 @@ export class ShowcaseService {
   ): Promise<DataListResponse<ShowCase>> {
     const now = new Date();
 
-    // 1️⃣ Find active showcases within their dates
     const findQuery = {
       isActive: true,
       isDeleted: false,
@@ -190,12 +189,22 @@ export class ShowcaseService {
       ],
     };
 
-    const showcases = await this.showcaseModel
-      .find(findQuery)
-      .populate('deletedBy', 'firstName lastName email _id')
-      .populate('unDeletedBy', 'firstName lastName email _id')
-      .populate('createdBy', 'firstName lastName email _id')
-      .lean();
+    const [showcases, wishlist, typeHintsConfigs] = await Promise.all([
+      await this.showcaseModel
+        .find(findQuery)
+        .populate('deletedBy', 'firstName lastName email _id')
+        .populate('unDeletedBy', 'firstName lastName email _id')
+        .populate('createdBy', 'firstName lastName email _id')
+        .lean(),
+      userId ? await this.wishListModel.findOne({ user: userId }).lean() : null,
+      await this.typeHintConfigModel.find().lean(),
+    ]);
+
+    const priorityMap = new Map(typeHintsConfigs.map(c => [c.key, c.priority]));
+    const wishListSet = new Set(
+      wishlist?.products?.map(p => p.toString()) || [],
+    );
+    const usedProductIds = new Set<string>();
 
     if (!showcases.length) {
       throw new NotFoundException(
@@ -203,99 +212,90 @@ export class ShowcaseService {
       );
     }
 
-    // 2️⃣ Get user's wishlisted products
     const wishListProducts: string[] = [];
-    if (userId) {
-      const wishList = await this.wishListModel
-        .findOne({ user: userId })
-        .lean();
-      if (wishList) {
-        wishListProducts.push(...wishList.products.map(p => p.toString()));
-      }
-    }
+    if (wishlist)
+      wishListProducts.push(...wishlist.products.map(p => p.toString()));
 
-    const usedProductIds = new Set<string>();
-    const populatedShowcases = [];
+    const populatedShowcases = await Promise.all(
+      showcases.map(async showcase => {
+        const productsQuery: any = {
+          isActive: true,
+          isDeleted: false,
+          _id: { $nin: Array.from(usedProductIds) }, // Careful: Parallel sets can overlap
+        };
 
-    // 4️⃣ Process each showcase sequentially
-    for (const showcase of showcases) {
-      const productsQuery: any = {
-        isActive: true,
-        isDeleted: false,
-        _id: { $nin: Array.from(usedProductIds) },
-      };
+        const strategy = {
+          [SystemTypeHints.MOST_VIEWED]: {
+            viewCount: { $gte: TYPE_HINT_THRESHOLDS.most_viewed },
+          },
+          [SystemTypeHints.BEST_SELLERS]: {
+            sellCount: { $gte: TYPE_HINT_THRESHOLDS.best_sellers },
+          },
+          [SystemTypeHints.MOST_FAVORITED]: {
+            favoriteCount: { $gte: TYPE_HINT_THRESHOLDS.most_favorited },
+          },
+          [SystemTypeHints.TRENDING]: {
+            weeklyFavoriteCount: { $gte: TYPE_HINT_THRESHOLDS.trending },
+          },
+        };
 
-      // Determine dynamic query for system type hints
-      switch (showcase.type) {
-        case SystemTypeHints.MOST_VIEWED:
-          productsQuery.viewCount = {
-            $gte: TYPE_HINT_THRESHOLDS.most_viewed,
-          };
-          break;
-        case SystemTypeHints.BEST_SELLERS:
-          productsQuery.sellCount = { $gte: TYPE_HINT_THRESHOLDS.best_sellers };
-          break;
+        Object.assign(
+          productsQuery,
+          strategy[showcase.type] || { typeHint: showcase.type },
+        );
 
-        case SystemTypeHints.MOST_FAVORITED:
-          productsQuery.favoriteCount = {
-            $gte: TYPE_HINT_THRESHOLDS.most_favorited,
-          };
-          break;
+        // => With aggregator
+        // const pipeline = [
+        //   { $match: productsQuery },
+        //   { $sample: { size: Number(limit) } },
+        //   { $project: { __v: 0 } },
+        // ]
+        // const products = await this.productModel.aggregate(pipeline);
 
-        case SystemTypeHints.TRENDING:
-          productsQuery.weeklyFavoriteCount = {
-            $gte: TYPE_HINT_THRESHOLDS.trending,
-          };
-          break;
-
-        default:
-          productsQuery.typeHint = showcase.type;
-      }
-
-      const products = await this.productModel.aggregate([
-        { $match: productsQuery },
-        { $sample: { size: Number(limit) } },
-        { $project: { __v: 0 } },
-      ]);
-
-      // Track used product IDs
-      products.forEach(p => usedProductIds.add(String(p._id)));
-
-      // Enrich products with isWishListed flag
-      const enrichedProducts = products.map(p => ({
-        ...p,
-        isWishListed: wishListProducts.includes(String(p._id)),
-      }));
-
-      populatedShowcases.push({
-        ...showcase,
-        items: enrichedProducts,
-      });
-    }
-
-    // 5️⃣ Add priority from typeHintConfig
-    const showcasesWithPriority = await Promise.all(
-      populatedShowcases.map(async showcase => {
-        const typeHintConfig = await this.typeHintConfigModel
-          .findOne({ key: showcase.type })
+        // => With random index
+        const r = Math.random();
+        let products = await this.productModel
+          .find({
+            ...productsQuery,
+            random: { $gte: r },
+          })
+          .sort({ random: 1 })
+          .limit(Number(limit))
           .lean();
+
+        if (products.length < limit) {
+          const more = await this.productModel
+            .find({
+              ...productsQuery,
+              random: { $lt: r },
+              _id: { $nin: products.map(p => p._id) },
+            })
+            .sort({ random: 1 })
+            .limit(Number(limit) - products.length)
+            .lean();
+
+          products.push(...more);
+        }
 
         return {
           ...showcase,
-          priority: typeHintConfig?.priority ?? null,
+          priority: priorityMap.get(showcase.type) ?? null,
+          items: products.map(p => ({
+            ...p,
+            isWishListed: wishListSet.has(p._id.toString()),
+          })),
         };
       }),
     );
-
-    // 6️⃣ Return structured response
+    
     return {
       isSuccess: true,
       message: getMessage(
         'showcase_activeShowcasesRetrievedSuccessfully',
         lang,
       ),
-      dataCount: showcasesWithPriority.length,
-      data: showcasesWithPriority,
+      dataCount: populatedShowcases.length,
+      data: populatedShowcases,
     };
   }
 
