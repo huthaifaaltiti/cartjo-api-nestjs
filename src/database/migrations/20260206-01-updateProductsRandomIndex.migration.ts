@@ -12,8 +12,26 @@ export default async function updateProductsRandomIndex(
 
   if (!indexExists) {
     await collection.createIndex(
-      { isActive: 1, isDeleted: 1, random: 1 }, // Order Matters: MongoDB follows the "ESR" rule (Equality, Sort, Range). This index is designed to first filter by isActive, then by isDeleted, and finally to provide a sorted list of the random values.
+      { isActive: 1, isDeleted: 1, random: 1 },
+      /* Order Matters: MongoDB follows the "ESR" rule (Equality, Sort, Range). This index is designed to first filter by isActive, then by isDeleted, and finally to provide a sorted list of the random values.
       { name: 'products_random_active_idx' },
+
+      📚 Indexing (structure)
+
+       This decides how documents are ordered inside the index:
+
+       { isActive: 1 }
+
+
+       Means:
+
+       “Store documents ordered by isActive ascending”
+
+       So internally:
+
+       isActive: false docs first
+       isActive: true  docs after
+       */
     );
 
     console.log('✅ products_random_active_idx created');
