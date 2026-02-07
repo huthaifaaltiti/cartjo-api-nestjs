@@ -219,7 +219,7 @@ export class PaymentService {
       return { isSuccess: false, message: check.message, data: null };
     }
 
-    const cart = check.cart!;
+    // const cart = check.cart!;
     const amountVal = this.toMinorUnits(amount, currency);
 
     const paymentRequest: Record<string, any> = {
@@ -259,17 +259,17 @@ export class PaymentService {
     }
 
     // Create order
-    const order = await this.orderService.createOrderAndClearCart(
-      requestingUser,
-      cart,
-      {
-        ...dto,
-        email: dto.customer_email,
-        merchantReference: dto.merchant_reference,
-        transactionId: dto.transactionId,
-        paymentMethod: PaymentMethod.CARD,
-      },
-    );
+    // const order = await this.orderService.createOrderAndClearCart(
+    //   requestingUser,
+    //   cart,
+    //   {
+    //     ...dto,
+    //     email: dto.customer_email,
+    //     merchantReference: dto.merchant_reference,
+    //     transactionId: dto.transactionId,
+    //     paymentMethod: PaymentMethod.CARD,
+    //   },
+    // );
 
     return {
       isSuccess: true,
@@ -280,7 +280,7 @@ export class PaymentService {
         currency: result.currency,
         customer_email,
         merchant_reference,
-        order,
+        order: null,
       },
     };
   }

@@ -161,6 +161,7 @@ export class OrderService {
   ): Promise<DataResponse<Order>> {
     const {
       amount,
+      deliveryCost,
       currency,
       email,
       merchantReference,
@@ -206,6 +207,7 @@ export class OrderService {
         name: item.name,
       })),
       amount,
+      deliveryCost,
       currency,
       paymentStatus: finalPaymentStatus,
       paymentMethod,
@@ -224,7 +226,8 @@ export class OrderService {
     );
 
     if (user?.email && order) {
-      const { amount, _id, merchantReference, transactionId } = order;
+      const { amount, deliveryCost, _id, merchantReference, transactionId } =
+        order;
       const orderId = merchantReference ?? transactionId ?? _id;
 
       const preferredLang = user.preferredLang ?? PreferredLanguage.ARABIC;
@@ -237,7 +240,7 @@ export class OrderService {
         templateData: {
           firstName: user.firstName,
           orderId,
-          amount,
+          amount: amount + deliveryCost,
           currency: getCurrencyLabel(preferredLang, body.currency),
           paymentMethod: getPaymentMethodLabel(
             preferredLang,
@@ -530,7 +533,7 @@ export class OrderService {
       uid?.toString(),
       lang,
     );
-    validateUserRoleAccess(requestingUser, lang);
+    // validateUserRoleAccess(requestingUser, lang, 'user');
 
     const dbQuery: any = { isDeleted: false, userId: uid };
 
@@ -654,7 +657,7 @@ if (search) {
       uid?.toString(),
       lang,
     );
-    validateUserRoleAccess(requestingUser, lang);
+    // validateUserRoleAccess(requestingUser, lang, 'user');
 
     const dbQuery: any = {
       isDeleted: false,
@@ -742,7 +745,7 @@ if (search) {
       uid?.toString(),
       lang,
     );
-    validateUserRoleAccess(requestingUser, lang);
+    // validateUserRoleAccess(requestingUser, lang, 'user');
 
     if (!Types.ObjectId.isValid(oid)) {
       throw new NotFoundException(getMessage('order_invalidId', lang));

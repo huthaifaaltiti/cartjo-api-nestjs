@@ -21,6 +21,15 @@ export class Product {
   @Prop({ required: true, type: TranslatedText })
   description: TranslatedText;
 
+  @Prop({
+    type: Number,
+    min: 0,
+    max: 1,
+    index: true,
+    default: Math.random,
+  })
+  random: number;
+
   @Prop({ isRequired: false, type: [String], default: [] })
   images: string[];
 

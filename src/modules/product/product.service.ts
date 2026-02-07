@@ -375,26 +375,52 @@ const products = await this.productModel
       limit?: string;
       categoryId?: string;
       subCategoryId?: string;
+      mainProductId?: string;
     },
     userId?: mongoose.Types.ObjectId,
   ) {
-    const { lang = 'en', limit = 10, categoryId, subCategoryId } = params;
+    const { lang = 'en', limit = 10, mainProductId, categoryId, subCategoryId } = params;
 
-    const match: any = {};
+    const productsQuery: any = {
+      isActive: true,
+      isDeleted: false,
+    };
+
+    if (mainProductId) {
+      productsQuery._id = { $ne: new Types.ObjectId(mainProductId) };
+    }
 
     if (categoryId) {
-      match.categoryId = new Types.ObjectId(categoryId);
+      productsQuery.categoryId = new Types.ObjectId(categoryId);
     }
 
     if (subCategoryId) {
-      match.subCategoryId = new Types.ObjectId(subCategoryId);
+      productsQuery.subCategoryId = new Types.ObjectId(subCategoryId);
     }
 
-    // Use aggregation pipeline with $sample for randomness
-    const products = await this.productModel.aggregate([
-      { $match: match },
-      { $sample: { size: Number(limit) } }, // random N docs
-    ]);
+    const r = Math.random();
+    let products = await this.productModel
+      .find({
+        ...productsQuery,
+        random: { $gte: r },
+      })
+      .sort({ random: 1 })
+      .limit(Number(limit))
+      .lean();
+
+    if (products.length < Number(limit)) {
+      const more = await this.productModel
+        .find({
+          ...productsQuery,
+          random: { $lt: r },
+          _id: { $nin: products.map(p => p._id) },
+        })
+        .sort({ random: 1 })
+        .limit(Number(limit) - products.length)
+        .lean();
+
+      products.push(...more);
+    }
 
     // Populate fields manually since aggregate doesn't auto-populate
     const populatedProducts = await this.productModel.populate(products, [
@@ -845,12 +871,16 @@ const products = await this.productModel
       product.mediaListIds.push(...updatedMediaListIds);
     }
 
-    await product.save();
+    const productToBeUpdated = await this.productModel.findByIdAndUpdate(
+      id,
+      product,
+      { new: true },
+    );
 
     return {
       isSuccess: true,
       message: getMessage('products_productUpdatedSuccessfully', lang),
-      data: product,
+      data: productToBeUpdated,
     };
   }
 

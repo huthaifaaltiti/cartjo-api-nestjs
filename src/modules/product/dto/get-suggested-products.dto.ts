@@ -13,6 +13,11 @@ export class GetSuggestedProductsQueryDto {
   @IsOptional()
   @IsString()
   @IsMongoId()
+  mainProductId?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsMongoId()
   categoryId?: string;
 
   @IsOptional()

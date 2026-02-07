@@ -59,7 +59,7 @@ export class ShippingAddressDto {
 
   @ValidateNested()
   @Type(() => MapLocation)
-  @IsNotEmpty()
+  @IsOptional()
   mapLocation: MapLocation;
 }
 
