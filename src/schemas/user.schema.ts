@@ -61,11 +61,34 @@ export class User extends Document {
   @Prop({ required: false, unique: true })
   email?: string;
 
-  @Prop({ required: true })
-  countryCode: string;
+  @Prop({
+    type: String,
+    required: function () {
+      return this.authProvider === 'local';
+    },
+  })
+  countryCode?: string;
 
-  @Prop({ required: true, unique: true })
-  phoneNumber: string;
+  @Prop({
+    type: String,
+    required: false,
+    default: 'local',
+    enum: ['local', 'google'],
+  })
+  authProvider: {
+    type: String;
+    enum: ['local', 'google'];
+    default: 'local';
+  };
+
+  @Prop({
+    type: String,
+    unique: true,
+    required: function () {
+      return this.authProvider === 'local';
+    },
+  })
+  phoneNumber?: string;
 
   @Prop({ default: false })
   isPhoneVerified: boolean;
@@ -74,10 +97,13 @@ export class User extends Document {
   birthDate?: Date;
 
   @Prop({
-    required: false,
-    set: (value: string) => hashSync(value, 12),
+    type: String,
+    required: function () {
+      return this.authProvider === 'local';
+    },
+    set: (value: string) => (value ? hashSync(value, 12) : value),
   })
-  password: string;
+  password?: string;
 
   @Prop({
     required: false,
