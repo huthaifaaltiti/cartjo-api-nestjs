@@ -23,6 +23,8 @@
   "authentication_passwordUsedRecently": "A Password was used previously, select a new one.",
   "authentication_tooManyFailedAttemptsAccountLocked": "Too Many Failed Attempts Account Locked",
   "authentication_accountLockedTemporarily": "Your Account is Locked Temporarily for ",
+  "authentication_emailAlreadyVerified": "Your email is already verified",
+  "authentication_verificationEmailSent": "A verification email was sent to you",
   "users_userAlreadyExists": "The user already exists",
   "users_errWhileCreatingUser": "An unexpected error occurred while creating the user",
   "authorization_accountDeleted": "Your account has been deleted. Please contact support.",

@@ -231,6 +231,21 @@ export class AuthService {
     user.emailVerificationToken = null;
     user.emailVerificationTokenExpires = null;
 
+    if (user.email && user.isEmailVerified) {
+      const prefLang = user?.preferredLang || PreferredLanguage.ARABIC;
+
+      this.emailService.sendTemplateEmail({
+        to: user.email,
+        templateName: EmailTemplates.EMAIL_IS_VERIFIED,
+        prefLang,
+        templateData: {
+          firstName: user.firstName,
+          appURL: `${getAppUrl()}/${prefLang}`,
+          ...commonEmailTemplateData(),
+        },
+      });
+    }
+
     await user.save();
 
     return {
