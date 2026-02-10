@@ -337,7 +337,7 @@ export class MediaService {
     maxSize: number;
     allowedTypes: string[];
     lang: Locale;
-    key: Modules;
+    key: Modules | string;
     req?: any;
     isHardReplaced?: boolean;
     isSoftReplaced?: boolean;
