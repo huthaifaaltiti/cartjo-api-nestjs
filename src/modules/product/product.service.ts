@@ -13,11 +13,8 @@ import {
 } from 'src/types/service-response.type';
 import { Product, ProductDocument } from 'src/schemas/product.schema';
 import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductBodyDto } from './dto/update-product.dto';
 import { Locale } from 'src/types/Locale';
 import { Category, CategoryDocument } from 'src/schemas/category.schema';
-import { DeleteProductDto } from './dto/delete-product.dto';
-import { UnDeleteProductBodyDto } from './dto/unDelete-product.dto';
 import { Modules } from 'src/enums/appModules.enum';
 import { MediaService } from '../media/media.service';
 import { TypeHintConfigService } from '../typeHintConfig/typeHintConfig.service';
@@ -26,14 +23,6 @@ import { getMessage } from 'src/common/utils/translator';
 import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
 import { GetProductsQueryDto } from './dto/get-products.dto';
 import { MEDIA_CONFIG } from 'src/configs/media.config';
-import {
-  SubCategory,
-  SubCategoryDocument,
-} from 'src/schemas/subCategory.schema';
-import {
-  TypeHintConfig,
-  TypeHintConfigDocument,
-} from 'src/schemas/typeHintConfig.schema';
 import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
 import { Cron } from '@nestjs/schedule';
 import { WEEKLY_SCORE_WEIGHTS } from 'src/configs/weeklyScoreWeights.config';
@@ -42,6 +31,26 @@ import {
   SYSTEM_GENERATED_HINTS,
   SystemGeneratedHint,
 } from 'src/configs/typeHint.config';
+import { Currency } from 'src/enums/currency.enum';
+import generateSKU from 'src/common/utils/generateSKU.util';
+import { ProductVariantAttributeKey } from 'src/enums/productVariantAttributeKey.enum';
+import {
+  UpdateProductBodyDto,
+  UpdateProductVariantParamsDto,
+  UpdateProductVariantBodyDto,
+} from './dto/update-product.dto';
+import { generateSecureStamp } from 'src/common/utils/generateSecureStamp.util';
+import {
+  TypeHintConfig,
+  TypeHintConfigDocument,
+} from 'src/schemas/typeHintConfig.schema';
+import {
+  SubCategory,
+  SubCategoryDocument,
+} from 'src/schemas/subCategory.schema';
+import { UpdateProductStatusBodyDto } from './dto/update-product-status.dto';
+import { DeleteProductDto } from './dto/delete-product.dto';
+import { UnDeleteProductBodyDto } from './dto/unDelete-product.dto';
 
 @Injectable()
 export class ProductService {
@@ -271,9 +280,9 @@ const products = await this.productModel
       .populate('createdBy', 'firstName lastName email _id')
       .populate('categoryId')
       .populate('subCategoryId')
-      .populate('mainMediaId')
-      .populate('mediaListIds')
       .lean();
+
+    console.log({ products: products[0].variants });
 
     // Enrich with isWishListed per user
     let wishListProducts: string[] = [];
@@ -379,7 +388,13 @@ const products = await this.productModel
     },
     userId?: mongoose.Types.ObjectId,
   ) {
-    const { lang = 'en', limit = 10, mainProductId, categoryId, subCategoryId } = params;
+    const {
+      lang = 'en',
+      limit = 10,
+      mainProductId,
+      categoryId,
+      subCategoryId,
+    } = params;
 
     const productsQuery: any = {
       isActive: true,
@@ -508,35 +523,32 @@ const products = await this.productModel
     req: any,
     dto: CreateProductDto,
     mainImage: Express.Multer.File,
-    images: Express.Multer.File[],
+    variantImages: Record<number, Express.Multer.File[]>,
+    variantMainImages: Record<number, Express.Multer.File>,
   ): Promise<DataResponse<Product>> {
     const {
       name_ar,
       name_en,
       description_ar,
       description_en,
-      price,
-      currency,
-      discountRate = 0,
-      totalAmountCount = 0,
-      typeHint = [],
       categoryId,
       subCategoryId,
+      variants,
+      typeHints,
       tags = [],
-      isAvailable = true,
       lang,
     } = dto;
 
     validateUserRoleAccess(req?.user, lang);
 
-    const rawTypeHint = typeHint;
-    const typeHints: string[] = Array.isArray(rawTypeHint)
-      ? rawTypeHint
-      : rawTypeHint
-        ? [rawTypeHint]
+    // TypeHints check
+    const rawTypeHints: string[] = Array.isArray(typeHints)
+      ? typeHints
+      : typeHints
+        ? [typeHints]
         : [];
 
-    for (const th of typeHints) {
+    for (const th of rawTypeHints) {
       if (SYSTEM_GENERATED_HINTS.includes(th as SystemTypeHints)) {
         throw new BadRequestException(
           getMessage('products_cannotAssignSystemGeneratedTypeHint', dto.lang),
@@ -544,25 +556,44 @@ const products = await this.productModel
       }
     }
 
+    // Slug uniqueness
     const slug = slugify(name_en, { lower: true });
+    const newArDescriptions = variants.map(v => v.description_ar);
+    const newEnDescriptions = variants.map(v => v.description_en);
 
-    const existing = await this.productModel.findOne({
-      $or: [
-        { 'name.ar': name_ar },
-        { 'name.en': name_en },
-        { 'description.ar': description_ar },
-        { 'description.en': description_en },
-        { slug },
+    const [existingProduct, category, typeHintKeysResponse] = await Promise.all(
+      [
+        this.productModel.findOne({
+          $or: [
+            { 'name.ar': name_ar },
+            { 'name.en': name_en },
+            { 'description.ar': description_ar },
+            { 'description.en': description_en },
+            { 'variants.description.ar': { $in: newArDescriptions } },
+            { 'variants.description.en': { $in: newEnDescriptions } },
+            { slug },
+          ],
+        }),
+        this.categoryModel.findById(categoryId).lean(),
+        this.typeHintConfigService.getList(req?.user, {
+          lang: dto.lang,
+        }),
       ],
-    });
+    );
 
-    if (existing) {
+    const allowedTypeHints = typeHintKeysResponse.data;
+    const isValid = typeHints.every(th => allowedTypeHints.includes(th));
+    if (!isValid) {
+      throw new BadRequestException(
+        getMessage('products_invalidTypeHint', lang),
+      );
+    }
+
+    if (existingProduct) {
       throw new BadRequestException(
         getMessage('products_productWithThisNameOrDescAlreadyExist', lang),
       );
     }
-
-    const category = await this.categoryModel.findById(categoryId).lean();
 
     if (!category) {
       throw new BadRequestException(
@@ -580,11 +611,7 @@ const products = await this.productModel
       );
     }
 
-    let imageUrls: string[] = [];
-    let mediaListIds: string[] = [];
-    let mainMediaId: string | undefined = undefined;
-    let mainImageUrl: string | undefined;
-
+    let mainImageObject: { id: string; url: string } = { id: null, url: null };
     if (mainImage) {
       const mainUpload = await this.mediaService.mediaProcessor({
         file: mainImage,
@@ -598,71 +625,108 @@ const products = await this.productModel
       });
 
       if (mainUpload) {
-        mainImageUrl = mainUpload.url;
-        mainMediaId = mainUpload.id;
+        mainImageObject = { id: mainUpload.id, url: mainUpload.url };
       }
     }
 
-    if (Array.isArray(images) && images.length > 0) {
-      for (const img of images) {
-        const upload = await this.mediaService.mediaProcessor({
-          file: img,
-          user: req?.user,
-          reqMsg: 'products_productShouldHasImage',
-          maxSize: MEDIA_CONFIG.PRODUCT.IMAGE.MAX_SIZE,
-          allowedTypes: MEDIA_CONFIG.PRODUCT.IMAGE.ALLOWED_TYPES,
-          lang,
-          key: Modules.PRODUCT,
-          req,
+    // variants
+    for (const variant of variants) {
+      const hasSellingType = variant.attributes.some(
+        attr => attr.key === ProductVariantAttributeKey.SELLING_TYPE,
+      );
+
+      if (!hasSellingType) {
+        throw new BadRequestException(
+          getMessage('products_mustSellingType', lang),
+        );
+      }
+    }
+
+    // Process Variants
+    const processedVariants = await Promise.all(
+      variants.map(async (v, index) => {
+        const variantSKU = generateSKU({
+          productSlug: slug,
+          attributes: v.attributes,
         });
 
-        if (upload) {
-          imageUrls.push(upload.url);
-          mediaListIds.push(upload.id);
+        const variantFiles = variantImages[index] || [];
+        const variantMainFile = variantMainImages[index];
+
+        let variantMainImage = { id: null, url: null };
+
+        if (Number(v.availableCount) > Number(v.totalAmountCount)) {
+          throw new BadRequestException(
+            getMessage('products_availableCountExceedsTotalAmountCount', lang),
+          );
         }
-      }
-    }
 
-    const typeHintKeysResponse = await this.typeHintConfigService.getList(
-      req?.user,
-      {
-        lang: dto.lang,
-      },
+        if (variantMainFile) {
+          const mainUpload = await this.mediaService.mediaProcessor({
+            file: variantMainFile,
+            user: req?.user,
+            reqMsg: 'products_variantShouldHasMainImage',
+            maxSize: MEDIA_CONFIG.PRODUCT.IMAGE.MAX_SIZE,
+            allowedTypes: MEDIA_CONFIG.PRODUCT.IMAGE.ALLOWED_TYPES,
+            lang,
+            key: `${Modules.PRODUCT}/Variant`,
+            req,
+          });
+
+          if (mainUpload) {
+            variantMainImage = { id: mainUpload.id, url: mainUpload.url };
+          }
+        }
+
+        const uploadedImages = await Promise.all(
+          variantFiles.map(file =>
+            this.mediaService.mediaProcessor({
+              file,
+              user: req.user,
+              reqMsg: 'products_variantShouldHasImage',
+              maxSize: MEDIA_CONFIG.PRODUCT.IMAGE.MAX_SIZE,
+              allowedTypes: MEDIA_CONFIG.PRODUCT.IMAGE.ALLOWED_TYPES,
+              lang,
+              key: `${Modules.PRODUCT}/Variant`,
+              req,
+            }),
+          ),
+        );
+
+        return {
+          variantId: generateSecureStamp(),
+          sku: variantSKU,
+          attributes: v.attributes,
+          description: {
+            ar: v.description_ar,
+            en: v.description_en,
+          },
+          mainImage: variantMainImage,
+          images: uploadedImages,
+          price: Number(v.price),
+          currency: v.currency || Currency.JOD,
+          availableCount: Number(v.totalAmountCount),
+          totalAmountCount: Number(v.totalAmountCount),
+          isActive: true,
+          isAvailable: true,
+          createdAt: new Date(),
+          createdBy: req?.user?.userId,
+        };
+      }),
     );
-
-    const allowedTypeHints = typeHintKeysResponse.data;
-
-    const isValid = typeHints.every(th => allowedTypeHints.includes(th));
-
-    if (!isValid) {
-      throw new BadRequestException(
-        getMessage('products_invalidTypeHint', lang),
-      );
-    }
 
     const product = new this.productModel({
       name: { ar: name_ar, en: name_en },
       description: { ar: description_ar, en: description_en },
-      price,
-      currency,
-      discountRate,
-      totalAmountCount,
-      availableCount: totalAmountCount,
-      sellCount: 0,
-      favoriteCount: 0,
-      typeHint: typeHints.length ? typeHints : [SystemTypeHints.STATIC],
       slug,
       tags,
       categoryId,
       subCategoryId,
-      mainImage: mainImageUrl || imageUrls[0],
-      mainMediaId: mainMediaId || mediaListIds[0],
-      images: imageUrls,
-      mediaListIds,
-      isAvailable,
-      isActive: true,
-      isDeleted: false,
+      mainImage: mainImageObject,
+      variants: processedVariants,
+      typeHint: rawTypeHints.length ? rawTypeHints : [SystemTypeHints.STATIC],
       createdBy: req?.user?.userId,
+      createdAt: new Date(),
     });
 
     await product.save();
@@ -675,48 +739,25 @@ const products = await this.productModel
   }
 
   async update(
-    id: string,
+    id: mongoose.Types.ObjectId,
     req: any,
     body: UpdateProductBodyDto,
     mainImage?: Express.Multer.File,
-    images?: Express.Multer.File[],
   ): Promise<DataResponse<Product>> {
     const {
       name_ar,
       name_en,
       description_ar,
       description_en,
-      price,
-      currency,
-      discountRate,
-      totalAmountCount,
-      typeHint,
       categoryId,
       subCategoryId,
-      tags,
-      isAvailable,
+      typeHints,
       lang,
-      deletedImages,
     } = body;
 
     validateUserRoleAccess(req?.user, lang);
 
-    // normalize typeHint
-    const rawTypeHint = typeHint;
-    const typeHints: string[] = Array.isArray(rawTypeHint)
-      ? rawTypeHint
-      : rawTypeHint
-        ? [rawTypeHint]
-        : [];
-
-    for (const th of typeHints) {
-      if (SYSTEM_GENERATED_HINTS.includes(th as SystemTypeHints)) {
-        throw new BadRequestException(
-          getMessage('products_cannotAssignSystemGeneratedTypeHint', lang),
-        );
-      }
-    }
-
+    // Product check
     const product = await this.productModel.findById(id);
     if (!product) {
       throw new BadRequestException(
@@ -724,36 +765,109 @@ const products = await this.productModel
       );
     }
 
-    // Check for slug uniqueness if name_en is being updated
-    let slug = product.slug;
-    if (name_en) {
-      slug = slugify(name_en, { lower: true });
+    // Final Category/SubCategory
+    const finalCategoryId = categoryId ?? product.categoryId;
+    const finalSubCategoryId = subCategoryId ?? product.subCategoryId;
+
+    if (categoryId || subCategoryId) {
+      const category = await this.categoryModel
+        .findById(finalCategoryId)
+        .lean();
+      if (!category) {
+        throw new BadRequestException(
+          getMessage('categories_categoryNotFound', lang),
+        );
+      }
+
+      const subExists = (category.subCategories || []).some(
+        (subId: any) => subId.toString() === finalSubCategoryId?.toString(),
+      );
+
+      if (!subExists) {
+        throw new BadRequestException(
+          getMessage('products_subCategoryDoesNotBelongToCategory', lang),
+        );
+      }
     }
 
-    // Check for conflicts with name, description, and slug
+    // Check slug uniqueness
+    let slug = product.slug;
+
+    if (name_en) {
+      slug = slugify(name_en, { lower: true, strict: true });
+    }
+
+    // Check conflicts with name, description, and slug
     if (name_ar || name_en || description_ar || description_en) {
       const conflictQuery: any = {
         _id: { $ne: id },
+        categoryId: finalCategoryId,
+        subCategoryId: finalSubCategoryId,
         $or: [],
       };
 
       if (name_ar) conflictQuery.$or.push({ 'name.ar': name_ar });
       if (name_en) {
         conflictQuery.$or.push({ 'name.en': name_en });
-        conflictQuery.$or.push({ slug }); // Also check for slug conflict
+        conflictQuery.$or.push({ slug });
       }
       if (description_ar)
         conflictQuery.$or.push({ 'description.ar': description_ar });
       if (description_en)
         conflictQuery.$or.push({ 'description.en': description_en });
 
-      const conflict = await this.productModel.findOne(conflictQuery);
+      if (conflictQuery.$or.length) {
+        const conflict = await this.productModel.findOne(conflictQuery);
+        if (conflict) {
+          throw new BadRequestException(
+            getMessage('products_productWithThisNameOrDescAlreadyExist', lang),
+          );
+        }
+      }
+    }
 
-      if (conflict) {
+    // TypeHints check
+    if (typeHints !== undefined) {
+      const rawTypeHints: string[] = Array.isArray(typeHints)
+        ? typeHints
+        : typeHints
+          ? [typeHints]
+          : [];
+      const productTypeHints = product.typeHints;
+
+      for (const th of rawTypeHints) {
+        if (SYSTEM_GENERATED_HINTS.includes(th as SystemTypeHints)) {
+          throw new BadRequestException(
+            getMessage('products_cannotAssignSystemGeneratedTypeHint', lang),
+          );
+        }
+
+        if (productTypeHints.includes(th)) {
+          throw new BadRequestException(
+            getMessage('products_alreadyUsedTypeHint', lang),
+          );
+        }
+      }
+
+      const typeHintKeysRes = await this.typeHintConfigService.getList(
+        req?.user,
+        {
+          lang,
+        },
+      );
+
+      const allowedTypeHints = typeHintKeysRes.data;
+
+      const isValid = typeHints.every(th => allowedTypeHints.includes(th));
+
+      if (!isValid) {
         throw new BadRequestException(
-          getMessage('products_productWithThisNameOrDescAlreadyExist', lang),
+          getMessage('products_invalidTypeHint', lang),
         );
       }
+
+      product.typeHints =
+        typeHints.length > 0 ? rawTypeHints : [SystemTypeHints.STATIC];
     }
 
     // Update product fields
@@ -764,50 +878,10 @@ const products = await this.productModel
     }
     if (description_ar) product.description.ar = description_ar;
     if (description_en) product.description.en = description_en;
-    if (price !== undefined) product.price = Number(price);
-    if (currency) product.currency = currency;
-    if (discountRate !== undefined) product.discountRate = Number(discountRate);
-    if (totalAmountCount !== undefined) {
-      product.totalAmountCount = Number(totalAmountCount);
-      product.availableCount = Number(totalAmountCount);
-    }
-
-    if (rawTypeHint !== undefined) {
-      const typeHintKeysResponse = await this.typeHintConfigService.getList(
-        req?.user,
-        {
-          lang,
-        },
-      );
-
-      const allowedTypeHints = typeHintKeysResponse.data;
-
-      const isValid = typeHints.every(th => allowedTypeHints.includes(th));
-
-      if (!isValid) {
-        throw new BadRequestException(
-          getMessage('products_invalidTypeHint', lang),
-        );
-      }
-
-      product.typeHint = typeHints.length
-        ? typeHints
-        : [SystemTypeHints.STATIC];
-    }
 
     // Handle ObjectId assignments - use direct assignment, Mongoose will handle conversion
-    if (categoryId) product.categoryId = categoryId as any;
-    if (subCategoryId) product.subCategoryId = subCategoryId as any;
-
-    if (Array.isArray(tags)) product.tags = tags;
-    if (isAvailable !== undefined) product.isAvailable = isAvailable;
-
-    // Update metadata
-    product.updatedBy = req?.user?.userId;
-    product.updatedAt = new Date();
-
-    let updatedMediaListIds: string[] = [];
-    let updatedImageUrls: string[] = [];
+    if (categoryId) product.categoryId = finalCategoryId as any;
+    if (subCategoryId) product.subCategoryId = finalSubCategoryId as any;
 
     // Handle main image upload
     if (mainImage) {
@@ -820,67 +894,191 @@ const products = await this.productModel
         lang,
         key: Modules.PRODUCT,
         req,
-        existingMediaId: product.mainMediaId,
+        existingMediaId: product.mainImage.id?.toString(),
       });
 
       if (mainUpload) {
-        product.mainImage = mainUpload.url;
-        product.mainMediaId = mainUpload.id;
+        product.mainImage = {
+          url: mainUpload.url,
+          id: new Types.ObjectId(mainUpload.id) as any,
+        };
       }
     }
 
-    // 1. Handle Deleted Images (Logic for the "Gallery" images)
-    if (deletedImages && Array.isArray(deletedImages)) {
-      for (const urlToDelete of deletedImages) {
-        const index = product.images.indexOf(urlToDelete);
+    // Update metadata
+    product.updatedBy = req?.user?.userId;
+    product.updatedAt = new Date();
 
-        if (index > -1) {
-          // Delete from S3 and Media Metadata collection via URL
-          await this.mediaService.deleteByUrl(urlToDelete);
-
-          // Remove from the product's internal arrays
-          product.images.splice(index, 1);
-          product.mediaListIds.splice(index, 1);
-        }
-      }
-    }
-
-    // 3. Handle NEW multiple images upload
-    if (images?.length) {
-      for (const img of images) {
-        const upload = await this.mediaService.mediaProcessor({
-          file: img,
-          user: req?.user,
-          reqMsg: 'products_productShouldHasImage',
-          maxSize: MEDIA_CONFIG.PRODUCT.IMAGE.MAX_SIZE,
-          allowedTypes: MEDIA_CONFIG.PRODUCT.IMAGE.ALLOWED_TYPES,
-          lang,
-          key: Modules.PRODUCT,
-          req,
-        });
-
-        if (upload) {
-          updatedImageUrls.push(upload.url);
-          updatedMediaListIds.push(upload.id);
-        }
-      }
-    }
-
-    if (updatedImageUrls.length) {
-      product.images.push(...updatedImageUrls);
-      product.mediaListIds.push(...updatedMediaListIds);
-    }
-
-    const productToBeUpdated = await this.productModel.findByIdAndUpdate(
-      id,
-      product,
-      { new: true },
-    );
+    await product.save();
 
     return {
       isSuccess: true,
       message: getMessage('products_productUpdatedSuccessfully', lang),
-      data: productToBeUpdated,
+      data: product,
+    };
+  }
+
+  async updateVariant(
+    param: UpdateProductVariantParamsDto,
+    req: any,
+    body: UpdateProductVariantBodyDto,
+    mainImage?: Express.Multer.File,
+    imagesFiles?: Express.Multer.File[],
+  ) {
+    const { id: productId, vid: variantId } = param;
+    const {
+      attributes,
+      description_ar,
+      description_en,
+      price,
+      currency,
+      totalAmountCount,
+      availableCount,
+      discountRate,
+      tags,
+      lang,
+      deletedImages,
+    } = body;
+
+    validateUserRoleAccess(req?.user, lang);
+
+    const product = await this.productModel.findById(productId);
+    if (!product) {
+      throw new BadRequestException(
+        getMessage('products_productNotFound', lang),
+      );
+    }
+
+    // Find the variant
+    const variantIndex = product.variants.findIndex(
+      v => v.variantId === variantId,
+    );
+
+    if (variantIndex === -1) {
+      throw new BadRequestException(
+        getMessage('products_variantNotFound', lang),
+      );
+    }
+
+    const variant = { ...product.variants[variantIndex] };
+
+    if (!variant) {
+      throw new BadRequestException(
+        getMessage('products_variantNotFound', body.lang),
+      );
+    }
+
+    const finalDescriptionAr = description_ar ?? variant.description.ar;
+    const finalDescriptionEn = description_en ?? variant.description.en;
+    const isDuplicate = product.variants.some(
+      (v, index) =>
+        index !== variantIndex &&
+        (v.description.ar === finalDescriptionAr ||
+          v.description.en === finalDescriptionEn),
+    );
+
+    if (isDuplicate) {
+      throw new BadRequestException(
+        getMessage('products_variantDescriptionAlreadyExists', lang),
+      );
+    }
+
+    // Update basic fields
+    if (description_ar) variant.description.ar = description_ar;
+    if (description_en) variant.description.en = description_en;
+    if (price !== undefined) variant.price = price;
+    if (currency) variant.currency = currency;
+    if (totalAmountCount !== undefined)
+      variant.totalAmountCount = totalAmountCount;
+    if (discountRate !== undefined) variant.discountRate = discountRate;
+    if (availableCount !== undefined) variant.availableCount = availableCount;
+    // if (isActive !== undefined) variant.isActive = isActive;
+    // if (isAvailable !== undefined) variant.isAvailable = isAvailable;
+    if (tags) variant.tags = [...tags];
+
+    if (attributes.length) {
+      const hasSellingType = attributes.some(
+        attr => attr.key === ProductVariantAttributeKey.SELLING_TYPE,
+      );
+
+      if (!hasSellingType) {
+        throw new BadRequestException(
+          getMessage('products_mustSellingType', lang),
+        );
+      }
+
+      variant.attributes = [...attributes];
+    }
+
+    if (mainImage) {
+      const mainUpload = await this.mediaService.hardDeleteAndUpload({
+        file: mainImage,
+        user: req.user,
+        reqMsg: 'products_variantShouldHasMainImage',
+        maxSize: MEDIA_CONFIG.PRODUCT.IMAGE.MAX_SIZE,
+        allowedTypes: MEDIA_CONFIG.PRODUCT.IMAGE.ALLOWED_TYPES,
+        lang: body.lang,
+        key: `${Modules.PRODUCT}/Variant`,
+        req,
+        existingMediaId: variant.mainImage?.id?.toString(),
+      });
+
+      if (mainUpload) {
+        variant.mainImage = {
+          id: new Types.ObjectId(mainUpload.id) as any,
+          url: mainUpload.url,
+        };
+      }
+    }
+
+    // Handle Deleted Images
+    if (deletedImages && Array.isArray(deletedImages) && imagesFiles?.length) {
+      for (const urlToDelete of deletedImages) {
+        const itemToDelete = variant.images.find(i => i.url === urlToDelete);
+        const index = variant.images.indexOf(itemToDelete);
+
+        if (index > -1) {
+          await this.mediaService.deleteByUrl(urlToDelete);
+          variant.images.splice(index, 1);
+        }
+      }
+
+      // Upload additional images if provided
+      if (imagesFiles?.length) {
+        const uploadedImages = await Promise.all(
+          imagesFiles.map(file =>
+            this.mediaService.mediaProcessor({
+              file,
+              user: req.user,
+              reqMsg: 'products_variantShouldHasImage',
+              maxSize: MEDIA_CONFIG.PRODUCT.IMAGE.MAX_SIZE,
+              allowedTypes: MEDIA_CONFIG.PRODUCT.IMAGE.ALLOWED_TYPES,
+              lang: body.lang,
+              key: `${Modules.PRODUCT}/Variant`,
+              req,
+            }),
+          ),
+        );
+
+        variant.images = [...variant.images, ...uploadedImages];
+      }
+    }
+
+    variant.updatedBy = req.user.userId;
+    variant.updatedAt = new Date();
+
+    product.variants[variantIndex] = variant;
+    product.markModified('variants');
+
+    product.updatedBy = req.user.userId;
+    product.updatedAt = new Date();
+
+    await product.save();
+
+    return {
+      isSuccess: true,
+      message: getMessage('products_variantUpdatedSuccessfully', body.lang),
+      data: variant,
     };
   }
 
@@ -899,22 +1097,19 @@ const products = await this.productModel
     }
 
     if (isActive) {
-      // ✅ 1. CHECK PARENT TYPE HINT STATUS
-      const typeHintConfig = await this.typeHintConfigModel.findOne({
-        key: product.typeHint,
-        isDeleted: false,
-      });
+      // Check active type-hints
+      if (product.typeHints?.length) {
+        const activeTypeHints = await this.typeHintConfigModel.find({
+          key: { $in: product.typeHints },
+          isDeleted: false,
+          isActive: true,
+        });
 
-      if (!typeHintConfig) {
-        throw new BadRequestException(
-          getMessage('showcase_invalidTypeHint', lang),
-        );
-      }
-
-      if (!typeHintConfig.isActive) {
-        throw new BadRequestException(
-          getMessage('showcase_typeHintKeyNotActive', lang),
-        );
+        if (activeTypeHints.length !== product.typeHints.length) {
+          throw new BadRequestException(
+            getMessage('showcase_typeHintKeyNotActive', lang),
+          );
+        }
       }
 
       // Check sub-category
@@ -960,7 +1155,110 @@ const products = await this.productModel
     };
   }
 
-  async delete(
+  async updateVariantStatus(
+    body: UpdateProductStatusBodyDto,
+    param: UpdateProductVariantParamsDto,
+    requestingUser: any,
+  ): Promise<BaseResponse> {
+    const { isActive, lang } = body;
+    const { id, vid } = param;
+
+    validateUserRoleAccess(requestingUser, lang);
+
+    const product = await this.productModel.findById(id);
+
+    if (!product)
+      throw new NotFoundException(getMessage('products_productNotFound', lang));
+
+    // Find the variant
+    const variantIndex = product.variants.findIndex(v => v.variantId === vid);
+
+    if (variantIndex === -1) {
+      throw new BadRequestException(
+        getMessage('products_variantNotFound', lang),
+      );
+    }
+
+    if (isActive) {
+      if (!product.isActive) {
+        throw new BadRequestException(
+          getMessage('product_cantActivateVariantDeactivatedProduct', lang),
+        );
+      }
+
+      // Validate typeHints
+      if (product.typeHints?.length) {
+        const activeTypeHints = await this.typeHintConfigModel.find({
+          key: { $in: product.typeHints },
+          isDeleted: false,
+          isActive: true,
+        });
+
+        if (activeTypeHints.length !== product.typeHints.length) {
+          throw new BadRequestException(
+            getMessage('showcase_typeHintKeyNotActive', lang),
+          );
+        }
+      }
+
+      // Validate subCategory
+      const subCategory = await this.subCategoryModel
+        .findById(product.subCategoryId, {
+          isActive: 1,
+          categoryId: 1,
+        })
+        .lean();
+
+      if (!subCategory || !subCategory.isActive) {
+        throw new BadRequestException(
+          getMessage('products_cannotActivateSubCategoryIsInactive', lang),
+        );
+      }
+
+      // Validate category
+      const category = await this.categoryModel
+        .findById(subCategory.categoryId, { isActive: 1 })
+        .lean();
+
+      if (!category || !category.isActive) {
+        throw new BadRequestException(
+          getMessage('products_cannotActivateCategoryIsInactive', lang),
+        );
+      }
+    }
+
+    product.variants[variantIndex].isActive = isActive;
+    product.markModified('variants');
+
+    // Auto product deactivation/activation logic
+    const hasActiveVariant = product.variants.some(v => v.isActive);
+    if (!hasActiveVariant) {
+      product.isActive = false;
+    }
+
+    if (isActive && !product.isActive) {
+      throw new BadRequestException(
+        getMessage('product_cantActivateVariantDeactivatedProduct', lang),
+      );
+    }
+
+    product.updatedBy = requestingUser?.userId;
+    product.updatedAt = new Date();
+
+    await product.save();
+
+    return {
+      isSuccess: true,
+      message: getMessage(
+        isActive
+          ? 'products_variantActivatedSuccessfully'
+          : 'products_variantDeactivatedSuccessfully',
+        lang,
+      ),
+    };
+  }
+
+  async deleteProduct(
     requestingUser: any,
     body: DeleteProductDto,
     id: string,
@@ -991,7 +1289,62 @@ const products = await this.productModel
     };
   }
 
-  async unDelete(
+  async deleteVariant(
+    param: UpdateProductVariantParamsDto,
+    body: DeleteProductDto,
+    requestingUser: any,
+  ): Promise<BaseResponse> {
+    const { id, vid } = param;
+    const { lang } = body;
+
+    validateUserRoleAccess(requestingUser, lang);
+
+    const product = await this.productModel.findById(id);
+    if (!product) {
+      throw new NotFoundException(getMessage('products_productNotFound', lang));
+    }
+
+    const variantIndex = product.variants.findIndex(v => v.variantId === vid);
+
+    if (variantIndex === -1) {
+      throw new BadRequestException(
+        getMessage('products_variantNotFound', lang),
+      );
+    }
+
+    const variant = product.variants[variantIndex];
+
+    if (variant.isDeleted) {
+      throw new BadRequestException(
+        getMessage('products_variantAlreadyDeleted', lang),
+      );
+    }
+
+    variant.isDeleted = true;
+    variant.isActive = false;
+    variant.deletedAt = new Date();
+    variant.deletedBy = requestingUser?.userId;
+
+    product.markModified('variants');
+
+    // Auto deactivate product if no active variants left
+    const hasActiveVariant = product.variants.some(
+      v => v.isActive && !v.isDeleted,
+    );
+
+    if (!hasActiveVariant) {
+      product.isActive = false;
+    }
+
+    await product.save();
+
+    return {
+      isSuccess: true,
+      message: getMessage('products_variantDeletedSuccessfully', lang),
+    };
+  }
+
+  async unDeleteProduct(
     requestingUser: any,
     body: UnDeleteProductBodyDto,
     id: string,
@@ -1022,63 +1375,55 @@ const products = await this.productModel
     };
   }
 
-  async deactivateBySubCategory(
-    subCategoryId: string,
+  async unDeleteVariant(
+    param: UpdateProductVariantParamsDto,
+    body: UnDeleteProductBodyDto,
     requestingUser: any,
-  ): Promise<void> {
-    await this.productModel.updateMany(
-      {
-        subCategoryId: new Types.ObjectId(subCategoryId),
-        isActive: true,
-      },
-      {
-        $set: {
-          isActive: false,
-          isDeleted: false,
-          updatedBy: requestingUser.userId,
-          updatedAt: new Date(),
-        },
-      },
-    );
-  }
+  ): Promise<BaseResponse> {
+    const { id, vid } = param;
+    const { lang } = body;
 
-  async deactivateBySubCategories(
-    subCategoryIds: Types.ObjectId[],
-    requestingUser: any,
-  ): Promise<void> {
-    await this.productModel.updateMany(
-      {
-        subCategoryId: { $in: subCategoryIds },
-        isActive: true,
-      },
-      {
-        $set: {
-          isActive: false,
-          isDeleted: false,
-          updatedBy: requestingUser.userId,
-          updatedAt: new Date(),
-        },
-      },
-    );
-  }
+    validateUserRoleAccess(requestingUser, lang);
 
-  async deactivateByTypeHint(
-    typeHint: string,
-    requestingUser: any,
-  ): Promise<void> {
-    await this.productModel.updateMany(
-      {
-        typeHint,
-        isActive: true,
-      },
-      {
-        $set: {
-          isActive: false,
-          isDeleted: false,
-          updatedBy: requestingUser.userId,
-          updatedAt: new Date(),
-        },
-      },
-    );
+    const product = await this.productModel.findById(id);
+    if (!product) {
+      throw new NotFoundException(getMessage('products_productNotFound', lang));
+    }
+
+    if (!product.isActive) {
+      throw new BadRequestException(
+        getMessage('product_cantActivateVariantDeactivatedProduct', lang),
+      );
+    }
+
+    const variantIndex = product.variants.findIndex(v => v.variantId === vid);
+
+    if (variantIndex === -1) {
+      throw new BadRequestException(
+        getMessage('products_variantNotFound', lang),
+      );
+    }
+
+    const variant = product.variants[variantIndex];
+
+    if (!variant.isDeleted) {
+      throw new BadRequestException(
+        getMessage('products_variantNotDeleted', lang),
+      );
+    }
+
+    variant.isDeleted = false;
+    variant.isActive = true;
+    variant.unDeletedAt = new Date();
+    variant.unDeletedBy = requestingUser?.userId;
+
+    product.markModified('variants');
+
+    await product.save();
+
+    return {
+      isSuccess: true,
+      message: getMessage('products_variantRestoredSuccessfully', lang),
+    };
   }
 }

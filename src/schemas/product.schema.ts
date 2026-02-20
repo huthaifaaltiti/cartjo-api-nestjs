@@ -1,25 +1,65 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
-import { Currency } from 'src/enums/currency.enum';
 import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
+import { ProductVariant } from './sub-schemas/product-variant.schema';
+import { MediaPreview, NameRef } from './common.schema';
 
 export type ProductDocument = Product & Document;
 
-class TranslatedText {
-  @Prop({ required: true })
-  ar: string;
-
-  @Prop({ required: true })
-  en: string;
-}
-
 @Schema({ timestamps: true, collection: 'products' })
 export class Product {
-  @Prop({ required: true, type: TranslatedText })
-  name: TranslatedText;
+  @Prop({ required: true, type: NameRef })
+  description: NameRef;
 
-  @Prop({ required: true, type: TranslatedText })
-  description: TranslatedText;
+  @Prop({ required: true, type: NameRef })
+  name: NameRef;
+
+  @Prop({
+    required: true,
+    type: MediaPreview,
+    default: {
+      id: null,
+      url: null,
+    },
+  })
+  mainImage: MediaPreview;
+
+  @Prop({
+    required: true,
+    type: [String],
+    default: [SystemTypeHints.STATIC],
+  })
+  typeHints: string[];
+
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'Category',
+    required: true,
+  })
+  categoryId: MongooseSchema.Types.ObjectId;
+
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'SubCategory',
+    required: true,
+  })
+  subCategoryId: MongooseSchema.Types.ObjectId;
+
+  @Prop({
+    type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Comment' }],
+    default: [],
+  })
+  comments: MongooseSchema.Types.ObjectId[];
+
+  @Prop({
+    required: true,
+    type: [ProductVariant],
+    default: [],
+  })
+  variants: ProductVariant[];
+
+  @Prop({ type: [String], default: [] })
+  tags: string[];
 
   @Prop({
     type: Number,
@@ -30,41 +70,14 @@ export class Product {
   })
   random: number;
 
-  @Prop({ isRequired: false, type: [String], default: [] })
-  images: string[];
-
-  @Prop({ type: [MongooseSchema.Types.ObjectId], ref: 'Media', default: null })
-  mediaListIds?: string[];
-
-  @Prop({ required: true, type: String, default: null })
-  mainImage?: string;
-
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Media', default: null })
-  mainMediaId?: string;
-
-  @Prop({ required: true, default: 1 })
-  price: number;
-
-  @Prop({ required: true, enum: Currency, default: Currency.JOD })
-  currency: string;
-
-  @Prop({ default: 0, min: 0, max: 100 })
-  discountRate: number;
-
   @Prop({ default: 1, min: 1, max: 5 })
   ratings: number;
 
-  @Prop({ default: 0 })
-  totalAmountCount: number;
-
-  @Prop({ default: 0 })
-  availableCount: number;
-
-  @Prop({ default: 0, min: 0 })
-  sellCount: number;
-
   @Prop({ default: 0, min: 0 })
   viewCount: number;
+
+  @Prop({ default: 0, min: 0 })
+  totalSellCount: number;
 
   @Prop({ default: 0 })
   weeklyViewCount: number;
@@ -81,38 +94,14 @@ export class Product {
   @Prop({ default: false, required: false })
   isWishListed: boolean;
 
-  @Prop({
-    required: true,
-    type: [String],
-    default: [SystemTypeHints.STATIC],
-  })
-  typeHint: string[];
-
-  @Prop({ type: [String], default: [] })
-  tags: string[];
-
   @Prop({ unique: true })
   slug: string;
 
-  @Prop({
-    type: MongooseSchema.Types.ObjectId,
-    ref: 'Category',
-    required: true,
-  })
-  categoryId: MongooseSchema.Types.ObjectId;
-
-  @Prop({
-    type: MongooseSchema.Types.ObjectId,
-    ref: 'SubCategory',
-    required: true,
-  })
-  subCategoryId: MongooseSchema.Types.ObjectId;
+  @Prop({ default: true })
+  isActive: boolean;
 
   @Prop({ default: true })
   isAvailable: boolean;
-
-  @Prop({ default: true })
-  isActive: boolean;
 
   @Prop({ default: false })
   isDeleted: boolean;
@@ -140,12 +129,6 @@ export class Product {
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', default: null })
   unDeletedBy: MongooseSchema.Types.ObjectId;
-
-  @Prop({
-    type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Comment' }],
-    default: [],
-  })
-  comments: MongooseSchema.Types.ObjectId[];
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);
