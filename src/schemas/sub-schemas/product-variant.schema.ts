@@ -46,6 +46,9 @@ With sparse:
   @Prop({ required: true, default: 1 })
   price: number;
 
+  @Prop({ required: true, default: 0 })
+  priceAfterDiscount: number;
+
   @Prop({ default: 0, min: 0, max: 100 })
   discountRate: number;
 
@@ -63,6 +66,9 @@ With sparse:
 
   @Prop({ type: [String], default: [] })
   tags: string[];
+
+  @Prop({ default: 1, min: 1, max: 5 })
+  ratings: number;
 
   @Prop({ default: true })
   isAvailable: boolean;

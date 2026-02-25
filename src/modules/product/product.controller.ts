@@ -22,6 +22,8 @@ import { GetSuggestedProductsQueryDto } from './dto/get-suggested-products.dto';
 import { OptionalJwtAuthGuard } from 'src/common/utils/optionalJwtAuthGuard';
 import { ApiPaths } from 'src/common/constants/api-paths';
 import {
+  CreateProductVariantBodyDto,
+  CreateProductVariantParamsDto,
   UpdateProductBodyDto,
   UpdateProductParamsDto,
   UpdateProductVariantBodyDto,
@@ -72,7 +74,7 @@ export class ProductController {
       }
     });
 
-    return this.productService.create(
+    return this.productService.createProduct(
       req,
       dto,
       mainImage,
@@ -94,7 +96,31 @@ export class ProductController {
 
     const mainImage = files.find(file => file.fieldname === 'mainImage');
 
-    return this.productService.update(id, req, body, mainImage);
+    return this.productService.updateProduct(id, req, body, mainImage);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @UseInterceptors(AnyFilesInterceptor())
+  @Post(ApiPaths.Product.CreateVariant)
+  async createVariant(
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body() body: CreateProductVariantBodyDto,
+    @Request() req: any,
+    @Param() param: CreateProductVariantParamsDto,
+  ) {
+    console.log('inside create variant');
+    const variantMainImage = files?.find(
+      file => file.fieldname === 'mainImage',
+    );
+    const variantImages = files?.filter(f => f.fieldname === 'images') ?? [];
+
+    return this.productService.createVariant(
+      param,
+      req,
+      body,
+      variantMainImage,
+      variantImages,
+    );
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -125,7 +151,7 @@ export class ProductController {
   async getAll(@Query() query: GetProductsQueryDto, @Request() req: any) {
     const userId = req.user?.userId; // userId will be undefined if no logged user, user => null
 
-    return this.productService.getAll(query, userId);
+    return this.productService.getAllProducts(query, userId);
   }
 
   @UseGuards(OptionalJwtAuthGuard)
@@ -169,7 +195,7 @@ export class ProductController {
     const { lang } = query;
     const userId = req.user?.userId;
 
-    return this.productService.getOne(id, lang, userId);
+    return this.productService.getOneProduct(id, lang, userId);
   }
 
   @UseGuards(AuthGuard('jwt'))

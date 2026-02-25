@@ -281,7 +281,7 @@ export class MediaService {
     maxSize: number;
     allowedTypes: string[];
     lang: Locale;
-    key: Modules;
+    key: Modules | string;
     existingMediaId?: string | ObjectId;
     req?: any;
   }): Promise<MediaPreview | undefined> {

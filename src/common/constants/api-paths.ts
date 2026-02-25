@@ -44,6 +44,7 @@ export const ApiPaths = {
     Create: 'create',
     Update: 'update/:id',
     UpdateVariant: 'update/:id/variant/:vid',
+    CreateVariant: 'create/:id/variant',
     GetAll: 'all',
     Suggested: 'suggested',
     CategoriesPicks: 'categories-picks',

@@ -38,6 +38,8 @@ import {
   UpdateProductBodyDto,
   UpdateProductVariantParamsDto,
   UpdateProductVariantBodyDto,
+  CreateProductVariantParamsDto,
+  CreateProductVariantBodyDto,
 } from './dto/update-product.dto';
 import { generateSecureStamp } from 'src/common/utils/generateSecureStamp.util';
 import {
@@ -104,7 +106,7 @@ export class ProductService {
     );
   }
 
-  async getAll(
+  async getAllProducts(
     params: GetProductsQueryDto,
     userId?: mongoose.Types.ObjectId,
   ): Promise<DataListResponse<Product>> {
@@ -473,7 +475,7 @@ const products = await this.productModel
     };
   }
 
-  async getOne(
+  async getOneProduct(
     id: string,
     lang?: Locale,
     userId?: mongoose.Types.ObjectId,
@@ -519,7 +521,18 @@ const products = await this.productModel
     };
   }
 
-  async create(
+  private calculatePriceAfterDiscount(
+    price: number,
+    discountRate: number,
+  ): number {
+    if (!price || discountRate <= 0) return price;
+
+    const finalPrice = price - (discountRate / 100) * price;
+
+    return Number(finalPrice.toFixed(3));
+  }
+
+  async createProduct(
     req: any,
     dto: CreateProductDto,
     mainImage: Express.Multer.File,
@@ -631,13 +644,31 @@ const products = await this.productModel
 
     // variants
     for (const variant of variants) {
-      const hasSellingType = variant.attributes.some(
+      // const hasSellingType = variant.attributes.some(
+      //   attr => attr.key === ProductVariantAttributeKey.SELLING_TYPE,
+      // );
+      const hasSellingType = variant.attributes.filter(
         attr => attr.key === ProductVariantAttributeKey.SELLING_TYPE,
       );
+      const hasSize = variant.attributes.filter(
+        attr => attr.key === ProductVariantAttributeKey.SIZE,
+      );
 
-      if (!hasSellingType) {
+      if (!hasSellingType || hasSellingType.length === 0) {
         throw new BadRequestException(
           getMessage('products_mustSellingType', lang),
+        );
+      }
+
+      if (hasSellingType?.length > 1) {
+        throw new BadRequestException(
+          getMessage('products_oneSellingType', lang),
+        );
+      }
+
+      if (hasSize?.length > 1) {
+        throw new BadRequestException(
+          getMessage('products_oneVariantSize', lang),
         );
       }
     }
@@ -693,6 +724,14 @@ const products = await this.productModel
           ),
         );
 
+        const priceNumber = Number(v.price);
+        const discountNumber = Number(v.discountRate ?? 0);
+
+        const priceAfterDiscount = this.calculatePriceAfterDiscount(
+          priceNumber,
+          discountNumber,
+        );
+
         return {
           variantId: generateSecureStamp(),
           sku: variantSKU,
@@ -704,10 +743,14 @@ const products = await this.productModel
           mainImage: variantMainImage,
           images: uploadedImages,
           price: Number(v.price),
+          discountRate: discountNumber,
+          priceAfterDiscount,
           currency: v.currency || Currency.JOD,
           availableCount: Number(v.totalAmountCount),
           totalAmountCount: Number(v.totalAmountCount),
           isActive: true,
+          ratings: 1,
+          isDeleted: false,
           isAvailable: true,
           createdAt: new Date(),
           createdBy: req?.user?.userId,
@@ -738,7 +781,7 @@ const products = await this.productModel
     };
   }
 
-  async update(
+  async updateProduct(
     id: mongoose.Types.ObjectId,
     req: any,
     body: UpdateProductBodyDto,
@@ -752,6 +795,7 @@ const products = await this.productModel
       categoryId,
       subCategoryId,
       typeHints,
+      tags,
       lang,
     } = body;
 
@@ -833,7 +877,7 @@ const products = await this.productModel
         : typeHints
           ? [typeHints]
           : [];
-      const productTypeHints = product.typeHints;
+      // const productTypeHints = product.typeHints;
 
       for (const th of rawTypeHints) {
         if (SYSTEM_GENERATED_HINTS.includes(th as SystemTypeHints)) {
@@ -842,11 +886,11 @@ const products = await this.productModel
           );
         }
 
-        if (productTypeHints.includes(th)) {
-          throw new BadRequestException(
-            getMessage('products_alreadyUsedTypeHint', lang),
-          );
-        }
+        // if (productTypeHints.includes(th)) {
+        //   throw new BadRequestException(
+        //     getMessage('products_alreadyUsedTypeHint', lang),
+        //   );
+        // }
       }
 
       const typeHintKeysRes = await this.typeHintConfigService.getList(
@@ -870,14 +914,31 @@ const products = await this.productModel
         typeHints.length > 0 ? rawTypeHints : [SystemTypeHints.STATIC];
     }
 
-    // Update product fields
-    if (name_ar) product.name.ar = name_ar;
-    if (name_en) {
-      product.name.en = name_en;
-      product.slug = slug;
+    // Tags
+    if (tags !== undefined) {
+      product.tags = [...tags];
     }
-    if (description_ar) product.description.ar = description_ar;
-    if (description_en) product.description.en = description_en;
+
+    // Update product fields
+    if (name_ar) {
+      // product.name.ar = name_ar;
+      // product.markModified('name');
+      product.set('name.ar', name_ar);
+    }
+    if (name_en) {
+      // product.name.en = name_en;
+      // product.slug = slug;
+      // product.markModified('name');
+      product.set('name.en', name_en);
+    }
+    if (description_ar) {
+      // product.description.ar = description_ar;
+      product.set('description.ar', description_ar);
+    }
+    if (description_en) {
+      // product.description.en = description_en;
+      product.set('description.en', description_en);
+    }
 
     // Handle ObjectId assignments - use direct assignment, Mongoose will handle conversion
     if (categoryId) product.categoryId = finalCategoryId as any;
@@ -918,16 +979,16 @@ const products = await this.productModel
     };
   }
 
-  async updateVariant(
-    param: UpdateProductVariantParamsDto,
+  async createVariant(
+    param: CreateProductVariantParamsDto,
     req: any,
-    body: UpdateProductVariantBodyDto,
+    body: CreateProductVariantBodyDto,
     mainImage?: Express.Multer.File,
     imagesFiles?: Express.Multer.File[],
   ) {
-    const { id: productId, vid: variantId } = param;
+    const { id: productId } = param;
     const {
-      attributes,
+      attributes = [],
       description_ar,
       description_en,
       price,
@@ -937,7 +998,145 @@ const products = await this.productModel
       discountRate,
       tags,
       lang,
-      deletedImages,
+    } = body;
+
+    validateUserRoleAccess(req?.user, lang);
+
+    const product = await this.productModel.findById(productId);
+    if (!product) {
+      throw new BadRequestException(
+        getMessage('products_productNotFound', lang),
+      );
+    }
+
+    const isDuplicate = product.variants.some(
+      v =>
+        v.description.ar === body.description_ar ||
+        v.description.en === body.description_en,
+    );
+
+    if (isDuplicate) {
+      throw new BadRequestException(
+        getMessage('products_variantDescriptionAlreadyExists', body.lang),
+      );
+    }
+
+    const variantId = generateSecureStamp();
+
+    const sku = generateSKU({
+      productSlug: product.slug,
+      attributes: body.attributes,
+    });
+
+    let mainVariantImageObject: { id: string; url: string } = {
+      id: null,
+      url: null,
+    };
+    if (mainImage) {
+      const mainUpload = await this.mediaService.mediaProcessor({
+        file: mainImage,
+        user: req?.user,
+        reqMsg: 'products_variantShouldHasMainImage',
+        maxSize: MEDIA_CONFIG.PRODUCT.IMAGE.MAX_SIZE,
+        allowedTypes: MEDIA_CONFIG.PRODUCT.IMAGE.ALLOWED_TYPES,
+        lang,
+        key: `${Modules.PRODUCT}/Variant`,
+        req,
+      });
+
+      if (mainUpload) {
+        mainVariantImageObject = { id: mainUpload.id, url: mainUpload.url };
+      }
+    }
+
+    let variantUploadedImages: { id: string; url: string }[] = [];
+    if (imagesFiles && imagesFiles?.length > 0) {
+      const uploadedImages = await Promise.all(
+        imagesFiles.map(file =>
+          this.mediaService.mediaProcessor({
+            file,
+            user: req.user,
+            reqMsg: 'products_variantShouldHasImage',
+            maxSize: MEDIA_CONFIG.PRODUCT.IMAGE.MAX_SIZE,
+            allowedTypes: MEDIA_CONFIG.PRODUCT.IMAGE.ALLOWED_TYPES,
+            lang,
+            key: `${Modules.PRODUCT}/Variant`,
+            req,
+          }),
+        ),
+      );
+
+      variantUploadedImages = [...uploadedImages];
+    }
+
+    const finalPrice = Number(price ?? 0);
+    const finalDiscount = Number(discountRate ?? 0);
+
+    const priceAfterDiscount = this.calculatePriceAfterDiscount(
+      finalPrice,
+      finalDiscount,
+    );
+
+    const newVariant: any = {
+      variantId,
+      sku,
+      attributes: [...attributes],
+      description: {
+        ar: description_ar,
+        en: description_en,
+      },
+      price: finalPrice,
+      discountRate: finalDiscount,
+      priceAfterDiscount,
+      currency,
+      totalAmountCount,
+      availableCount: availableCount ?? totalAmountCount,
+      tags: tags ?? [],
+      mainImage: mainVariantImageObject,
+      images: variantUploadedImages,
+      isActive: true,
+      isDeleted: false,
+      isAvailable: true,
+      ratings: 1,
+      createdAt: new Date(),
+      createdBy: req.user.userId,
+    };
+
+    product.variants.push(newVariant);
+    product.markModified('variants');
+
+    product.updatedBy = req.user.userId;
+    product.updatedAt = new Date();
+
+    await product.save();
+
+    return {
+      isSuccess: true,
+      message: getMessage('products_variantUpdatedSuccessfully', body.lang),
+      data: newVariant,
+    };
+  }
+
+  async updateVariant(
+    param: UpdateProductVariantParamsDto,
+    req: any,
+    body: UpdateProductVariantBodyDto,
+    mainImage?: Express.Multer.File,
+    imagesFiles?: Express.Multer.File[],
+  ) {
+    const { id: productId, vid: variantId } = param;
+    const {
+      attributes = [],
+      description_ar,
+      description_en,
+      price,
+      currency,
+      totalAmountCount,
+      availableCount,
+      discountRate,
+      tags,
+      lang,
+      deletedImages = [],
     } = body;
 
     validateUserRoleAccess(req?.user, lang);
@@ -968,8 +1167,8 @@ const products = await this.productModel
       );
     }
 
-    const finalDescriptionAr = description_ar ?? variant.description.ar;
-    const finalDescriptionEn = description_en ?? variant.description.en;
+    const finalDescriptionAr = description_ar ?? variant?.description?.ar;
+    const finalDescriptionEn = description_en ?? variant?.description?.en;
     const isDuplicate = product.variants.some(
       (v, index) =>
         index !== variantIndex &&
@@ -983,17 +1182,31 @@ const products = await this.productModel
       );
     }
 
-    // Update basic fields
+    // Basic fields
     if (description_ar) variant.description.ar = description_ar;
     if (description_en) variant.description.en = description_en;
-    if (price !== undefined) variant.price = price;
+
+    if (price !== undefined) {
+      variant.price = Number(price);
+    }
+
+    if (discountRate !== undefined) {
+      variant.discountRate = Number(discountRate);
+    }
+
+    if (price !== undefined || discountRate !== undefined) {
+      variant.priceAfterDiscount = this.calculatePriceAfterDiscount(
+        variant.price,
+        variant.discountRate ?? 0,
+      );
+    }
+
     if (currency) variant.currency = currency;
+
     if (totalAmountCount !== undefined)
       variant.totalAmountCount = totalAmountCount;
-    if (discountRate !== undefined) variant.discountRate = discountRate;
     if (availableCount !== undefined) variant.availableCount = availableCount;
-    // if (isActive !== undefined) variant.isActive = isActive;
-    // if (isAvailable !== undefined) variant.isAvailable = isAvailable;
+
     if (tags) variant.tags = [...tags];
 
     if (attributes.length) {
@@ -1080,6 +1293,14 @@ const products = await this.productModel
       message: getMessage('products_variantUpdatedSuccessfully', body.lang),
       data: variant,
     };
+  }
+
+  private syncProductActiveState(product: any) {
+    const hasActiveVariant = product.variants.some(
+      v => v.isActive && !v.isDeleted,
+    );
+
+    product.isActive = hasActiveVariant;
   }
 
   async updateStatus(
@@ -1231,10 +1452,11 @@ const products = await this.productModel
     product.markModified('variants');
 
     // Auto product deactivation/activation logic
-    const hasActiveVariant = product.variants.some(v => v.isActive);
-    if (!hasActiveVariant) {
-      product.isActive = false;
-    }
+    this.syncProductActiveState(product);
+    // const hasActiveVariant = product.variants.some(v => v.isActive);
+    // if (!hasActiveVariant) {
+    //   product.isActive = false;
+    // }
 
     if (isActive && !product.isActive) {
       throw new BadRequestException(
@@ -1275,6 +1497,15 @@ const products = await this.productModel
       );
     }
 
+    // Deactivate all variants
+    product?.variants.forEach(variant => {
+      variant.isDeleted = true;
+      variant.deletedAt = new Date();
+      variant.deletedBy = requestingUser.userId;
+      variant.isActive = false;
+    });
+    product.markModified('variants');
+
     product.isDeleted = true;
     product.isActive = false;
     product.deletedAt = new Date();
@@ -1304,6 +1535,12 @@ const products = await this.productModel
       throw new NotFoundException(getMessage('products_productNotFound', lang));
     }
 
+    if (!product.isActive) {
+      throw new BadRequestException(
+        getMessage('product_cannotModifyInactiveProduct', lang),
+      );
+    }
+
     const variantIndex = product.variants.findIndex(v => v.variantId === vid);
 
     if (variantIndex === -1) {
@@ -1328,13 +1565,14 @@ const products = await this.productModel
     product.markModified('variants');
 
     // Auto deactivate product if no active variants left
-    const hasActiveVariant = product.variants.some(
-      v => v.isActive && !v.isDeleted,
-    );
+    this.syncProductActiveState(product);
+    // const hasActiveVariant = product.variants.some(
+    //   v => v.isActive && !v.isDeleted,
+    // );
 
-    if (!hasActiveVariant) {
-      product.isActive = false;
-    }
+    // if (!hasActiveVariant) {
+    //   product.isActive = false;
+    // }
 
     await product.save();
 
@@ -1360,6 +1598,8 @@ const products = await this.productModel
         getMessage('products_productNotFound', lang),
       );
     }
+
+    this.syncProductActiveState(product);
 
     product.isDeleted = false;
     product.deletedAt = null;

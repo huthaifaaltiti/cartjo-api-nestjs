@@ -37,3 +37,11 @@ export class UpdateProductVariantBodyDto extends PartialType(
   @IsString({ each: true })
   deletedImages?: string[];
 }
+
+export class CreateProductVariantParamsDto {
+  @IsMongoId({ message: 'Invalid product ID format' })
+  @IsNotEmpty({ message: 'Product ID is required' })
+  id: mongoose.Types.ObjectId;
+}
+
+export class CreateProductVariantBodyDto extends ProductVariantDto {}
