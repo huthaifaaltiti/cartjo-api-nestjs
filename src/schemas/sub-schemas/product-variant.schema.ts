@@ -67,8 +67,11 @@ With sparse:
   @Prop({ type: [String], default: [] })
   tags: string[];
 
-  @Prop({ default: 1, min: 1, max: 5 })
-  ratings: number;
+  @Prop({ default: 1 })
+  ratingsAverage: number;
+
+  @Prop({ default: 0 })
+  ratingsCount: number;
 
   @Prop({ default: true })
   isAvailable: boolean;
