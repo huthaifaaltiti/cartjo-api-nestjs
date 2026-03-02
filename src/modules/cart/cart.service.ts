@@ -101,20 +101,48 @@ export class CartService {
       .find(query)
       .sort({ _id: -1 })
       .limit(Number(limit))
+      .populate('categoryId', 'slug _id')
+      .populate('subCategoryId', 'slug _id')
       .lean();
 
-    // Merge product details with quantity/price
-    const enrichedItems = products.map(product => {
-      const cartItem = cart.items.find(
-        i => i.productId.toString() === product._id.toString(),
-      );
-      return {
-        ...product,
-        quantity: cartItem?.quantity ?? 1,
-        price: cartItem?.price ?? 0,
-        total: (cartItem?.quantity ?? 1) * (cartItem?.price ?? 0),
-      };
-    });
+    const enrichedItems = cart.items
+      .map(cartItem => {
+        const product = products.find(
+          p => p._id.toString() === cartItem.productId.toString(),
+        );
+
+        if (!product) return null;
+
+        const variant = product.variants.find(
+          v => v.variantId === cartItem.variantId,
+        );
+
+        if (!variant) return null;
+
+        return {
+          productId: product._id,
+          name: product.name,
+          slug: product.slug,
+          mainImage: product.mainImage,
+          category: product?.categoryId,
+          subCategory: product?.subCategoryId,
+          variant: {
+            variantId: variant.variantId,
+            sku: variant.sku,
+            attributes: variant.attributes,
+            mainImage: variant.mainImage,
+            images: variant.images,
+            price: variant.priceAfterDiscount,
+            currency: variant.currency,
+            ratingsAverage: variant.ratingsAverage,
+            ratingsCount: variant.ratingsCount,
+          },
+          quantity: cartItem.quantity,
+          price: cartItem.price,
+          total: Number((cartItem.quantity * cartItem.price).toFixed(2)),
+        };
+      })
+      .filter(Boolean);
 
     return {
       isSuccess: true,
@@ -131,10 +159,27 @@ export class CartService {
     requestingUser: any,
     dto: ItemBodyDto,
   ): Promise<DataResponse<Cart>> {
-    const { lang, productId, quantity } = dto;
+    const { lang, productId, variantId, quantity } = dto;
+
     const product = await this.isValidProduct(productId, lang);
 
-    const price = product.price ?? 0;
+    const variant = product.variants.find(
+      v => v.variantId === variantId && !v.isDeleted && v.isActive,
+    );
+
+    if (!variant) {
+      throw new BadRequestException(
+        getMessage('products_variantNotFound', lang),
+      );
+    }
+
+    if (!variant.isAvailable || variant.availableCount < quantity) {
+      throw new BadRequestException(
+        getMessage('products_variantOutOfStock', lang),
+      );
+    }
+
+    const price = variant.priceAfterDiscount ?? 0;
 
     let cart = await this.cartModel.findOne({
       userId: requestingUser.userId,
@@ -144,18 +189,38 @@ export class CartService {
       cart = await this.cartModel.create({
         userId: requestingUser.userId,
         createdBy: requestingUser.userId,
-        items: [{ productId, quantity, price, name: product.name }],
+        items: [
+          {
+            productId,
+            variantId,
+            quantity,
+            price,
+            name: product.name,
+            sku: variant.sku,
+            addedAt: new Date(),
+          },
+        ],
         totalAmount: price * quantity,
       });
     } else {
-      const existingItem = cart?.items.find(
-        i => i?.productId?.toString() === productId.toString(),
+      const existingItem = cart.items.find(
+        i =>
+          i.productId.toString() === productId.toString() &&
+          i.variantId === variantId,
       );
 
       if (existingItem) {
         existingItem.quantity += quantity;
       } else {
-        cart.items.push({ productId, quantity, price, name: product.name });
+        cart.items.push({
+          productId,
+          variantId,
+          quantity,
+          price,
+          name: product.name,
+          sku: variant.sku,
+          addedAt: new Date(),
+        });
       }
 
       cart.totalAmount = cart.items.reduce(
@@ -179,7 +244,7 @@ export class CartService {
     requestingUser: any,
     dto: ItemBodyDto,
   ): Promise<DataResponse<Cart>> {
-    const { lang, productId, quantity } = dto;
+    const { lang, productId, variantId, quantity } = dto;
 
     await this.isValidProduct(productId, lang);
 
@@ -189,11 +254,16 @@ export class CartService {
 
     if (!cart) throw new NotFoundException(getMessage('cart_notFound', lang));
 
-    const itemIndex = cart.items.findIndex(i => i.productId.toString() === productId.toString());
-    const item = cart.items.at(itemIndex);
+    const itemIndex = cart.items.findIndex(
+      i =>
+        i.productId.toString() === productId.toString() &&
+        i.variantId === variantId,
+    );
 
     if (itemIndex === -1)
       throw new BadRequestException(getMessage('cart_productNotInCart', lang));
+
+    const item = cart.items[itemIndex];
 
     if (quantity >= item.quantity) {
       cart.items.splice(itemIndex, 1);
