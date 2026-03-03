@@ -11,5 +11,8 @@ export class WishListItemBodyDto {
   @IsOptional()
   lang: Locale = 'en';
 }
-
-
+export class SendWishListItemToCartBodyDto extends WishListItemBodyDto {
+  @IsString()
+  @IsNotEmpty()
+  variantId: string;
+}
