@@ -5,7 +5,10 @@ import { Product, ProductDocument } from 'src/schemas/product.schema';
 import { SearchProductsQueryDto } from './dto/get-search-products.dto';
 import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
 import { getMessage } from 'src/common/utils/translator';
-import { SYSTEM_GENERATED_HINTS, SystemGeneratedHint } from 'src/configs/typeHint.config';
+import {
+  SYSTEM_GENERATED_HINTS,
+  SystemGeneratedHint,
+} from 'src/configs/typeHint.config';
 import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
 
 @Injectable()
@@ -73,7 +76,7 @@ export class SearchService {
 
     // ✅ Only filter by typeHint if NOT system-generated
     if (typeHint && !isSystemGeneratedHint) {
-      queryMatch.typeHint = { $in: [typeHint] };
+      queryMatch.typeHints = { $in: [typeHint] };
     }
 
     // ✅ Category filters
@@ -152,8 +155,6 @@ export class SearchService {
       .populate('createdBy', 'firstName lastName email _id')
       .populate('categoryId')
       .populate('subCategoryId')
-      .populate('mainMediaId')
-      .populate('mediaListIds')
       .lean();
 
     // Enrich with isWishListed
@@ -170,14 +171,26 @@ export class SearchService {
       }
     }
 
-    const enrichedProducts = products.map(p => {
-      const productId = String(p._id);
+    const enrichedProducts = products
+      .map(p => {
+        const productId = String(p._id);
 
-      return {
-        ...p,
-        isWishListed: wishListProducts.includes(productId),
-      };
-    });
+        // const filteredVariants =
+        //   p.variants?.filter(v => v.isActive === true && v.isDeleted === false) ||
+        //   [];
+        const filteredVariants =
+          p.variants?.filter(v => v.isActive === true) || [];
+
+        if (!filteredVariants.length) return null;
+
+        return {
+          ...p,
+          // variants: filteredVariants,
+          variants: filteredVariants,
+          isWishListed: wishListProducts.includes(productId),
+        };
+      })
+      .filter(Boolean);
 
     return {
       isSuccess: true,
