@@ -274,7 +274,7 @@
   "order_orderRetrieved": "تم استرجاع الطلب بنجاح",
   "order_cashOrderCreatedSuccessfully": "تم إنشاء طلب الدفع النقدي بنجاح،",
   "orders_cardOrderCreatedSuccessfully": "تم إنشاء طلب الدفع بالبطاقة بنجاح،",
-  "orders_cantCreateOrder": "عذرًا! لا يمكن إنشاء هذا الطلب.",
+  "orders_cantCreateOrder": "عذرًا! لا يمكن إنشاء هذا الطلب, اتصل بفريق الدعم للاستفسار",
   "order_deliveredOrder": "لا يمكن تعديل الطلب بعد تسليمه",
   "order_canceledOrder": "لا يمكن تعديل الطلب بعد إلغائه",
   "order_invalidDeliveryStatusTransition": "انتقال غير صالح لحالة التوصيل",

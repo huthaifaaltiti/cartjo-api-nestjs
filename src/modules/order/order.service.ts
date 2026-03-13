@@ -6,7 +6,11 @@ import {
 import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Cart, CartDocument } from 'src/schemas/cart.schema';
-import { Order, OrderDocument } from 'src/schemas/order.schema';
+import {
+  Order,
+  OrderDocument,
+  OrderItemSnapshot,
+} from 'src/schemas/order.schema';
 import { PaymentStatus } from 'src/enums/paymentStatus.enum';
 import { PaymentMethod } from 'src/enums/paymentMethod.enum';
 import { generateRandomString } from 'src/common/utils/generateRandomString';
@@ -56,6 +60,7 @@ import {
   GetMyOrderReturnsQueryDto,
 } from './dto/getMyOrderReturns.dto';
 import { Product, ProductDocument } from 'src/schemas/product.schema';
+import { Currency } from 'src/enums/currency.enum';
 
 @Injectable()
 export class OrderService {
@@ -75,6 +80,7 @@ export class OrderService {
   private async incrementProductsSellCount(
     items: {
       productId: Types.ObjectId;
+      variantId: string;
       quantity: number;
     }[],
   ) {
@@ -82,11 +88,15 @@ export class OrderService {
 
     const bulkOps = items.map(item => ({
       updateOne: {
-        filter: { _id: item.productId },
+        filter: {
+          _id: item.productId,
+          'variants.variantId': item.variantId,
+          'variants.availableCount': { $gte: item.quantity },
+        },
         update: {
           $inc: {
-            sellCount: item.quantity,
-            availableCount: -item.quantity, // ✅ optional but recommended
+            'variants.$.sellCount': item.quantity,
+            'variants.$.availableCount': -item.quantity,
           },
         },
       },
@@ -189,12 +199,65 @@ export class OrderService {
         ? PaymentStatus.PAID
         : PaymentStatus.PENDING;
 
-    for (const item of cart.items) {
-      const product = await this.productModel.findById(item.productId).lean();
+    const productIds = cart.items.map(i => i.productId);
 
-      if (!product || product.availableCount < item.quantity) {
-        throw new BadRequestException(`Product "${item.name}" is out of stock`);
+    const products = await this.productModel
+      .find({ _id: { $in: productIds } })
+      .lean();
+
+    const productMap = new Map(products.map(p => [p._id.toString(), p]));
+
+    const orderItemsSnapshots: OrderItemSnapshot[] = [];
+
+    for (const item of cart.items) {
+      const product = productMap.get(item.productId.toString());
+
+      if (!product) {
+        throw new BadRequestException(
+          getMessage('products_productNotFound', lang),
+        );
       }
+
+      const variant = product.variants.find(
+        v => v.variantId === item.variantId,
+      );
+
+      if (!variant) {
+        throw new BadRequestException(
+          getMessage('products_variantNotFound', lang),
+        );
+      }
+
+      if (variant.availableCount < item.quantity) {
+        throw new BadRequestException(getMessage('products_outOfStock', lang));
+      }
+
+      const snapshotItem: OrderItemSnapshot = {
+        productId: item.productId,
+        variantId: item.variantId,
+        name: product.name,
+        description: product.description,
+        mainImage: product.mainImage,
+        quantity: item.quantity,
+        variant: {
+          variantId: variant.variantId,
+          sku: variant.sku,
+          attributes: variant.attributes,
+          description: variant.description,
+          price: variant.price,
+          priceAfterDiscount: variant.priceAfterDiscount,
+          currency: variant.currency as Currency,
+          totalAmountCount: variant.totalAmountCount,
+          availableCount: variant.availableCount,
+          discountRate: variant.discountRate,
+          mainImage: variant.mainImage,
+          isActive: variant.isActive,
+          isDeleted: variant.isDeleted,
+          isAvailable: variant.isAvailable,
+        },
+      };
+
+      orderItemsSnapshots.push(snapshotItem);
     }
 
     const order = await this.orderModel.create({
@@ -202,10 +265,12 @@ export class OrderService {
       createdBy: user?.userId,
       items: cart.items.map(item => ({
         productId: item.productId,
+        variantId: item.variantId,
         price: item.price,
         quantity: item.quantity,
         name: item.name,
       })),
+      orderItemsSnapshots,
       amount,
       deliveryCost,
       currency,
@@ -221,6 +286,7 @@ export class OrderService {
     await this.incrementProductsSellCount(
       cart.items.map(item => ({
         productId: item.productId,
+        variantId: item.variantId,
         quantity: item.quantity,
       })),
     );

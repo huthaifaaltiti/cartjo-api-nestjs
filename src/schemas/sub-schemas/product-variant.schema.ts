@@ -4,7 +4,7 @@ import { MediaPreview, NameRef } from '../common.schema';
 import { Currency } from 'src/enums/currency.enum';
 import { ProductVariantAttributeKey } from 'src/enums/productVariantAttributeKey.enum';
 
-class VariantAttribute {
+export class VariantAttribute {
   @Prop({ required: true, enum: ProductVariantAttributeKey })
   key: ProductVariantAttributeKey;
 

@@ -280,7 +280,7 @@
   "order_orderRetrieved": "Order retrieved successfully",
   "order_cashOrderCreatedSuccessfully": "Cash Order Created Successfully",
   "orders_cardOrderCreatedSuccessfully": "Card Order Created Successfully",
-  "orders_cantCreateOrder": "Oops! Can not create this order",
+  "orders_cantCreateOrder": "Oops! Can not create this order, contact our support team for assistance",
   "order_deliveredOrder": "Orders with delivered status cant be edit",
   "order_canceledOrder": "Orders with canceled status cant be edit",
   "order_invalidDeliveryStatusTransition": "Invalid Delivery Status Transition",
