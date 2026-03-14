@@ -77,10 +77,13 @@ export class Product {
   ratingsCount: number;
 
   @Prop({ default: 0, min: 0 })
-  viewCount: number;
+  totalSellCount: number;
+
+  @Prop({ default: 0 })
+  weeklySellCount: number;
 
   @Prop({ default: 0, min: 0 })
-  totalSellCount: number;
+  viewCount: number;
 
   @Prop({ default: 0 })
   weeklyViewCount: number;
@@ -93,6 +96,9 @@ export class Product {
 
   @Prop({ default: 0 })
   weeklyScore: number;
+
+  @Prop({ default: 0 })
+  allTimeScore: number;
 
   @Prop({ default: false, required: false })
   isWishListed: boolean;

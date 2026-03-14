@@ -85,6 +85,7 @@ export class ProductService {
         $set: {
           weeklyViewCount: 0,
           weeklyFavoriteCount: 0,
+          weeklySellCount: 0,
           weeklyScore: 0,
         },
       },
@@ -101,6 +102,7 @@ export class ProductService {
           viewCount: 1,
           weeklyViewCount: 1,
           weeklyScore: WEEKLY_SCORE_WEIGHTS.view,
+          allTimeScore: WEEKLY_SCORE_WEIGHTS.view,
         },
       },
     );

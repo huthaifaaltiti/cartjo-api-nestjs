@@ -61,6 +61,7 @@ import {
 } from './dto/getMyOrderReturns.dto';
 import { Product, ProductDocument } from 'src/schemas/product.schema';
 import { Currency } from 'src/enums/currency.enum';
+import { WEEKLY_SCORE_WEIGHTS } from 'src/configs/weeklyScoreWeights.config';
 
 @Injectable()
 export class OrderService {
@@ -97,6 +98,10 @@ export class OrderService {
           $inc: {
             'variants.$.sellCount': item.quantity,
             'variants.$.availableCount': -item.quantity,
+            totalSellCount: item.quantity,
+            weeklySellCount: item.quantity,
+            weeklyScore: WEEKLY_SCORE_WEIGHTS.sale * item.quantity,
+            allTimeScore: WEEKLY_SCORE_WEIGHTS.sale * item.quantity,
           },
         },
       },

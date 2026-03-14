@@ -187,6 +187,7 @@ export class WishListService {
           favoriteCount: 1,
           weeklyFavoriteCount: 1,
           weeklyScore: WEEKLY_SCORE_WEIGHTS.favorite,
+          allTimeScore: WEEKLY_SCORE_WEIGHTS.favorite,
         },
       },
     );
@@ -338,6 +339,7 @@ export class WishListService {
           favoriteCount: -1,
           weeklyFavoriteCount: -1,
           weeklyScore: -WEEKLY_SCORE_WEIGHTS.favorite,
+          allTimeScore: -WEEKLY_SCORE_WEIGHTS.favorite,
         },
       },
     );
