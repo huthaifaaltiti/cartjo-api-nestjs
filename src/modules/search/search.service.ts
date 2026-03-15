@@ -95,9 +95,9 @@ export class SearchService {
 
     // Price
     if (priceFrom || priceTo) {
-      queryMatch['variants.price'] = {};
-      if (priceFrom) queryMatch['variants.price'].$gte = Number(priceFrom);
-      if (priceTo) queryMatch['variants.price'].$lte = Number(priceTo);
+      queryMatch['variants.priceAfterDiscount'] = {};
+      if (priceFrom) queryMatch['variants.priceAfterDiscount'].$gte = Number(priceFrom);
+      if (priceTo) queryMatch['variants.priceAfterDiscount'].$lte = Number(priceTo);
     }
 
     // ✅ Ratings filter
