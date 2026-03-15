@@ -89,11 +89,11 @@ export class SearchService {
       queryMatch.subCategoryId = new Types.ObjectId(subCategoryId);
     }
 
-    // ✅ Price filter
+    // Price
     if (priceFrom || priceTo) {
-      queryMatch.price = {};
-      if (priceFrom) queryMatch.price.$gte = Number(priceFrom);
-      if (priceTo) queryMatch.price.$lte = Number(priceTo);
+      queryMatch['variants.price'] = {};
+      if (priceFrom) queryMatch['variants.price'].$gte = Number(priceFrom);
+      if (priceTo) queryMatch['variants.price'].$lte = Number(priceTo);
     }
 
     // ✅ Ratings filter
