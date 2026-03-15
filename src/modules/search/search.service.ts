@@ -64,6 +64,7 @@ export class SearchService {
       };
     }
 
+    // Query search
     if (q) {
       const searchRegex = new RegExp(q, 'i');
       queryMatch.$or = [
@@ -71,6 +72,9 @@ export class SearchService {
         { [`description.${lang}`]: searchRegex },
         { tags: searchRegex },
         { slug: searchRegex },
+        { [`variants.description.${lang}`]: searchRegex },
+        { ['variants.sku']: searchRegex },
+        { ['variants.tags']: searchRegex },
       ];
     }
 
