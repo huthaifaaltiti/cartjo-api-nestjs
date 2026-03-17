@@ -39,7 +39,17 @@ export default async function migrateProductsToVariants(
                   },
                 ],
               },
-              sku: '$slug',
+              sku: {
+                $concat: [
+                  { $ifNull: ['$slug', 'UNKNOWN-SLUG'] },
+                  '-SKU-',
+                  {
+                    $toString: {
+                      $floor: { $multiply: [Math.random(), 1000000] },
+                    },
+                  },
+                ],
+              },
               attributes: [
                 {
                   key: ProductVariantAttributeKey.SELLING_TYPE,
@@ -130,7 +140,7 @@ export default async function migrateProductsToVariants(
           'availableCount',
           'totalAmountCount',
           'sellCount',
-          'typeHint'
+          'typeHint',
         ],
       },
     ],

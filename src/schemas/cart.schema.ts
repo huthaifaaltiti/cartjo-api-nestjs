@@ -9,7 +9,7 @@ export class CartItem {
   @Prop({ type: mongoose.Types.ObjectId, ref: 'Product', required: true })
   productId: mongoose.Types.ObjectId;
 
-  @Prop({ required: true })
+  @Prop({ type: String, required: true })
   variantId: string;
 
   @Prop({ default: 1 })
