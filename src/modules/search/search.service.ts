@@ -96,15 +96,27 @@ export class SearchService {
     // Price
     if (priceFrom || priceTo) {
       queryMatch['variants.priceAfterDiscount'] = {};
-      if (priceFrom) queryMatch['variants.priceAfterDiscount'].$gte = Number(priceFrom);
-      if (priceTo) queryMatch['variants.priceAfterDiscount'].$lte = Number(priceTo);
+      if (priceFrom)
+        queryMatch['variants.priceAfterDiscount'].$gte = Number(priceFrom);
+      if (priceTo)
+        queryMatch['variants.priceAfterDiscount'].$lte = Number(priceTo);
     }
 
-    // ✅ Ratings filter
+    // Ratings
     if (ratingFrom || ratingTo) {
-      queryMatch.ratings = {};
-      if (ratingFrom) queryMatch.ratings.$gte = Number(ratingFrom);
-      if (ratingTo) queryMatch.ratings.$lte = Number(ratingTo);
+      // Product-level ratings filter
+      // queryMatch.ratingsAverage = {};
+      // if (ratingFrom) queryMatch.ratingsAverage.$gte = Number(ratingFrom);
+      // if (ratingTo) queryMatch.ratingsAverage.$lte = Number(ratingTo);
+
+      // For variant-level ratings, we would need to use $elemMatch, but this can lead to performance issues and may not be necessary if we assume that product-level ratings are sufficient for search filtering.
+      queryMatch.variants = {
+        $elemMatch: {
+          isActive: true,
+          ...(ratingFrom && { ratingsAverage: { $gte: Number(ratingFrom) } }),
+          ...(ratingTo && { ratingsAverage: { $lte: Number(ratingTo) } }),
+        },
+      };
     }
 
     // ✅ Date filters
