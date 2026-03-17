@@ -1669,4 +1669,65 @@ const products = await this.productModel
       message: getMessage('products_variantRestoredSuccessfully', lang),
     };
   }
+
+  async deactivateBySubCategory(
+    subCategoryId: string,
+    requestingUser: any,
+  ): Promise<void> {
+    await this.productModel.updateMany(
+      {
+        subCategoryId: new Types.ObjectId(subCategoryId),
+        isActive: true,
+      },
+      {
+        $set: {
+          isActive: false,
+          isDeleted: false,
+          updatedBy: requestingUser.userId,
+          updatedAt: new Date(),
+        },
+      },
+    );
+  }
+
+  async deactivateBySubCategories(
+    subCategoryIds: Types.ObjectId[],
+    requestingUser: any,
+  ): Promise<void> {
+    await this.productModel.updateMany(
+      {
+        subCategoryId: { $in: subCategoryIds },
+        isActive: true,
+      },
+      {
+        $set: {
+          isActive: false,
+          isDeleted: false,
+          updatedBy: requestingUser.userId,
+          updatedAt: new Date(),
+        },
+      },
+    );
+  }
+
+  async deactivateByTypeHint(
+    typeHint: string,
+    requestingUser: any,
+  ): Promise<void> {
+    await this.productModel.updateMany(
+      {
+        typeHints: typeHint,
+        isActive: true,
+        isDeleted: false,
+      },
+      {
+        $set: {
+          isActive: false,
+          isDeleted: false,
+          updatedBy: requestingUser.userId,
+          updatedAt: new Date(),
+        },
+      },
+    );
+  }
 }
