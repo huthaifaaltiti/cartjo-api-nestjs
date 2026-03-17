@@ -119,7 +119,7 @@ export class SearchService {
       };
     }
 
-    // ✅ Date filters
+    // Date filters
     if (beforeNumOfDays) {
       let days = Number(beforeNumOfDays);
       if (days > 36500) days = 36500; // ~100 years sanity cap
@@ -127,11 +127,38 @@ export class SearchService {
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - days);
 
-      queryMatch.createdAt = { $lte: cutoffDate };
+      // Products created before the cutoff date
+      // queryMatch.createdAt = { $lte: cutoffDate };
+
+      queryMatch.variants = {
+        ...(queryMatch.variants || {}),
+        $elemMatch: {
+          ...(queryMatch.variants?.$elemMatch || {}),
+          createdAt: { $gte: cutoffDate },
+          isActive: true,
+        },
+      };
     } else if (createdFrom || createdTo) {
-      queryMatch.createdAt = {};
-      if (createdFrom) queryMatch.createdAt.$gte = new Date(createdFrom);
-      if (createdTo) queryMatch.createdAt.$lte = new Date(createdTo);
+      // Products created within a specific date range
+      // queryMatch.createdAt = {};
+      // if (createdFrom) queryMatch.createdAt.$gte = new Date(createdFrom);
+      // if (createdTo) queryMatch.createdAt.$lte = new Date(createdTo);
+
+      // Filtering by created date of variants instead of products, as it's more relevant to the search results and avoids excluding products that have older variants but newer ones that are still relevant.
+      queryMatch.variants = {
+        ...(queryMatch.variants || {}),
+        $elemMatch: {
+          ...(queryMatch.variants?.$elemMatch || {}),
+          ...(createdFrom && { createdAt: { $gte: new Date(createdFrom) } }),
+          ...(createdTo && {
+            createdAt: {
+              ...(createdFrom ? { $gte: new Date(createdFrom) } : {}),
+              $lte: new Date(createdTo),
+            },
+          }),
+          isActive: true,
+        },
+      };
     }
 
     // ✅ SYSTEM TYPE HINTS BEHAVIOR
