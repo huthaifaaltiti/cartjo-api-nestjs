@@ -32,8 +32,8 @@ import {
 import { ChangePaymentStatusBodyDto } from './dto/paymentStatus.dto';
 import { GetOrdersQueryDto } from './dto/getOrders.dto';
 import { GetOrderParamDto, GetOrderQueryDto } from './dto/getOrder.dto';
-// import { checkUserRole } from 'src/common/utils/checkUserRole';
-// import { UserRole } from 'src/enums/user-role.enum';
+import { checkUserRole } from 'src/common/utils/checkUserRole';
+import { UserRole } from 'src/enums/user-role.enum';
 import { EmailService } from '../email/email.service';
 import { EmailTemplates } from 'src/enums/emailTemplates.enum';
 import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
