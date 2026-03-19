@@ -8,6 +8,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Cart, CartDocument } from 'src/schemas/cart.schema';
 import {
   Order,
+  OrderCartItem,
   OrderDocument,
   OrderItemSnapshot,
 } from 'src/schemas/order.schema';
@@ -31,8 +32,8 @@ import {
 import { ChangePaymentStatusBodyDto } from './dto/paymentStatus.dto';
 import { GetOrdersQueryDto } from './dto/getOrders.dto';
 import { GetOrderParamDto, GetOrderQueryDto } from './dto/getOrder.dto';
-import { checkUserRole } from 'src/common/utils/checkUserRole';
-import { UserRole } from 'src/enums/user-role.enum';
+// import { checkUserRole } from 'src/common/utils/checkUserRole';
+// import { UserRole } from 'src/enums/user-role.enum';
 import { EmailService } from '../email/email.service';
 import { EmailTemplates } from 'src/enums/emailTemplates.enum';
 import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
@@ -287,7 +288,6 @@ export class OrderService {
       shippingAddress,
     });
 
-    /** ✅ Increment sell count */
     await this.incrementProductsSellCount(
       cart.items.map(item => ({
         productId: item.productId,
@@ -828,20 +828,75 @@ if (search) {
       .populate('restoredBy', 'firstName lastName email _id')
       .populate('createdBy', 'firstName lastName email _id')
       .populate('updatedBy', 'firstName lastName email _id')
-      .populate({
-        path: 'items.productId',
-        select: 'name currency ratings description mainImage',
-      })
       .lean();
 
     if (!order) {
       throw new NotFoundException(getMessage('order_notFound', lang));
     }
 
+    const orderItemsSnapshots = order.orderItemsSnapshots || [];
+    const orderItems = order.items || [];
+
+    const snapshotMap = new Map<string, OrderItemSnapshot>();
+    for (const snapshot of orderItemsSnapshots) {
+      const key = `${snapshot.productId}_${snapshot.variantId}`;
+      snapshotMap.set(key, snapshot);
+    }
+
+    const fullItemsDetails: OrderCartItem[] = orderItems.map(
+      (item: OrderCartItem) => {
+        const key = `${item.productId}_${item.variantId}`;
+        const snapshot = snapshotMap.get(key);
+
+        return {
+          productId: item.productId,
+          variantId: item.variantId,
+          price: item.price,
+          quantity: item.quantity,
+          name: snapshot?.name ?? item.name,
+          description: snapshot?.description,
+          mainImage: snapshot?.mainImage,
+          variant: snapshot
+            ? {
+                variantId: snapshot.variant?.variantId,
+                sku: snapshot.variant?.sku,
+                attributes: snapshot.variant?.attributes,
+                description: snapshot.variant?.description,
+                mainImage: snapshot.variant?.mainImage,
+              }
+            : undefined,
+        } as OrderCartItem;
+      },
+    );
+
     return {
       isSuccess: true,
       message: getMessage('order_orderRetrieved', lang),
-      data: order,
+      data: {
+        ...order,
+        /*
+        When a response is converted to JSON (which NestJS does before sending it), properties with undefined are automatically removed.
+
+Example:
+
+const obj = {
+  a: 1,
+  b: undefined,
+};
+
+After JSON.stringify(obj):
+
+{ "a": 1 }
+
+So this works exactly as you saw:
+
+orderItemsSnapshots: undefined
+
+It will not appear in the API response, which is why your response no longer contains it.
+        */
+        orderItemsSnapshots: undefined,
+        items: fullItemsDetails,
+      },
     };
   }
 

@@ -1,3 +1,5 @@
+import { ProductVariantAttributeKey } from "src/enums/productVariantAttributeKey.enum";
+
 export default function generateSKU({
   productSlug,
   attributes,
@@ -6,7 +8,7 @@ export default function generateSKU({
   attributes: { key: string; value: string }[];
 }) {
   const attrPart = attributes
-    .filter(a => a.key !== 'selling_type')
+    .filter(a => a.key !== ProductVariantAttributeKey.SELLING_TYPE) 
     .map(a => a.value.substring(0, 3).toUpperCase())
     .join('-');
 
