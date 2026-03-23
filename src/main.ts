@@ -37,13 +37,11 @@ async function server() {
     prefix: '/public',
   });
 
-  app.useGlobalPipes(new CustomValidationPipe());
-
   if (isDev) {
-    // General logging pipe for incoming requests
-    app.useGlobalPipes(new LoggingPipe());
-    // NestJS-style global exception filter
+    app.useGlobalPipes(new LoggingPipe(), new CustomValidationPipe());
     app.useGlobalFilters(new AllExceptionsFilter());
+  } else {
+    app.useGlobalPipes(new CustomValidationPipe());
   }
 
   // Run seeders

@@ -3,9 +3,10 @@ import {
   NotFoundException,
   ForbiddenException,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import mongoose, { Model, Types } from 'mongoose';
 import {
   BaseResponse,
   DataListResponse,
@@ -23,11 +24,14 @@ import { GetCommentParamDto, GetCommentQueryDto } from './dto/get-one.dto';
 import { DeleteCommentBodyDto } from './dto/delete.dto';
 import { UnDeleteCommentBodyDto } from './dto/un-delete.dto';
 import { ALLOWED_AUTHENTICATED_ROLES } from 'src/common/constants/roles.constants';
+import { Product, ProductDocument } from 'src/schemas/product.schema';
+import { Locale } from 'src/types/Locale';
 
 @Injectable()
 export class CommentService {
   constructor(
     @InjectModel(Comment.name) private commentModel: Model<CommentDocument>,
+    @InjectModel(Product.name) private productModel: Model<ProductDocument>,
   ) {}
 
   async getAll(query: GetCommentsQueryDto): Promise<DataListResponse<Comment>> {
@@ -88,16 +92,142 @@ export class CommentService {
     };
   }
 
+  async productAnfVariantValidators({
+    productId,
+    variantId,
+    lang,
+  }: {
+    productId: mongoose.Types.ObjectId;
+    variantId: string;
+    lang: Locale;
+  }) {
+    const product = await this.productModel.findById(productId);
+
+    if (!product) {
+      throw new BadRequestException(
+        getMessage('products_productNotFound', lang),
+      );
+    }
+
+    const variantExists = product.variants.some(v => v.variantId === variantId);
+
+    if (!variantExists) {
+      throw new BadRequestException(
+        getMessage('products_variantNotFound', lang),
+      );
+    }
+
+    return { product };
+  }
+
+  private async calculateRatingsCount(
+    productId: mongoose.Types.ObjectId,
+  ): Promise<number> {
+    return await this.commentModel.countDocuments({
+      productId,
+      rating: { $ne: null },
+      isDeleted: false,
+    });
+  }
+
+  private async calculateNewAverage(
+    productId: mongoose.Types.ObjectId,
+  ): Promise<number> {
+    const result = await this.commentModel.aggregate([
+      {
+        $match: {
+          productId,
+          isDeleted: false,
+        },
+      },
+      {
+        $group: {
+          _id: '$productId',
+          avgRating: { $avg: '$rating' },
+        },
+      },
+    ]);
+
+    return result[0]?.avgRating ?? 1; // default to 1 if no ratings
+  }
+
+  private async recalculateProductAndVariantRatings(
+    product: ProductDocument,
+    comment: CommentDocument,
+    action: 'create' | 'delete' | 'unDelete' | 'update',
+  ) {
+    const productId = product._id as Types.ObjectId;
+
+    const variant = product.variants.find(
+      v => v.variantId === comment.variantId,
+    );
+
+    if (variant) {
+      const variantComments = await this.commentModel.find({
+        productId,
+        variantId: comment.variantId,
+        isDeleted: false,
+      });
+
+      const total = variantComments.reduce(
+        (sum, c) => sum + (c.rating ?? 0),
+        0,
+      );
+
+      const count = variantComments.length;
+
+      variant.ratingsCount = count;
+
+      if (count > 0) {
+        const avg = total / count;
+        variant.ratingsAverage = Math.min(Math.max(avg, 1), 5);
+      } else {
+        variant.ratingsAverage = 1; // default to 1 if no ratings
+      }
+    }
+
+    let comments: Types.ObjectId[] = (product.comments as any) || [];
+    const commentId = comment._id as Types.ObjectId;
+
+    if (action === 'create' || action === 'unDelete') {
+      if (!comments.some(id => id.toString() === commentId.toString())) {
+        comments = [...comments, commentId];
+      }
+    }
+
+    if (action === 'delete') {
+      comments = comments.filter(id => id.toString() !== commentId.toString());
+    }
+
+    await this.productModel.findByIdAndUpdate(
+      productId,
+      {
+        $set: {
+          comments,
+          variants: [...product.variants],
+          ratingsAverage: await this.calculateNewAverage(productId),
+          ratingsCount: await this.calculateRatingsCount(productId),
+        },
+      },
+      { new: true },
+    );
+  }
+
   async create(
     requestingUser: any,
     dto: CreateCommentDto,
   ): Promise<DataResponse<Comment>> {
-    const { lang, productId, content, rating } = dto;
+    const { lang, productId, variantId, content, rating } = dto;
 
-    // anyone can comment, required logged-in user only
     if (!requestingUser || !requestingUser.userId) {
       throw new UnauthorizedException(getMessage('comment_unAuthorized', lang));
     }
+
+    const { product } = await this.productAnfVariantValidators({
+      productId,
+      variantId,
+      lang,
+    });
 
     if (!content || content.trim().length < 3) {
       return {
@@ -112,13 +242,16 @@ export class CommentService {
     const comment = new this.commentModel({
       content,
       rating,
-      productId,
+      productId: new Types.ObjectId(productId),
+      variantId,
       userId: requestingUser.userId,
       createdAt: now,
       createdBy: requestingUser.userId,
     });
 
     await comment.save();
+
+    await this.recalculateProductAndVariantRatings(product, comment, 'create');
 
     return {
       isSuccess: true,
@@ -132,34 +265,46 @@ export class CommentService {
     body: UpdateCommentQueryDto,
     param: UpdateCommentParamsDto,
   ): Promise<DataResponse<Comment>> {
-    const { lang, content, rating } = body;
+    const { lang, productId, variantId, content, rating } = body;
     const { id } = param;
 
-    // anyone can comment, required logged-in user only
-    if (!requestingUser || !requestingUser.userId) {
+    // Ensure logged-in user
+    if (!requestingUser?.userId) {
       throw new UnauthorizedException(getMessage('comment_unAuthorized', lang));
     }
 
     const comment = await this.commentModel.findById(id);
-
     if (!comment) {
       throw new NotFoundException(getMessage('comment_commentNotFound', lang));
     }
 
-    // Only the user who created the comment can update it
+    // Validate product and variant
+    const targetProductId = productId || comment.productId.toString();
+    const targetVariantId = variantId || comment.variantId;
+
+    const { product } = await this.productAnfVariantValidators({
+      productId: new Types.ObjectId(targetProductId),
+      variantId: targetVariantId,
+      lang,
+    });
+
+    // Only owner can update
     if (comment.userId.toString() !== requestingUser.userId.toString()) {
       throw new ForbiddenException(
         getMessage('comment_cannotUpdateOthers', lang),
       );
     }
 
+    // Update fields
     if (content) comment.content = content;
     if (rating) comment.rating = rating;
     comment.updatedAt = new Date();
-    comment.updatedBy = requestingUser?.userId;
+    comment.updatedBy = requestingUser.userId;
     comment.isUpdated = true;
 
     await comment.save();
+
+    await this.recalculateProductAndVariantRatings(product, comment, 'update');
 
     return {
       isSuccess: true,
@@ -198,7 +343,18 @@ export class CommentService {
     comment.isDeleted = true;
     comment.deletedAt = new Date();
     comment.deletedBy = requestingUser.userId;
+
     await comment.save();
+
+    const product = await this.productModel.findById(comment.productId);
+
+    if (product) {
+      await this.recalculateProductAndVariantRatings(
+        product,
+        comment,
+        'delete',
+      );
+    }
 
     return {
       isSuccess: true,
@@ -240,6 +396,16 @@ export class CommentService {
     comment.unDeletedAt = new Date();
 
     await comment.save();
+
+    const product = await this.productModel.findById(comment.productId);
+
+    if (product) {
+      await this.recalculateProductAndVariantRatings(
+        product,
+        comment,
+        'unDelete',
+      );
+    }
 
     return {
       isSuccess: true,

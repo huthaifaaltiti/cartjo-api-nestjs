@@ -4,10 +4,14 @@ import { MediaModule } from '../media/media.module';
 import { Comment, CommentSchema } from 'src/schemas/comment.schema';
 import { CommentService } from './comment.service';
 import { CommentController } from './comment.controller';
+import { Product, ProductSchema } from 'src/schemas/product.schema';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Comment.name, schema: CommentSchema }]),
+    MongooseModule.forFeature([
+      { name: Comment.name, schema: CommentSchema },
+      { name: Product.name, schema: ProductSchema },
+    ]),
     MediaModule,
   ],
   providers: [CommentService],
