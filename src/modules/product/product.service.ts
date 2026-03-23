@@ -53,6 +53,7 @@ import {
 import { UpdateProductStatusBodyDto } from './dto/update-product-status.dto';
 import { DeleteProductDto } from './dto/delete-product.dto';
 import { UnDeleteProductBodyDto } from './dto/unDelete-product.dto';
+import { Cart, CartDocument } from 'src/schemas/cart.schema';
 
 @Injectable()
 export class ProductService {
@@ -75,6 +76,9 @@ export class ProductService {
 
     @InjectModel(TypeHintConfig.name)
     private typeHintConfigModel: Model<TypeHintConfigDocument>,
+
+    @InjectModel(Cart.name)
+    private cartModel: Model<CartDocument>,
   ) {}
 
   @Cron(CRON_JOBS.PRODUCT.RESET_WEEKLY_STATS)
@@ -1248,7 +1252,12 @@ const products = await this.productModel
     }
 
     // Handle Deleted Images
-    if (deletedImages && Array.isArray(deletedImages) && imagesFiles?.length) {
+    if (
+      (deletedImages &&
+        Array.isArray(deletedImages) &&
+        deletedImages.length > 0) ||
+      (imagesFiles && deletedImages.length > 0)
+    ) {
       for (const urlToDelete of deletedImages) {
         const itemToDelete = variant.images.find(i => i.url === urlToDelete);
         const index = variant.images.indexOf(itemToDelete);
@@ -1296,6 +1305,55 @@ const products = await this.productModel
       message: getMessage('products_variantUpdatedSuccessfully', body.lang),
       data: variant,
     };
+  }
+
+  /**
+   * Removes a specific variant from all user carts and recalculates totals.
+   * Called when a variant is deactivated or deleted.
+   */
+  private async removeVariantFromCarts(variantId: string): Promise<void> {
+    console.log('removeVariantFromCarts');
+    const affectedCarts = await this.cartModel.find({
+      'items.variantId': variantId,
+    });
+
+    console.log({ affectedCarts });
+
+    if (!affectedCarts.length) return;
+
+    for (const cart of affectedCarts) {
+      cart.items = cart.items.filter(i => i.variantId !== variantId);
+      cart.totalAmount = cart.items.reduce(
+        (sum, i) => sum + i.quantity * i.price,
+        0,
+      );
+
+      console.log({ cart });
+      await cart.save();
+    }
+  }
+
+  /**
+   * Removes all variants of a product from all user carts and recalculates totals.
+   * Called when a product is deactivated or deleted.
+   */
+  private async removeProductFromCarts(productId: string): Promise<void> {
+    const objId = new Types.ObjectId(productId);
+
+    const affectedCarts = await this.cartModel.find({
+      'items.productId': objId,
+    });
+
+    if (!affectedCarts.length) return;
+
+    for (const cart of affectedCarts) {
+      cart.items = cart.items.filter(i => i.productId.toString() !== productId);
+      cart.totalAmount = cart.items.reduce(
+        (sum, i) => sum + i.quantity * i.price,
+        0,
+      );
+      await cart.save();
+    }
   }
 
   private syncProductActiveState(product: any) {
@@ -1364,6 +1422,11 @@ const products = await this.productModel
       product.deletedAt = null;
     }
 
+    // Clean up all user carts
+    if (!isActive) {
+      await this.removeProductFromCarts(id);
+    }
+
     product.isActive = isActive;
 
     await product.save();
@@ -1386,6 +1449,8 @@ const products = await this.productModel
   ): Promise<BaseResponse> {
     const { isActive, lang } = body;
     const { id, vid } = param;
+
+    console.log('updateVariantStatus');
 
     validateUserRoleAccess(requestingUser, lang);
 
@@ -1449,6 +1514,11 @@ const products = await this.productModel
           getMessage('products_cannotActivateCategoryIsInactive', lang),
         );
       }
+    }
+
+    // Remove this variant from all user carts
+    if (!isActive) {
+      await this.removeVariantFromCarts(vid);
     }
 
     product.variants[variantIndex].isActive = isActive;
@@ -1517,6 +1587,9 @@ const products = await this.productModel
 
     await product.save();
 
+    // Remove product from all carts
+    await this.removeProductFromCarts(id);
+
     return {
       isSuccess: true,
       message: getMessage('products_productDeletedSuccessfully', lang),
@@ -1578,6 +1651,9 @@ const products = await this.productModel
     // }
 
     await product.save();
+
+    // Remove variant from all carts
+    await this.removeVariantFromCarts(vid);
 
     return {
       isSuccess: true,

@@ -50,8 +50,8 @@ export const validationConfig = {
           message: 'Product name (AR) cannot be less than 5 characters',
         },
         maxCharacters: {
-          value: 100,
-          message: 'Product name (AR) cannot exceed 100 characters',
+          value: 300,
+          message: 'Product name (AR) cannot exceed 300 characters',
         },
       },
       en: {
@@ -61,8 +61,8 @@ export const validationConfig = {
           message: 'Product name (EN) cannot be less than 5 characters',
         },
         maxCharacters: {
-          value: 100,
-          message: 'Product name (EN) cannot exceed 100 characters',
+          value: 300,
+          message: 'Product name (EN) cannot exceed 300 characters',
         },
       },
     },
@@ -74,8 +74,8 @@ export const validationConfig = {
           message: 'Product description (AR) cannot be less than 10 characters',
         },
         maxCharacters: {
-          value: 300,
-          message: 'Product description (AR) cannot exceed 300 characters',
+          value: 1000,
+          message: 'Product description (AR) cannot exceed 1000 characters',
         },
       },
       en: {
@@ -85,8 +85,8 @@ export const validationConfig = {
           message: 'Product description (EN) cannot be less than 10 characters',
         },
         maxCharacters: {
-          value: 300,
-          message: 'Product description (EN) cannot exceed 300 characters',
+          value: 1000,
+          message: 'Product description (EN) cannot exceed 1000 characters',
         },
       },
     },
@@ -109,9 +109,9 @@ export const validationConfig = {
               'Product variant description (AR) cannot be less than 10 characters',
           },
           maxCharacters: {
-            value: 300,
+            value: 1000,
             message:
-              'Product variant description (AR) cannot exceed 300 characters',
+              'Product variant description (AR) cannot exceed 1000 characters',
           },
         },
         en: {
@@ -122,9 +122,9 @@ export const validationConfig = {
               'Product variant description (EN) cannot be less than 10 characters',
           },
           maxCharacters: {
-            value: 300,
+            value: 1000,
             message:
-              'Product variant description (EN) cannot exceed 300 characters',
+              'Product variant description (EN) cannot exceed 1000 characters',
           },
         },
       },
@@ -167,12 +167,12 @@ export const validationConfig = {
       },
       sku: {
         minCharacters: {
-          value: 1,
-          message: 'SKU cannot be empty',
+          value: 15,
+          message: 'SKU cannot be empty, minimum 15 characters required',
         },
         maxCharacters: {
-          value: 50,
-          message: 'SKU cannot exceed 50 characters',
+          value: 100,
+          message: 'SKU cannot exceed 100 characters',
         },
       },
       tags: {

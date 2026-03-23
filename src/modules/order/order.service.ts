@@ -224,6 +224,12 @@ export class OrderService {
         );
       }
 
+      if (!product.isActive || product.isDeleted) {
+        throw new BadRequestException(
+          getMessage('products_productNotAvailable', lang),
+        );
+      }
+
       const variant = product.variants.find(
         v => v.variantId === item.variantId,
       );
@@ -236,6 +242,12 @@ export class OrderService {
 
       if (variant.availableCount < item.quantity) {
         throw new BadRequestException(getMessage('products_outOfStock', lang));
+      }
+
+      if (variant.isDeleted || !variant.isActive) {
+        throw new BadRequestException(
+          getMessage('products_variantUnavailable', lang),
+        );
       }
 
       const snapshotItem: OrderItemSnapshot = {
@@ -803,6 +815,41 @@ if (search) {
     };
   }
 
+  private buildFullItemsDetails(order: Order): OrderCartItem[] {
+    const orderItemsSnapshots = order.orderItemsSnapshots || [];
+    const orderItems = order.items || [];
+
+    const snapshotMap = new Map<string, OrderItemSnapshot>();
+    for (const snapshot of orderItemsSnapshots) {
+      const key = `${snapshot.productId}_${snapshot.variantId}`;
+      snapshotMap.set(key, snapshot);
+    }
+
+    return orderItems.map((item: OrderCartItem) => {
+      const key = `${item.productId}_${item.variantId}`;
+      const snapshot = snapshotMap.get(key);
+
+      return {
+        productId: item.productId,
+        variantId: item.variantId,
+        price: item.price,
+        quantity: item.quantity,
+        name: snapshot?.name ?? item.name,
+        description: snapshot?.description,
+        mainImage: snapshot?.mainImage,
+        variant: snapshot
+          ? {
+              variantId: snapshot.variant?.variantId,
+              sku: snapshot.variant?.sku,
+              attributes: snapshot.variant?.attributes,
+              description: snapshot.variant?.description,
+              mainImage: snapshot.variant?.mainImage,
+            }
+          : undefined,
+      } as OrderCartItem;
+    });
+  }
+
   async getMyOrder(
     requestingUser: any,
     query: GetMyOrderQueryDto,
@@ -834,40 +881,7 @@ if (search) {
       throw new NotFoundException(getMessage('order_notFound', lang));
     }
 
-    const orderItemsSnapshots = order.orderItemsSnapshots || [];
-    const orderItems = order.items || [];
-
-    const snapshotMap = new Map<string, OrderItemSnapshot>();
-    for (const snapshot of orderItemsSnapshots) {
-      const key = `${snapshot.productId}_${snapshot.variantId}`;
-      snapshotMap.set(key, snapshot);
-    }
-
-    const fullItemsDetails: OrderCartItem[] = orderItems.map(
-      (item: OrderCartItem) => {
-        const key = `${item.productId}_${item.variantId}`;
-        const snapshot = snapshotMap.get(key);
-
-        return {
-          productId: item.productId,
-          variantId: item.variantId,
-          price: item.price,
-          quantity: item.quantity,
-          name: snapshot?.name ?? item.name,
-          description: snapshot?.description,
-          mainImage: snapshot?.mainImage,
-          variant: snapshot
-            ? {
-                variantId: snapshot.variant?.variantId,
-                sku: snapshot.variant?.sku,
-                attributes: snapshot.variant?.attributes,
-                description: snapshot.variant?.description,
-                mainImage: snapshot.variant?.mainImage,
-              }
-            : undefined,
-        } as OrderCartItem;
-      },
-    );
+    const fullItemsDetails: OrderCartItem[] = this.buildFullItemsDetails(order);
 
     return {
       isSuccess: true,
@@ -975,7 +989,7 @@ It will not appear in the API response, which is why your response no longer con
       if (updatedBefore) query.updatedAt.$lte = new Date(updatedBefore);
     }
 
-    const orders = await this.orderModel
+    let orders = await this.orderModel
       .find(query)
       .sort({ _id: -1 })
       .limit(Number(limit))
@@ -985,6 +999,12 @@ It will not appear in the API response, which is why your response no longer con
       .populate('updatedBy', 'firstName lastName email _id')
       .select('-__v')
       .lean();
+
+    orders = orders.map(order => ({
+      ...order,
+      items: this.buildFullItemsDetails(order),
+      orderItemsSnapshots: undefined,
+    }));
 
     return {
       isSuccess: true,
@@ -1015,20 +1035,22 @@ It will not appear in the API response, which is why your response no longer con
       .populate('restoredBy', 'firstName lastName email _id')
       .populate('createdBy', 'firstName lastName email _id')
       .populate('updatedBy', 'firstName lastName email _id')
-      .populate({
-        path: 'items.productId',
-        select: 'name currency ratings description mainImage',
-      })
       .lean();
 
     if (!order) {
       throw new NotFoundException(getMessage('order_notFound', lang));
     }
 
+    const fullItemsDetails: OrderCartItem[] = this.buildFullItemsDetails(order);
+
     return {
       isSuccess: true,
       message: getMessage('order_orderRetrieved', lang),
-      data: order,
+      data: {
+        ...order,
+        orderItemsSnapshots: undefined,
+        items: fullItemsDetails,
+      },
     };
   }
 
