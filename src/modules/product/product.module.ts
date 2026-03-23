@@ -14,6 +14,7 @@ import {
   TypeHintConfig,
   TypeHintConfigSchema,
 } from 'src/schemas/typeHintConfig.schema';
+import { Cart, CartSchema } from 'src/schemas/cart.schema';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import {
       { name: WishList.name, schema: WishListSchema },
       { name: SubCategory.name, schema: SubCategorySchema },
       { name: TypeHintConfig.name, schema: TypeHintConfigSchema },
+      { name: Cart.name, schema: CartSchema },
     ]),
     MediaModule,
     forwardRef(() => CategoryModule),

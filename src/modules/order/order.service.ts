@@ -6,7 +6,12 @@ import {
 import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Cart, CartDocument } from 'src/schemas/cart.schema';
-import { Order, OrderDocument } from 'src/schemas/order.schema';
+import {
+  Order,
+  OrderCartItem,
+  OrderDocument,
+  OrderItemSnapshot,
+} from 'src/schemas/order.schema';
 import { PaymentStatus } from 'src/enums/paymentStatus.enum';
 import { PaymentMethod } from 'src/enums/paymentMethod.enum';
 import { generateRandomString } from 'src/common/utils/generateRandomString';
@@ -56,6 +61,8 @@ import {
   GetMyOrderReturnsQueryDto,
 } from './dto/getMyOrderReturns.dto';
 import { Product, ProductDocument } from 'src/schemas/product.schema';
+import { Currency } from 'src/enums/currency.enum';
+import { WEEKLY_SCORE_WEIGHTS } from 'src/configs/weeklyScoreWeights.config';
 
 @Injectable()
 export class OrderService {
@@ -75,6 +82,7 @@ export class OrderService {
   private async incrementProductsSellCount(
     items: {
       productId: Types.ObjectId;
+      variantId: string;
       quantity: number;
     }[],
   ) {
@@ -82,11 +90,19 @@ export class OrderService {
 
     const bulkOps = items.map(item => ({
       updateOne: {
-        filter: { _id: item.productId },
+        filter: {
+          _id: item.productId,
+          'variants.variantId': item.variantId,
+          'variants.availableCount': { $gte: item.quantity },
+        },
         update: {
           $inc: {
-            sellCount: item.quantity,
-            availableCount: -item.quantity, // ✅ optional but recommended
+            'variants.$.sellCount': item.quantity,
+            'variants.$.availableCount': -item.quantity,
+            totalSellCount: item.quantity,
+            weeklySellCount: item.quantity,
+            weeklyScore: WEEKLY_SCORE_WEIGHTS.sale * item.quantity,
+            allTimeScore: WEEKLY_SCORE_WEIGHTS.sale * item.quantity,
           },
         },
       },
@@ -189,12 +205,77 @@ export class OrderService {
         ? PaymentStatus.PAID
         : PaymentStatus.PENDING;
 
-    for (const item of cart.items) {
-      const product = await this.productModel.findById(item.productId).lean();
+    const productIds = cart.items.map(i => i.productId);
 
-      if (!product || product.availableCount < item.quantity) {
-        throw new BadRequestException(`Product "${item.name}" is out of stock`);
+    const products = await this.productModel
+      .find({ _id: { $in: productIds } })
+      .lean();
+
+    const productMap = new Map(products.map(p => [p._id.toString(), p]));
+
+    const orderItemsSnapshots: OrderItemSnapshot[] = [];
+
+    for (const item of cart.items) {
+      const product = productMap.get(item.productId.toString());
+
+      if (!product) {
+        throw new BadRequestException(
+          getMessage('products_productNotFound', lang),
+        );
       }
+
+      if (!product.isActive || product.isDeleted) {
+        throw new BadRequestException(
+          getMessage('products_productNotAvailable', lang),
+        );
+      }
+
+      const variant = product.variants.find(
+        v => v.variantId === item.variantId,
+      );
+
+      if (!variant) {
+        throw new BadRequestException(
+          getMessage('products_variantNotFound', lang),
+        );
+      }
+
+      if (variant.availableCount < item.quantity) {
+        throw new BadRequestException(getMessage('products_outOfStock', lang));
+      }
+
+      if (variant.isDeleted || !variant.isActive) {
+        throw new BadRequestException(
+          getMessage('products_variantUnavailable', lang),
+        );
+      }
+
+      const snapshotItem: OrderItemSnapshot = {
+        productId: item.productId,
+        variantId: item.variantId,
+        name: product.name,
+        description: product.description,
+        mainImage: product.mainImage,
+        quantity: item.quantity,
+        variant: {
+          variantId: variant.variantId,
+          sku: variant.sku,
+          attributes: variant.attributes,
+          description: variant.description,
+          price: variant.price,
+          priceAfterDiscount: variant.priceAfterDiscount,
+          currency: variant.currency as Currency,
+          totalAmountCount: variant.totalAmountCount,
+          availableCount: variant.availableCount,
+          discountRate: variant.discountRate,
+          mainImage: variant.mainImage,
+          isActive: variant.isActive,
+          isDeleted: variant.isDeleted,
+          isAvailable: variant.isAvailable,
+        },
+      };
+
+      orderItemsSnapshots.push(snapshotItem);
     }
 
     const order = await this.orderModel.create({
@@ -202,10 +283,12 @@ export class OrderService {
       createdBy: user?.userId,
       items: cart.items.map(item => ({
         productId: item.productId,
+        variantId: item.variantId,
         price: item.price,
         quantity: item.quantity,
         name: item.name,
       })),
+      orderItemsSnapshots,
       amount,
       deliveryCost,
       currency,
@@ -217,10 +300,10 @@ export class OrderService {
       shippingAddress,
     });
 
-    /** ✅ Increment sell count */
     await this.incrementProductsSellCount(
       cart.items.map(item => ({
         productId: item.productId,
+        variantId: item.variantId,
         quantity: item.quantity,
       })),
     );
@@ -732,6 +815,41 @@ if (search) {
     };
   }
 
+  private buildFullItemsDetails(order: Order): OrderCartItem[] {
+    const orderItemsSnapshots = order.orderItemsSnapshots || [];
+    const orderItems = order.items || [];
+
+    const snapshotMap = new Map<string, OrderItemSnapshot>();
+    for (const snapshot of orderItemsSnapshots) {
+      const key = `${snapshot.productId}_${snapshot.variantId}`;
+      snapshotMap.set(key, snapshot);
+    }
+
+    return orderItems.map((item: OrderCartItem) => {
+      const key = `${item.productId}_${item.variantId}`;
+      const snapshot = snapshotMap.get(key);
+
+      return {
+        productId: item.productId,
+        variantId: item.variantId,
+        price: item.price,
+        quantity: item.quantity,
+        name: snapshot?.name ?? item.name,
+        description: snapshot?.description,
+        mainImage: snapshot?.mainImage,
+        variant: snapshot
+          ? {
+              variantId: snapshot.variant?.variantId,
+              sku: snapshot.variant?.sku,
+              attributes: snapshot.variant?.attributes,
+              description: snapshot.variant?.description,
+              mainImage: snapshot.variant?.mainImage,
+            }
+          : undefined,
+      } as OrderCartItem;
+    });
+  }
+
   async getMyOrder(
     requestingUser: any,
     query: GetMyOrderQueryDto,
@@ -757,20 +875,42 @@ if (search) {
       .populate('restoredBy', 'firstName lastName email _id')
       .populate('createdBy', 'firstName lastName email _id')
       .populate('updatedBy', 'firstName lastName email _id')
-      .populate({
-        path: 'items.productId',
-        select: 'name currency ratings description mainImage',
-      })
       .lean();
 
     if (!order) {
       throw new NotFoundException(getMessage('order_notFound', lang));
     }
 
+    const fullItemsDetails: OrderCartItem[] = this.buildFullItemsDetails(order);
+
     return {
       isSuccess: true,
       message: getMessage('order_orderRetrieved', lang),
-      data: order,
+      data: {
+        ...order,
+        /*
+        When a response is converted to JSON (which NestJS does before sending it), properties with undefined are automatically removed.
+
+Example:
+
+const obj = {
+  a: 1,
+  b: undefined,
+};
+
+After JSON.stringify(obj):
+
+{ "a": 1 }
+
+So this works exactly as you saw:
+
+orderItemsSnapshots: undefined
+
+It will not appear in the API response, which is why your response no longer contains it.
+        */
+        orderItemsSnapshots: undefined,
+        items: fullItemsDetails,
+      },
     };
   }
 
@@ -849,7 +989,7 @@ if (search) {
       if (updatedBefore) query.updatedAt.$lte = new Date(updatedBefore);
     }
 
-    const orders = await this.orderModel
+    let orders = await this.orderModel
       .find(query)
       .sort({ _id: -1 })
       .limit(Number(limit))
@@ -859,6 +999,12 @@ if (search) {
       .populate('updatedBy', 'firstName lastName email _id')
       .select('-__v')
       .lean();
+
+    orders = orders.map(order => ({
+      ...order,
+      items: this.buildFullItemsDetails(order),
+      orderItemsSnapshots: undefined,
+    }));
 
     return {
       isSuccess: true,
@@ -889,20 +1035,22 @@ if (search) {
       .populate('restoredBy', 'firstName lastName email _id')
       .populate('createdBy', 'firstName lastName email _id')
       .populate('updatedBy', 'firstName lastName email _id')
-      .populate({
-        path: 'items.productId',
-        select: 'name currency ratings description mainImage',
-      })
       .lean();
 
     if (!order) {
       throw new NotFoundException(getMessage('order_notFound', lang));
     }
 
+    const fullItemsDetails: OrderCartItem[] = this.buildFullItemsDetails(order);
+
     return {
       isSuccess: true,
       message: getMessage('order_orderRetrieved', lang),
-      data: order,
+      data: {
+        ...order,
+        orderItemsSnapshots: undefined,
+        items: fullItemsDetails,
+      },
     };
   }
 

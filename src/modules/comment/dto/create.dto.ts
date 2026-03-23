@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import {
   IsNotEmpty,
   IsString,
@@ -15,7 +16,12 @@ export class CreateCommentDto {
   lang?: Locale;
 
   @IsMongoId()
+  @IsNotEmpty()
   productId: Types.ObjectId;
+
+  @IsString()
+  @IsNotEmpty()
+  variantId: string;
 
   @IsNotEmpty()
   @IsString()
@@ -25,5 +31,8 @@ export class CreateCommentDto {
   @IsOptional()
   @Min(1)
   @Max(5)
+  @Transform(({ value }) =>
+    value !== null && value !== undefined ? Number(value) : value,
+  )
   rating?: number;
 }

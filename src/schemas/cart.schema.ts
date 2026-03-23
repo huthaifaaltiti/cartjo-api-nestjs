@@ -9,6 +9,9 @@ export class CartItem {
   @Prop({ type: mongoose.Types.ObjectId, ref: 'Product', required: true })
   productId: mongoose.Types.ObjectId;
 
+  @Prop({ type: String, required: true })
+  variantId: string;
+
   @Prop({ default: 1 })
   quantity: number;
 
@@ -17,6 +20,12 @@ export class CartItem {
 
   @Prop({ type: NameRef, required: true })
   name: NameRef;
+
+  @Prop({ type: String, required: true })
+  sku: string;
+
+  @Prop({ type: Date, default: Date.now })
+  addedAt: Date;
 }
 
 export const CartItemSchema = SchemaFactory.createForClass(CartItem);

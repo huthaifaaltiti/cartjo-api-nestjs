@@ -17,6 +17,9 @@ export class Comment {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Product', required: true })
   productId: MongooseSchema.Types.ObjectId;
 
+  @Prop({ type: String, required: true })
+  variantId: string;
+
   @Prop({ default: null })
   deletedAt?: Date | null;
 
