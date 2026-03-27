@@ -241,7 +241,7 @@ export class ShowcaseService {
 
         Object.assign(
           productsQuery,
-          strategy[showcase.type] || { typeHint: showcase.type },
+          strategy[showcase.type] || { typeHints: [showcase.type] },
         );
 
         // => With aggregator

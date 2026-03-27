@@ -9,7 +9,10 @@ import { getMessage } from 'src/common/utils/translator';
 import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
 import { Locale } from 'src/types/Locale';
 import { DataResponse } from 'src/types/service-response.type';
-import { WishListItemBodyDto } from './dto/wishlist-item.dto';
+import {
+  SendWishListItemToCartBodyDto,
+  WishListItemBodyDto,
+} from './dto/wishlist-item.dto';
 import {
   SendAllWishListItemsBodyDto,
   WishListItemsBodyDto,
@@ -34,13 +37,14 @@ export class WishListService {
   isValidProduct = async (
     prodId: mongoose.Types.ObjectId,
     lang: Locale,
-  ): Promise<void> => {
+  ): Promise<Product | void> => {
     const product = await this.productModel.findOne({
       _id: new Types.ObjectId(prodId),
     });
     if (!product) {
       throw new NotFoundException(getMessage('wishList_notFoundProduct', lang));
     }
+    return product;
   };
 
   async getWishList(
@@ -183,6 +187,7 @@ export class WishListService {
           favoriteCount: 1,
           weeklyFavoriteCount: 1,
           weeklyScore: WEEKLY_SCORE_WEIGHTS.favorite,
+          allTimeScore: WEEKLY_SCORE_WEIGHTS.favorite,
         },
       },
     );
@@ -196,11 +201,31 @@ export class WishListService {
 
   async sendToCart(
     requestingUser: any,
-    dto: WishListItemBodyDto,
+    dto: SendWishListItemToCartBodyDto,
   ): Promise<DataResponse<Cart>> {
-    const { lang, productId } = dto;
+    const { lang, productId, variantId } = dto;
 
     await this.isValidProduct(productId, lang);
+
+    const product = await this.isValidProduct(productId, lang);
+
+    if (product) {
+      const variant = product.variants.find(
+        v => v.variantId === variantId && !v.isDeleted && v.isActive,
+      );
+
+      if (!variant) {
+        throw new BadRequestException(
+          getMessage('products_variantNotFound', lang),
+        );
+      }
+
+      if (!variant.isAvailable || variant.availableCount < 1) {
+        throw new BadRequestException(
+          getMessage('products_variantOutOfStock', lang),
+        );
+      }
+    }
 
     await this.cartService.addCartItem(requestingUser, { ...dto, quantity: 1 });
 
@@ -224,34 +249,47 @@ export class WishListService {
   async sendAllToCart(
     requestingUser: any,
     dto: SendAllWishListItemsBodyDto,
-  ): Promise<DataResponse<WishList>> {
-    const { lang } = dto;
+  ): Promise<DataResponse<Cart>> {
+    const { lang, items } = dto;
 
     const wishList = await this.wishListModel.findOne({
       user: requestingUser.userId,
     });
 
-    if (!wishList || !wishList.products.length)
+    if (!wishList || !wishList.products.length) {
       throw new NotFoundException(
         getMessage('wishList_noProductsToSend', lang),
       );
+    }
 
-    await Promise.all(
-      wishList.products.map((product: any) => {
-        return this.sendToCart(requestingUser, {
-          productId: product._id,
-          lang,
-        });
-      }),
-    );
+    if (!items || !items.length) {
+      throw new NotFoundException(
+        getMessage('wishList_noProductsToSend', lang),
+      );
+    }
 
+    // Send selected items to cart
+    for (const item of items) {
+      await this.sendToCart(requestingUser, {
+        productId: item.productId,
+        variantId: item.variantId,
+        lang,
+      });
+    }
+
+    // Remove ONLY sent products from wishlist
     wishList.products = [];
     await wishList.save();
+
+    // Get updated cart
+    const updatedCart = await this.cartModel.findOne({
+      userId: requestingUser.userId,
+    });
 
     return {
       isSuccess: true,
       message: getMessage('wishlist_productsSentToCartSuccessfully', lang),
-      data: wishList,
+      data: updatedCart,
     };
   }
 
@@ -301,6 +339,7 @@ export class WishListService {
           favoriteCount: -1,
           weeklyFavoriteCount: -1,
           weeklyScore: -WEEKLY_SCORE_WEIGHTS.favorite,
+          allTimeScore: -WEEKLY_SCORE_WEIGHTS.favorite,
         },
       },
     );

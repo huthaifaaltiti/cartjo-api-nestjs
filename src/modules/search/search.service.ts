@@ -5,7 +5,10 @@ import { Product, ProductDocument } from 'src/schemas/product.schema';
 import { SearchProductsQueryDto } from './dto/get-search-products.dto';
 import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
 import { getMessage } from 'src/common/utils/translator';
-import { SYSTEM_GENERATED_HINTS, SystemGeneratedHint } from 'src/configs/typeHint.config';
+import {
+  SYSTEM_GENERATED_HINTS,
+  SystemGeneratedHint,
+} from 'src/configs/typeHint.config';
 import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
 
 @Injectable()
@@ -61,6 +64,7 @@ export class SearchService {
       };
     }
 
+    // Query search
     if (q) {
       const searchRegex = new RegExp(q, 'i');
       queryMatch.$or = [
@@ -68,12 +72,15 @@ export class SearchService {
         { [`description.${lang}`]: searchRegex },
         { tags: searchRegex },
         { slug: searchRegex },
+        { [`variants.description.${lang}`]: searchRegex },
+        { ['variants.sku']: searchRegex },
+        { ['variants.tags']: searchRegex },
       ];
     }
 
     // ✅ Only filter by typeHint if NOT system-generated
     if (typeHint && !isSystemGeneratedHint) {
-      queryMatch.typeHint = { $in: [typeHint] };
+      queryMatch.typeHints = { $in: [typeHint] };
     }
 
     // ✅ Category filters
@@ -86,21 +93,33 @@ export class SearchService {
       queryMatch.subCategoryId = new Types.ObjectId(subCategoryId);
     }
 
-    // ✅ Price filter
+    // Price
     if (priceFrom || priceTo) {
-      queryMatch.price = {};
-      if (priceFrom) queryMatch.price.$gte = Number(priceFrom);
-      if (priceTo) queryMatch.price.$lte = Number(priceTo);
+      queryMatch['variants.priceAfterDiscount'] = {};
+      if (priceFrom)
+        queryMatch['variants.priceAfterDiscount'].$gte = Number(priceFrom);
+      if (priceTo)
+        queryMatch['variants.priceAfterDiscount'].$lte = Number(priceTo);
     }
 
-    // ✅ Ratings filter
+    // Ratings
     if (ratingFrom || ratingTo) {
-      queryMatch.ratings = {};
-      if (ratingFrom) queryMatch.ratings.$gte = Number(ratingFrom);
-      if (ratingTo) queryMatch.ratings.$lte = Number(ratingTo);
+      // Product-level ratings filter
+      // queryMatch.ratingsAverage = {};
+      // if (ratingFrom) queryMatch.ratingsAverage.$gte = Number(ratingFrom);
+      // if (ratingTo) queryMatch.ratingsAverage.$lte = Number(ratingTo);
+
+      // For variant-level ratings, we would need to use $elemMatch, but this can lead to performance issues and may not be necessary if we assume that product-level ratings are sufficient for search filtering.
+      queryMatch.variants = {
+        $elemMatch: {
+          isActive: true,
+          ...(ratingFrom && { ratingsAverage: { $gte: Number(ratingFrom) } }),
+          ...(ratingTo && { ratingsAverage: { $lte: Number(ratingTo) } }),
+        },
+      };
     }
 
-    // ✅ Date filters
+    // Date filters
     if (beforeNumOfDays) {
       let days = Number(beforeNumOfDays);
       if (days > 36500) days = 36500; // ~100 years sanity cap
@@ -108,11 +127,38 @@ export class SearchService {
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - days);
 
-      queryMatch.createdAt = { $lte: cutoffDate };
+      // Products created before the cutoff date
+      // queryMatch.createdAt = { $lte: cutoffDate };
+
+      queryMatch.variants = {
+        ...(queryMatch.variants || {}),
+        $elemMatch: {
+          ...(queryMatch.variants?.$elemMatch || {}),
+          createdAt: { $gte: cutoffDate },
+          isActive: true,
+        },
+      };
     } else if (createdFrom || createdTo) {
-      queryMatch.createdAt = {};
-      if (createdFrom) queryMatch.createdAt.$gte = new Date(createdFrom);
-      if (createdTo) queryMatch.createdAt.$lte = new Date(createdTo);
+      // Products created within a specific date range
+      // queryMatch.createdAt = {};
+      // if (createdFrom) queryMatch.createdAt.$gte = new Date(createdFrom);
+      // if (createdTo) queryMatch.createdAt.$lte = new Date(createdTo);
+
+      // Filtering by created date of variants instead of products, as it's more relevant to the search results and avoids excluding products that have older variants but newer ones that are still relevant.
+      queryMatch.variants = {
+        ...(queryMatch.variants || {}),
+        $elemMatch: {
+          ...(queryMatch.variants?.$elemMatch || {}),
+          ...(createdFrom && { createdAt: { $gte: new Date(createdFrom) } }),
+          ...(createdTo && {
+            createdAt: {
+              ...(createdFrom ? { $gte: new Date(createdFrom) } : {}),
+              $lte: new Date(createdTo),
+            },
+          }),
+          isActive: true,
+        },
+      };
     }
 
     // ✅ SYSTEM TYPE HINTS BEHAVIOR
@@ -152,8 +198,6 @@ export class SearchService {
       .populate('createdBy', 'firstName lastName email _id')
       .populate('categoryId')
       .populate('subCategoryId')
-      .populate('mainMediaId')
-      .populate('mediaListIds')
       .lean();
 
     // Enrich with isWishListed
@@ -170,14 +214,26 @@ export class SearchService {
       }
     }
 
-    const enrichedProducts = products.map(p => {
-      const productId = String(p._id);
+    const enrichedProducts = products
+      .map(p => {
+        const productId = String(p._id);
 
-      return {
-        ...p,
-        isWishListed: wishListProducts.includes(productId),
-      };
-    });
+        // const filteredVariants =
+        //   p.variants?.filter(v => v.isActive === true && v.isDeleted === false) ||
+        //   [];
+        const filteredVariants =
+          p.variants?.filter(v => v.isActive === true) || [];
+
+        if (!filteredVariants.length) return null;
+
+        return {
+          ...p,
+          // variants: filteredVariants,
+          variants: filteredVariants,
+          isWishListed: wishListProducts.includes(productId),
+        };
+      })
+      .filter(Boolean);
 
     return {
       isSuccess: true,

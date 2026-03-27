@@ -2,17 +2,90 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document } from 'mongoose';
 import { PaymentStatus } from 'src/enums/paymentStatus.enum';
 import { DefaultShippingAddress } from './user.schema';
-import { NameRef } from './common.schema';
+import { MediaPreview, NameRef } from './common.schema';
 import { OrderDeliveryByStatus } from 'src/enums/orderDeliveryByStatus.enum';
 import { OrderDeliveryStatus } from 'src/enums/orderDeliveryStatus.enum';
 import { Currency } from 'src/enums/currency.enum';
+import { VariantAttribute } from './sub-schemas/product-variant.schema';
 
 export type OrderDocument = Order & Document;
+
+@Schema({ _id: false })
+export class OrderVariantSnapshot {
+  @Prop({ type: String })
+  variantId: string;
+
+  @Prop({ type: String, required: true })
+  sku: string;
+
+  @Prop({ type: [VariantAttribute] })
+  attributes: VariantAttribute[];
+
+  @Prop({ type: NameRef })
+  description: NameRef;
+
+  @Prop({ type: Number, required: true })
+  price: number;
+
+  @Prop({ type: Number, required: true })
+  discountRate: number;
+
+  @Prop({ type: Number, required: true })
+  priceAfterDiscount: number;
+
+  @Prop({ type: Number, required: true })
+  totalAmountCount: number;
+
+  @Prop({ type: Number, required: true })
+  availableCount: number;
+
+  @Prop({ type: String, enum: Object.values(Currency), required: true })
+  currency: Currency;
+
+  @Prop({ type: Boolean, required: true })
+  isActive: boolean;
+
+  @Prop({ type: Boolean, required: true })
+  isDeleted: boolean;
+
+  @Prop({ type: Boolean, required: true })
+  isAvailable: boolean;
+
+  @Prop({ type: MediaPreview })
+  mainImage: MediaPreview;
+}
+
+@Schema({ _id: false })
+export class OrderItemSnapshot {
+  @Prop({ type: mongoose.Types.ObjectId })
+  productId: mongoose.Types.ObjectId;
+
+  @Prop({ type: String, required: true })
+  variantId: string;
+
+  @Prop({ type: NameRef })
+  name: NameRef;
+
+  @Prop({ type: NameRef })
+  description: NameRef;
+
+  @Prop({ type: MediaPreview })
+  mainImage: MediaPreview;
+
+  @Prop({ type: OrderVariantSnapshot })
+  variant: OrderVariantSnapshot;
+
+  @Prop({ type: Number })
+  quantity: number;
+}
 
 @Schema({ _id: false })
 export class OrderCartItem {
   @Prop({ type: mongoose.Types.ObjectId, ref: 'Product', required: true })
   productId: mongoose.Types.ObjectId;
+
+  @Prop({ type: String, required: true })
+  variantId: string;
 
   @Prop({ required: true })
   price: number;
@@ -30,6 +103,9 @@ export const OrderCartItemSchema = SchemaFactory.createForClass(OrderCartItem);
 export class Order extends Document {
   @Prop({ type: mongoose.Types.ObjectId, ref: 'User', required: true })
   userId: mongoose.Types.ObjectId;
+
+  @Prop({ type: [OrderItemSnapshot], required: true, default: [] })
+  orderItemsSnapshots: OrderItemSnapshot[];
 
   @Prop({ type: [OrderCartItemSchema], required: true, default: [] })
   items: OrderCartItem[];
