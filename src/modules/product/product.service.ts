@@ -338,19 +338,43 @@ const products = await this.productModel
       categoryId: new Types.ObjectId(categoryId),
     };
 
-    // ✅ Get random products each request
+    // Get random products each request
     const products = await this.productModel
       .aggregate([
         { $match: findQuery },
-        { $sample: { size: Number(limit) } }, // randomize products
+
+        { $sample: { size: Number(limit) } },
+
+        // populate category
+        {
+          $lookup: {
+            from: 'categories',
+            localField: 'categoryId',
+            foreignField: '_id',
+            as: 'categoryId',
+          },
+        },
+        { $unwind: '$categoryId' },
+
+        // populate subCategory
+        {
+          $lookup: {
+            from: 'subCategories',
+            localField: 'subCategoryId',
+            foreignField: '_id',
+            as: 'subCategoryId',
+          },
+        },
+        {
+          $unwind: {
+            path: '$subCategoryId',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
       ])
       .exec();
 
     if (!products.length) {
-      // throw new NotFoundException(
-      //   getMessage('products_productsNotFound', lang),
-      // );
-
       return {
         isSuccess: true,
         message: getMessage('products_noProductsForCategory', lang),
@@ -359,18 +383,18 @@ const products = await this.productModel
       };
     }
 
-    // ✅ Fetch wishlist for user
+    // Fetch wishlist for user
     let wishListProducts: string[] = [];
     if (userId) {
       const wishList = await this.wishListModel
         .findOne({ user: userId })
         .lean();
+
       if (wishList) {
         wishListProducts = wishList.products.map(p => p.toString());
       }
     }
 
-    // ✅ Enrich with wishlist status
     const enrichedProducts = products.map((p: any) => ({
       ...p,
       isWishListed: wishListProducts.includes(p._id.toString()),
