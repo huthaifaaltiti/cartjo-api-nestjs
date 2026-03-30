@@ -41,6 +41,12 @@ export class Cart extends Document {
   @Prop({ default: 0 })
   totalAmount: number;
 
+  @Prop({ default: 0 })
+  itemsCount: number;
+
+  @Prop({ default: 0 })
+  totalItemsCount: number;
+
   @Prop({ type: Date, default: null })
   deletedAt?: Date;
 

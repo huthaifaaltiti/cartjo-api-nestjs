@@ -290,8 +290,6 @@ const products = await this.productModel
       .populate('subCategoryId')
       .lean();
 
-    console.log({ products: products[0].variants });
-
     // Enrich with isWishListed per user
     let wishListProducts: string[] = [];
     if (userId) {

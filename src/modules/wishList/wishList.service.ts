@@ -47,6 +47,15 @@ export class WishListService {
     return product;
   };
 
+  async countActiveWishlistItems(userId: Types.ObjectId) {
+    const wishlist = await this.wishListModel
+      .findOne({ user: userId })
+      .select('products')
+      .lean();
+
+    return wishlist?.products?.length || 0;
+  }
+
   async getWishList(
     requestingUser: any,
     params: {

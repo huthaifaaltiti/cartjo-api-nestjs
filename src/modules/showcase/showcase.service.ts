@@ -244,14 +244,6 @@ export class ShowcaseService {
           strategy[showcase.type] || { typeHints: [showcase.type] },
         );
 
-        // => With aggregator
-        // const pipeline = [
-        //   { $match: productsQuery },
-        //   { $sample: { size: Number(limit) } },
-        //   { $project: { __v: 0 } },
-        // ]
-        // const products = await this.productModel.aggregate(pipeline);
-
         // => With random index
         const r = Math.random();
         let products = await this.productModel
@@ -261,6 +253,8 @@ export class ShowcaseService {
           })
           .sort({ random: 1 })
           .limit(Number(limit))
+          .populate('categoryId')
+          .populate('subCategoryId')
           .lean();
 
         if (products.length < limit) {
