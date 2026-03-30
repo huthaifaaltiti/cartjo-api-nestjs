@@ -35,6 +35,18 @@ export class CartService {
     return product;
   }
 
+  async countActiveCartItems(user: any) {
+    const cart = await this.cartModel
+      .findOne({ userId: user.userId })
+      .select('items')
+      .lean();
+
+    if (!cart?.items?.length) return 0;
+
+    // total quantity (matches totalItemsCount logic)
+    return cart.items.reduce((sum, item) => sum + (item.quantity || 0), 0);
+  }
+
   async getCart(
     requestingUser: any,
     params: {
@@ -60,7 +72,6 @@ export class CartService {
         userId: requestingUser.userId,
         createdBy: requestingUser.userId,
       });
-
       cart = newCart.toObject();
     }
 
@@ -76,42 +87,55 @@ export class CartService {
       };
     }
 
-    const productIds = cart.items.map(i => i.productId);
+    const productIds = cart.items.map(i => new Types.ObjectId(i.productId));
 
-    const query: any = {
+    // Base query — used for total count (no lastId filter)
+    const baseQuery: any = {
       _id: { $in: productIds },
       isDeleted: { $ne: true },
       isActive: true,
     };
 
     if (search) {
-      query.$or = [
+      baseQuery.$or = [
         { 'name.en': new RegExp(search, 'i') },
         { 'name.ar': new RegExp(search, 'i') },
       ];
     }
 
+    // Total count is always based on the full cart, no pagination filter
+    const totalItemsCount = await this.productModel.countDocuments(baseQuery);
+
+    // Paginated fetch query adds lastId on top of base
+    const fetchQuery: any = {
+      ...baseQuery,
+      _id: { ...baseQuery._id },
+    };
+
     if (lastId) {
-      query._id.$lt = new Types.ObjectId(lastId);
+      fetchQuery._id.$lt = new Types.ObjectId(lastId);
     }
 
-    const totalItemsCount = await this.productModel.countDocuments(query);
-
     const products = await this.productModel
-      .find(query)
+      .find(fetchQuery)
       .sort({ _id: -1 })
       .limit(Number(limit))
       .populate('categoryId', 'slug _id')
       .populate('subCategoryId', 'slug _id')
       .lean();
 
-    const enrichedItems = cart.items
-      .map(cartItem => {
-        const product = products.find(
-          p => p._id.toString() === cartItem.productId.toString(),
+    //
+
+    // After fetching products (already sorted by _id: -1),
+    // build enrichedItems in the SAME order as products, not cart.items order
+
+    const enrichedItems = products
+      .map(product => {
+        const cartItem = cart.items.find(
+          i => i.productId.toString() === product._id.toString(),
         );
 
-        if (!product) return null;
+        if (!cartItem) return null;
 
         const variant = product.variants.find(
           v => v.variantId === cartItem.variantId,
@@ -201,6 +225,8 @@ export class CartService {
           },
         ],
         totalAmount: price * quantity,
+        itemsCount: 1,
+        totalItemsCount: 1,
       });
     } else {
       const existingItem = cart.items.find(
@@ -227,7 +253,8 @@ export class CartService {
         (sum, i) => sum + i.quantity * i.price,
         0,
       );
-
+      cart.itemsCount = cart.items.length;
+      cart.totalItemsCount = cart.items.reduce((sum, i) => sum + i.quantity, 0);
       cart.updatedBy = requestingUser.userId;
 
       await cart.save();
@@ -275,7 +302,8 @@ export class CartService {
       (sum, i) => sum + i.quantity * i.price,
       0,
     );
-
+    cart.totalItemsCount = cart.items.reduce((sum, i) => sum + i.quantity, 0);
+    cart.itemsCount = cart.items.length;
     cart.updatedBy = requestingUser.userId;
 
     await cart.save();
@@ -303,6 +331,8 @@ export class CartService {
 
     cart.items = [];
     cart.totalAmount = 0;
+    cart.itemsCount = 0;
+    cart.totalItemsCount = 0;
     cart.updatedBy = userId;
 
     await cart.save();
@@ -357,6 +387,8 @@ export class CartService {
 
     cart.items = [];
     cart.totalAmount = 0;
+    cart.itemsCount = 0;
+    cart.totalItemsCount = 0;
 
     await cart.save();
 
