@@ -39,7 +39,7 @@ export class MediaService {
     @InjectConnection() private connection: Connection,
     private configService: ConfigService,
   ) {
-    this.region = this.configService.get<string>('AWS_S3_REGION');
+    this.region = this.configService.get<string>('AWS_REGION');
     this.bucketName = this.configService.get<string>('AWS_S3_BUCKET_NAME');
 
     this.s3Client = new S3Client({
