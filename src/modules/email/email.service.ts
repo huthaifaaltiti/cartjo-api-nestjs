@@ -52,7 +52,7 @@ export class EmailService implements OnModuleInit {
       Logger.log(`✅ Ethereal account created: ${testAccount.user}`);
     } else {
       this.ses = new SESv2Client({
-        region: process.env.AWS_REGION!,
+        region: process.env.AWS_SES_REGION!,
         credentials: {
           accessKeyId: process.env.AWS_SES_ACCESS_KEY!,
           secretAccessKey: process.env.AWS_SES_SECRET_KEY!,
