@@ -22,7 +22,7 @@ export class EmailLog {
   })
   status: EmailSendingStatus;
 
-  @Prop({ enum: EmailSendingProvider, default: EmailSendingProvider.SENDGRID })
+  @Prop({ enum: EmailSendingProvider, default: EmailSendingProvider.SES })
   provider: EmailSendingProvider;
 
   @Prop()

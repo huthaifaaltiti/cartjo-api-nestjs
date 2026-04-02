@@ -4,7 +4,6 @@ import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { Model } from 'mongoose';
 import * as nodemailer from 'nodemailer';
-import * as sgMail from '@sendgrid/mail';
 import {
   EmailTemplate,
   EmailTemplateDocument,
@@ -17,11 +16,14 @@ import { EmailLogService } from './EmailLogService.service';
 import { EmailSendingStatus } from 'src/enums/emailSendingStatus.enum';
 import { EmailTemplates } from 'src/enums/emailTemplates.enum';
 import { getEmailFromMapping } from 'src/common/utils/getEmailFromMapping';
+import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
+import { EmailSendingProvider } from 'src/enums/emailSendingProvider.enum';
 
 @Injectable()
 export class EmailService implements OnModuleInit {
   private readonly isDev: boolean;
   private transporter: nodemailer.Transporter | null = null;
+  private ses: SESv2Client;
 
   constructor(
     @InjectModel(EmailTemplate.name)
@@ -49,12 +51,21 @@ export class EmailService implements OnModuleInit {
 
       Logger.log(`✅ Ethereal account created: ${testAccount.user}`);
     } else {
-      if (!process.env.SENDGRID_API_KEY) {
-        Logger.error('❌ SENDGRID_API_KEY is missing');
-        return;
-      }
+      this.ses = new SESv2Client({
+        region: process.env.AWS_SES_REGION!,
+        credentials: {
+          accessKeyId: process.env.AWS_SES_ACCESS_KEY!,
+          secretAccessKey: process.env.AWS_SES_SECRET_KEY!,
+        },
+      });
 
-      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+      this.transporter = nodemailer.createTransport({
+        SES: {
+          sesClient: this.ses,
+          SendEmailCommand,
+        },
+      });
+
       Logger.log('✅ SendGrid API initialized');
     }
   }
@@ -112,6 +123,7 @@ export class EmailService implements OnModuleInit {
       template: templateName,
       subject,
       status: EmailSendingStatus.QUEUED,
+      provider: EmailSendingProvider.SES,
     });
 
     await this.sendEmail(to, subject, html, log?._id?.toString(), templateName);
@@ -143,45 +155,16 @@ export class EmailService implements OnModuleInit {
         Logger.log(`📨 DEV email sent to ${to}`);
         Logger.log(`🔗 Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
       } else {
-        const [response] = await sgMail.send({
+        const info = await this.transporter.sendMail({
           to,
           from: emailFrom,
           subject,
           html,
         });
 
-        /*
-        response: Response {
-          statusCode: 202,
-          body: '',
-          headers: Object [AxiosHeaders] {
-          date: 'Tue, 16 Dec 2025 06:37:51 GMT',
-          'content-length': '0',
-          connection: 'keep-alive',
-          server: 'nginx',
-          'x-message-id': 'vxHisR_1TwyLYt2wVcNlfw',
-          'access-control-allow-origin': 'https://sendgrid.    api-docs.io',
-          'access-control-allow-methods': 'POST',
-          'access-control-allow-headers': 'Authorization,     Content-Type, On-behalf-of, x-sg-elas-acl',
-          'access-control-max-age': '600',
-          'x-no-cors-reason': 'https://sendgrid.com/docs/    Classroom/Basics/API/cors.html',
-          'strict-transport-security': 'max-age=31536000;     includeSubDomains',
-          'content-security-policy': "frame-ancestors 'none'",
-          'cache-control': 'no-cache',
-          'x-content-type-options': 'no-sniff',
-          'referrer-policy': 'strict-origin-when-cross-origin'
-         }
-        }
-        */
+        if (info.messageId) await this.emailLogService.markSent(logId, info.messageId);
 
-        if (response.statusCode === 202) {
-          await this.emailLogService.markSent(
-            logId,
-            response.headers['x-message-id'],
-          );
-
-          Logger.log(`📧 PROD email sent via SendGrid → ${to}`);
-        }
+        Logger.log(`📧 PROD email sent via SES → ${to}`);
       }
     } catch (error) {
       await this.emailLogService.markFailed(logId, error.message);
