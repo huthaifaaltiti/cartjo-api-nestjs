@@ -1,3 +1,4 @@
 export enum EmailSendingProvider {
-  SENDGRID = 'SendGrid',
+  SES = 'SES',
+  SENDGRID = 'SENDGRID',
 }
