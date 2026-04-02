@@ -56,7 +56,7 @@ export class EmailService {
         Logger.log(`✅ SMTP transporter ready`);
       }
     } catch (error) {
-      console.log({error})
+      console.log({ error });
       Logger.error('❌ Failed to initialize transporter', error);
     }
   }
@@ -143,11 +143,23 @@ export class EmailService {
       });
     }
 
-    await this.emailQueue.add(Processors.SEND_EMAIL, {
-      to,
-      templateName,
-      templateData,
-    });
+    await this.emailQueue.add(
+      Processors.SEND_EMAIL,
+      {
+        to,
+        templateName,
+        templateData,
+      },
+      {
+        attempts: Number(process.env.EMAIL_RETRY_ATTEMPTS) || 3,
+        backoff: {
+          type: 'exponential',
+          delay: Number(process.env.EMAIL_RETRY_DELAY) || 5000,
+        },
+        removeOnComplete: true,
+        removeOnFail: false, // keep failed jobs for debugging
+      },
+    );
 
     Logger.log(`📬 Template email enqueued for ${to}`);
   }
