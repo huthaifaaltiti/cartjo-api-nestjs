@@ -6,6 +6,7 @@ import { Gender } from 'src/enums/gender.enum';
 import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
 import { NATIONALITY_CODES } from 'src/common/constants/nationalities';
 import { MediaPreview } from './common.schema';
+import { VerificationChannelType } from 'src/enums/VerificationChannelType.enum';
 
 export type UserDocument = User &
   Document & {
@@ -30,6 +31,21 @@ export class DefaultShippingAddress {
   building?: string;
   additionalInfo?: string;
   location?: { lat: number; lng: number; name: string };
+}
+
+export class VerificationChannel {
+  @Prop({
+    type: String,
+    enum: Object.values(VerificationChannelType),
+    required: true,
+  })
+  channel: VerificationChannelType;
+
+  @Prop({ default: Date.now })
+  verifiedAt: Date;
+
+  @Prop({ required: false })
+  externalId?: string;
 }
 
 @Schema({ collection: 'users', timestamps: true })
@@ -71,15 +87,10 @@ export class User extends Document {
 
   @Prop({
     type: String,
-    required: false,
-    default: 'local',
-    enum: ['local', 'google'],
+    enum: Object.values(VerificationChannelType),
+    default: VerificationChannelType.EMAIL,
   })
-  authProvider: {
-    type: String;
-    enum: ['local', 'google'];
-    default: 'local';
-  };
+  authProvider: VerificationChannelType;
 
   @Prop({
     type: String,
@@ -92,6 +103,13 @@ export class User extends Document {
 
   @Prop({ default: false })
   isPhoneVerified: boolean;
+
+  @Prop({
+    type: [VerificationChannel],
+    _id: false,
+    default: [],
+  })
+  verificationChannels: VerificationChannel[];
 
   @Prop({ required: false })
   birthDate?: Date;

@@ -36,6 +36,7 @@ import { OAuth2Client } from 'google-auth-library';
 import { Response } from 'express';
 import { AuthJwtService } from '../auth-jwt/auth-jwt.service';
 import { buildGoogleOAuthConfig } from 'src/configs/google-oauth.config';
+import { VerificationChannelType } from 'src/enums/VerificationChannelType.enum';
 
 @Injectable()
 export class AuthService {
@@ -154,6 +155,8 @@ export class AuthService {
         permissions,
         profilePic: newProfilePic,
         preferredLang,
+        authProvider: VerificationChannelType.EMAIL,
+        verificationChannels: [],
       };
 
       const emailVerificationToken = randomBytes(32).toString('hex');
@@ -230,6 +233,16 @@ export class AuthService {
     user.isEmailVerified = true;
     user.emailVerificationToken = null;
     user.emailVerificationTokenExpires = null;
+
+    const hasEmailChannel = user.verificationChannels.some(
+      v => v.channel === VerificationChannelType.EMAIL,
+    );
+    if (!hasEmailChannel) {
+      user.verificationChannels.push({
+        channel: VerificationChannelType.EMAIL,
+        verifiedAt: new Date(),
+      });
+    }
 
     if (user.email && user.isEmailVerified) {
       const prefLang = user?.preferredLang || PreferredLanguage.ARABIC;
@@ -522,9 +535,28 @@ export class AuthService {
             : PreferredLanguage.ENGLISH,
           termsAccepted: true,
           marketingEmails: false,
-          authProvider: 'google',
+          authProvider: VerificationChannelType.GOOGLE,
+          verificationChannels: [
+            {
+              channel: VerificationChannelType.GOOGLE,
+              verifiedAt: new Date(),
+              externalId: payload.sub, // The unique Google User ID
+            },
+          ],
           createdBy: process.env.DB_SYSTEM_OBJ_ID,
           profilePic: picture ? { url: picture } : undefined,
+        });
+
+        // Registration Email (Verified by Google)
+        this.emailService.sendTemplateEmail({
+          to: user.email,
+          templateName: EmailTemplates.EMAIL_IS_VERIFIED,
+          prefLang: user.preferredLang || PreferredLanguage.ARABIC,
+          templateData: {
+            firstName: user.firstName,
+            appURL: `${getAppUrl()}/${user.preferredLang || PreferredLanguage.ARABIC}`,
+            ...commonEmailTemplateData(),
+          },
         });
       }
 
