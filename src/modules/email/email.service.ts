@@ -19,9 +19,12 @@ import { getEmailFromMapping } from 'src/common/utils/getEmailFromMapping';
 import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
 import { EmailSendingProvider } from 'src/enums/emailSendingProvider.enum';
 
+type DevEmailProvider = 'ethereal' | 'ses';
+
 @Injectable()
 export class EmailService implements OnModuleInit {
   private readonly isDev: boolean;
+  private readonly devEmailProvider: DevEmailProvider;
   private transporter: nodemailer.Transporter | null = null;
   private ses: SESv2Client;
 
@@ -33,41 +36,53 @@ export class EmailService implements OnModuleInit {
     private readonly emailLogService: EmailLogService,
   ) {
     this.isDev = process.env.NODE_ENV === AppEnvironments.DEVELOPMENT;
+    this.devEmailProvider =
+      (process.env.DEV_EMAIL_PROVIDER as DevEmailProvider) || 'ses';
   }
 
   async onModuleInit() {
-    if (this.isDev) {
-      const testAccount = await nodemailer.createTestAccount();
+    if (this.isDev && this.devEmailProvider === 'ethereal') {
+      // const testAccount = await nodemailer.createTestAccount();
 
       this.transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST_DIV_ENV,
         port: Number(process.env.SMTP_PORT_DIV_ENV),
         secure: false,
         auth: {
-          user: testAccount.user,
-          pass: testAccount.pass,
+          // user: testAccount.user,
+          user: process.env.SMTP_USER_DIV_ENV,
+          // pass: testAccount.pass,
+          pass: process.env.SMTP_PASS_DIV_ENV,
         },
       });
 
-      Logger.log(`✅ Ethereal account created: ${testAccount.user}`);
-    } else {
-      this.ses = new SESv2Client({
-        region: process.env.AWS_SES_REGION!,
-        credentials: {
-          accessKeyId: process.env.AWS_SES_ACCESS_KEY!,
-          secretAccessKey: process.env.AWS_SES_SECRET_KEY!,
-        },
-      });
-
-      this.transporter = nodemailer.createTransport({
-        SES: {
-          sesClient: this.ses,
-          SendEmailCommand,
-        },
-      });
-
-      Logger.log('✅ SendGrid API initialized');
+      Logger.log(
+        `✅ Ethereal transporter initialized (dev): ${process.env.SMTP_USER_DIV_ENV}`,
+      );
+      return;
     }
+
+    // SES
+    this.ses = new SESv2Client({
+      region: process.env.AWS_SES_REGION!,
+      credentials: {
+        accessKeyId: process.env.AWS_SES_ACCESS_KEY!,
+        secretAccessKey: process.env.AWS_SES_SECRET_KEY!,
+      },
+    });
+
+    this.transporter = nodemailer.createTransport({
+      SES: {
+        sesClient: this.ses,
+        SendEmailCommand,
+      },
+    });
+
+    Logger.log(
+      this.isDev
+        ? '✅ SES transporter initialized (dev)'
+        : '✅ SES transporter initialized (prod)',
+    );
   }
 
   private getEmailFrom(templateName: EmailTemplates): string {
@@ -136,39 +151,36 @@ export class EmailService implements OnModuleInit {
     logId: string,
     templateName: EmailTemplates,
   ) {
-    const emailFrom = this.getEmailFrom(templateName);
+    if (!this.transporter) {
+      Logger.error('❌ Transporter not initialized');
+      return;
+    }
+
+    const emailFrom =
+      this.isDev && this.devEmailProvider === 'ethereal'
+        ? 'CartJO <dev@cartjo.com>'
+        : this.getEmailFrom(templateName);
 
     try {
-      if (this.isDev) {
-        if (!this.transporter) {
-          Logger.error('❌ Dev transporter not initialized');
-          return;
-        }
+      const info = await this.transporter.sendMail({
+        from: emailFrom,
+        to,
+        subject,
+        html,
+      });
 
-        const info = await this.transporter.sendMail({
-          from: 'CartJO <dev@cartjo.com>',
-          to,
-          subject,
-          html,
-        });
+      if (info.messageId) {
+        await this.emailLogService.markSent(logId, info.messageId);
+      }
 
+      if (this.isDev && this.devEmailProvider === 'ethereal') {
         Logger.log(`📨 DEV email sent to ${to}`);
         Logger.log(`🔗 Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
       } else {
-        const info = await this.transporter.sendMail({
-          to,
-          from: emailFrom,
-          subject,
-          html,
-        });
-
-        if (info.messageId) await this.emailLogService.markSent(logId, info.messageId);
-
-        Logger.log(`📧 PROD email sent via SES → ${to}`);
+        Logger.log(`📧 Email sent via SES → ${to}`);
       }
     } catch (error) {
-      await this.emailLogService.markFailed(logId, error.message);
-
+      await this.emailLogService.markFailed(logId, (error as Error)?.message);
       Logger.error(`❌ Failed to send email to ${to}`, error);
     }
   }

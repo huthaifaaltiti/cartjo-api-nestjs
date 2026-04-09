@@ -37,6 +37,11 @@ import { Response } from 'express';
 import { AuthJwtService } from '../auth-jwt/auth-jwt.service';
 import { buildGoogleOAuthConfig } from 'src/configs/google-oauth.config';
 import { VerificationChannelType } from 'src/enums/VerificationChannelType.enum';
+import {
+  isPhoneNumberLike,
+  normalizePhoneNumber,
+} from 'src/common/utils/normalizePhoneNumber';
+import { COUNTRY_CONFIGS } from 'src/configs/countryPhone.config';
 
 @Injectable()
 export class AuthService {
@@ -321,12 +326,29 @@ export class AuthService {
   async forgotPassword(dto: ForgotPasswordBodyDto): Promise<BaseResponse> {
     const { identifier, lang } = dto;
 
+    let phoneQuery = {};
+
+    if (isPhoneNumberLike(String(identifier), COUNTRY_CONFIGS.JO)) {
+      const normalized = normalizePhoneNumber(
+        String(identifier),
+        COUNTRY_CONFIGS.JO,
+      );
+
+      // The second approach is more resilient since it doesn't care whether countryCode is 962, 00962, or +962.
+      phoneQuery = {
+        phoneNumber: normalized,
+        // Match any countryCode format that ends with the country digits
+        $expr: {
+          $regexMatch: {
+            input: '$countryCode',
+            regex: `${COUNTRY_CONFIGS.JO.countryCode}$`,
+          },
+        },
+      };
+    }
+
     const user = await this.userModel.findOne({
-      $or: [
-        { email: identifier },
-        { phoneNumber: identifier },
-        { username: identifier },
-      ],
+      $or: [{ email: identifier }, phoneQuery, { username: identifier }],
     });
 
     if (!user) {
@@ -346,29 +368,57 @@ export class AuthService {
 
     await user.save();
 
-    if (user.email) {
-      this.emailService.sendTemplateEmail({
-        to: user.email,
-        templateName: EmailTemplates.RESET_PASSWORD_CODE,
-        templateData: {
-          firstName: user.firstName,
-          resetCode,
-          ...commonEmailTemplateData(),
-        },
-        prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
-      });
-    }
+    try {
+      if (user.email) {
+        await this.emailService.sendTemplateEmail({
+          to: user.email,
+          templateName: EmailTemplates.RESET_PASSWORD_CODE,
+          templateData: {
+            firstName: user.firstName,
+            resetCode,
+            ...commonEmailTemplateData(),
+          },
+          prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
+        });
+      }
 
-    return {
-      isSuccess: true,
-      message: getMessage('authentication_resetPasswordCodeSent', lang),
-    };
+      return {
+        isSuccess: true,
+        message: getMessage('authentication_resetPasswordCodeSent', lang),
+      };
+    } catch (err) {
+      console.error('Email failed:', err);
+
+      return {
+        isSuccess: false,
+        message: getMessage('authentication_failedToSendResetCode', lang),
+      };
+    }
   }
 
   async verifyResetPasswordCode(
     dto: VerifyResetPasswordCodeBodyDto,
   ): Promise<BaseResponse> {
     const { identifier, code, lang } = dto;
+
+    let phoneQuery = {};
+
+    if (isPhoneNumberLike(String(identifier), COUNTRY_CONFIGS.JO)) {
+      const normalized = normalizePhoneNumber(
+        String(identifier),
+        COUNTRY_CONFIGS.JO,
+      );
+
+      phoneQuery = {
+        phoneNumber: normalized,
+        $expr: {
+          $regexMatch: {
+            input: '$countryCode',
+            regex: `${COUNTRY_CONFIGS.JO.countryCode}$`,
+          },
+        },
+      };
+    }
 
     if (!code) {
       throw new BadRequestException(
@@ -377,11 +427,7 @@ export class AuthService {
     }
 
     const user = await this.userModel.findOne({
-      $or: [
-        { email: identifier },
-        { phoneNumber: identifier },
-        { username: identifier },
-      ],
+      $or: [{ email: identifier }, phoneQuery, { username: identifier }],
       resetCode: code,
     });
 
@@ -418,12 +464,27 @@ export class AuthService {
       );
     }
 
+    let phoneQuery = {};
+
+    if (isPhoneNumberLike(String(identifier), COUNTRY_CONFIGS.JO)) {
+      const normalized = normalizePhoneNumber(
+        String(identifier),
+        COUNTRY_CONFIGS.JO,
+      );
+
+      phoneQuery = {
+        phoneNumber: normalized,
+        $expr: {
+          $regexMatch: {
+            input: '$countryCode',
+            regex: `${COUNTRY_CONFIGS.JO.countryCode}$`,
+          },
+        },
+      };
+    }
+
     const user = await this.userModel.findOne({
-      $or: [
-        { email: identifier },
-        { phoneNumber: identifier },
-        { username: identifier },
-      ],
+      $or: [{ email: identifier }, phoneQuery, { username: identifier }],
       resetCode: code,
     });
 
@@ -452,16 +513,22 @@ export class AuthService {
 
     await user.save();
 
+    const prefLanguage: PreferredLanguage = Object.values(
+      PreferredLanguage,
+    ).includes(lang as PreferredLanguage)
+      ? (lang as PreferredLanguage)
+      : user?.preferredLang || PreferredLanguage.ARABIC;
+
     if (user.email) {
       this.emailService.sendTemplateEmail({
         to: user.email,
         templateName: EmailTemplates.PASSWORD_RESET_SUCCESS,
         templateData: {
           firstName: user.firstName,
-          loginUrl: `${getAppUrl()}/auth`,
+          loginUrl: `${getAppUrl()}/${prefLanguage}/auth`,
           ...commonEmailTemplateData(),
         },
-        prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
+        prefLang: prefLanguage,
       });
     }
 

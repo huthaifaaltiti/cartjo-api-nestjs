@@ -18,6 +18,7 @@
   "authentication_userNotFound": "User not found",
   "authentication_newPasswordSameAsOld": "New password cannot be the same as the old password. Try to add a new one.",
   "authentication_resetPasswordCodeSent": "Reset password code is sent successfully",
+  "authentication_failedToSendResetCode": "Failed to send reset password code",
   "authentication_currentPasswordRequired": "Current password is required",
   "authentication_invalidCurrentPassword": "Invalid Current Password",
   "authentication_passwordUsedRecently": "A Password was used previously, select a new one.",

@@ -17,6 +17,7 @@
   "authentication_notValidCode": "رمز إعادة تعيين كلمة المرور غير صالح",
   "authentication_userNotFound": "المستخدم غير موجود",
   "authentication_resetPasswordCodeSent": "تم إرسال رمز إعادة تعيين كلمة المرور بنجاح",
+  "authentication_failedToSendResetCode": "فشل إرسال رمز إعادة تعيين كلمة المرور، يرجى المحاولة لاحقًا",
   "authentication_newPasswordSameAsOld": "لا يمكن تعيين نفس كلمة المرور السابقة. حاول تعيين كلمة مرور جديدة",
   "authentication_currentPasswordRequired": "كلمة المرور الحالية مطلوبة.",
   "authentication_invalidCurrentPassword": "كلمة المرور الحالية غير صحيحة.",
