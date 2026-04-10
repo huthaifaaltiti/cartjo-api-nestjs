@@ -26,6 +26,10 @@ import { getMessage } from 'src/common/utils/translator';
 import { MediaPreview } from 'src/schemas/common.schema';
 import { GetActiveOnesQueryDto } from './dto/get-active-ones.dto';
 import { MEDIA_CONFIG } from 'src/configs/media.config';
+import { AppConfigService } from '../appConfig/appConfig.service';
+import { HistoryService } from '../history/history.service';
+import { LogModule } from 'src/enums/logModules.enum';
+import { LogAction } from 'src/enums/LogAction.enum';
 import { SubCategoryService } from '../subCategory/subCategory.service';
 
 @Injectable()
@@ -34,6 +38,8 @@ export class CategoryService {
     @InjectModel(Category.name)
     private categoryModel: Model<CategoryDocument>,
     private mediaService: MediaService,
+    private appConfigService: AppConfigService,
+    private historyService: HistoryService,
     @Inject(forwardRef(() => SubCategoryService))
     private subCategoryService: SubCategoryService,
   ) {}
@@ -92,6 +98,15 @@ export class CategoryService {
     });
 
     await category.save();
+
+    // Log history
+    await this.historyService.log(
+      LogModule.CATEGORY,
+      LogAction.CREATE,
+      requestingUser.userId,
+      null,
+      { categoryId: category._id, name: category.name },
+    );
 
     return {
       isSuccess: true,
@@ -213,6 +228,15 @@ export class CategoryService {
       { new: true },
     );
 
+    // Log history
+    await this.historyService.log(
+      LogModule.CATEGORY,
+      LogAction.UPDATE,
+      requestingUser.userId,
+      null,
+      { categoryId: id, updatedFields: updateData },
+    );
+
     return {
       isSuccess: true,
       message: getMessage('categories_categoryUpdatedSuccessfully', lang),
@@ -245,6 +269,15 @@ export class CategoryService {
 
     await category.save();
 
+    // Log history
+    await this.historyService.log(
+      LogModule.CATEGORY,
+      LogAction.DELETE,
+      requestingUser.userId,
+      null,
+      { categoryId: id, name: category.name },
+    );
+
     return {
       isSuccess: true,
       message: getMessage('categories_categoryDeletedSuccessfully', lang),
@@ -276,6 +309,15 @@ export class CategoryService {
 
     await category.save();
 
+    // Log history
+    await this.historyService.log(
+      LogModule.CATEGORY,
+      LogAction.UNDELETE,
+      requestingUser.userId,
+      null,
+      { categoryId: id, name: category.name },
+    );
+
     return {
       isSuccess: true,
       message: getMessage('categories_categoryUnDeletedSuccessfully', lang),
@@ -298,11 +340,28 @@ export class CategoryService {
       );
     }
 
+    if (!isActive) {
+      const activeCategoriesCount = await this.categoryModel.countDocuments({
+        isActive: true,
+        isDeleted: false,
+      });
+
+      if (
+        activeCategoriesCount <=
+        (this.appConfigService.config.minActiveCategories ?? 2)
+      ) {
+        throw new BadRequestException(
+          getMessage('categories_atLeastTwoCategoriesMustRemainActive', lang),
+        );
+      }
+    }
+
     if (isActive) {
       category.isDeleted = false;
       category.deletedAt = null;
     }
 
+    const prevStatus = category.isActive;
     category.isActive = isActive;
 
     await category.save();
@@ -311,6 +370,15 @@ export class CategoryService {
     if (!isActive && category.subCategories?.length) {
       await this.subCategoryService.deactivateByCategory(id, requestingUser);
     }
+
+    // Log history
+    await this.historyService.log(
+      LogModule.CATEGORY,
+      isActive ? LogAction.ACTIVATE : LogAction.DEACTIVATE,
+      requestingUser.userId,
+      null,
+      { categoryId: id, prevStatus, newStatus: isActive },
+    );
 
     return {
       isSuccess: true,
@@ -367,6 +435,7 @@ export class CategoryService {
     const findQuery = {
       isActive: true,
       isDeleted: false,
+      subCategories: { $exists: true, $ne: [] }, // category must have subcategories linked
     };
 
     const categories = await this.categoryModel
@@ -375,6 +444,13 @@ export class CategoryService {
       .populate('unDeletedBy', 'firstName lastName email _id')
       .populate('createdBy', 'firstName lastName email _id')
       .populate('subCategories')
+      // .populate({
+      //   path: 'subCategories',
+      //   match: {
+      //     isActive: true,
+      //     isDeleted: false,
+      //   },
+      // })
       .limit(Number(query.limit))
       .lean();
 

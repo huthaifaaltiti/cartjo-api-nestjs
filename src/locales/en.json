@@ -81,6 +81,7 @@
   "categories_categoryImageUploadFailed": "Category image uploading failed",
   "categories_noActiveCategoriesFound": "No active categories found",
   "categories_activeCategoriesRetrievedSuccessfully": "Active categories retrieved successfully",
+  "categories_atLeastTwoCategoriesMustRemainActive": "At Least Two Categories Must Remain Active",
   "subcategories_subCategoryAlreadyExists": "SubCategory already exists",
   "subCategories_subCategoriesRetrievedSuccessfully": "SubCategories retrieved successfully",
   "subcategories_subCategoryNotFound": "SubCategory not found",
