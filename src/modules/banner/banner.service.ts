@@ -17,7 +17,6 @@ import {
 import { Locale } from 'src/types/Locale';
 import { CreateBannerDto } from './dto/create.dto';
 import { Modules } from 'src/enums/appModules.enum';
-import { activateDefaultIfAllInactive } from 'src/common/functions/helpers/activateDefaultIfAllInactive.helper';
 import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
 import { getMessage } from 'src/common/utils/translator';
 import { UpdateBannerDto } from './dto/update.dto';
@@ -26,6 +25,10 @@ import { UnDeleteDto } from './dto/unDelete.dto';
 import { MediaPreview } from 'src/schemas/common.schema';
 import { MEDIA_CONFIG } from 'src/configs/media.config';
 import { CRON_JOBS } from 'src/configs/cron.config';
+import { AppConfigService } from '../appConfig/appConfig.service';
+import { LogModule } from 'src/enums/logModules.enum';
+import { LogAction } from 'src/enums/LogAction.enum';
+import { HistoryService } from '../history/history.service';
 
 @Injectable()
 export class BannerService {
@@ -35,34 +38,102 @@ export class BannerService {
     @InjectModel(Banner.name)
     private bannerModel: Model<BannerDocument>,
     private mediaService: MediaService,
-  ) {
-    this.defaultBannerId = process.env.DEFAULT_BANNER_ID;
-  }
+    private appConfigService: AppConfigService,
+    private historyService: HistoryService,
+  ) {}
 
   @Cron(CRON_JOBS.BANNER.DEACTIVATE_EXPIRED_BANNERS)
   async deactivateExpiredBanners() {
     const now = new Date();
 
-    const result = await this.bannerModel.updateMany(
-      { isActive: true, endDate: { $lt: now } },
-      { $set: { isActive: false } },
-    );
+    try {
+      const result = await this.bannerModel.updateMany(
+        {
+          isActive: true,
+          isDeleted: false,
+          endDate: { $ne: null, $lt: now }, // ensure endDate exists & expired
+        },
+        {
+          $set: {
+            isActive: false,
+            isExpired: true,
+            updatedAt: now,
+          },
+        },
+      );
 
-    await activateDefaultIfAllInactive(this.bannerModel, this.defaultBannerId);
+      await this.activateDefaultBanner();
 
-    if (result.modifiedCount > 0) {
-      console.log(`Deactivated ${result.modifiedCount} expired banners`);
+      if (result.modifiedCount > 0) {
+        console.log(
+          `[CRON] Deactivated ${result.modifiedCount} expired banners`,
+        );
+      }
+    } catch (error) {
+      console.error('[CRON] Failed to deactivate expired banners:', error);
     }
   }
 
-  // async markExpiredBannersInactive() {
-  //   const now = new Date();
+  private computeIsExpired(endDate?: Date): boolean {
+    const now = new Date();
 
-  //   await this.bannerModel.updateMany(
-  //     { isActive: true, endDate: { $lt: now } },
-  //     { $set: { isActive: false } },
-  //   );
-  // }
+    if (!endDate) return false;
+
+    return endDate < now;
+  }
+
+  private async activateDefaultBanner() {
+    const now = new Date();
+
+    const existingDefault = await this.bannerModel.findOne({
+      isDefault: true,
+      isDeleted: false,
+      isActive: true,
+    });
+
+    if (existingDefault) return;
+
+    // 2. Find eligible banners (NO endDate, valid timing)
+    const eligibleBanners = await this.bannerModel.find({
+      isDeleted: false,
+      isExpired: { $ne: true },
+      $and: [
+        {
+          $or: [{ endDate: { $exists: false } }, { endDate: null }],
+        },
+        {
+          $or: [
+            { startDate: { $lte: now } },
+            { startDate: { $exists: false } },
+          ],
+        },
+      ],
+    });
+
+    if (!eligibleBanners.length) {
+      console.warn('[FALLBACK] No eligible banners to set as default');
+      return;
+    }
+
+    const randomBanner =
+      eligibleBanners[Math.floor(Math.random() * eligibleBanners.length)];
+
+    await this.bannerModel.updateMany(
+      { isDefault: true },
+      { $set: { isDefault: false } },
+    );
+
+    await this.bannerModel.findByIdAndUpdate(randomBanner._id, {
+      isDefault: true,
+      isActive: true,
+      isExpired: false,
+      endDate: null,
+    });
+
+    console.log(
+      `[FALLBACK] Random default banner selected: ${randomBanner._id}`,
+    );
+  }
 
   async getAll(
     requestingUser: any,
@@ -158,13 +229,12 @@ export class BannerService {
   }
 
   async getActiveOnes(lang?: Locale): Promise<DataListResponse<Banner>> {
-    // await this.markExpiredBannersInactive();
-
     const now = new Date();
 
     const findQuery = {
       isActive: true,
       isDeleted: false,
+      isExpired: false,
       $or: [
         { startDate: { $lte: now }, endDate: { $gte: now } }, // Banner started before or at the current moment  startDate <= now, banner ends after or at the current moment endDate >= now
         { startDate: { $lte: now }, endDate: { $exists: false } }, // Banner already started (startDate <= now) but it has no end date
@@ -237,17 +307,33 @@ export class BannerService {
       req,
     });
 
+    const start = startDate ? new Date(startDate) : new Date();
+    const end = endDate ? new Date(endDate) : undefined;
+
     const banner = await this.bannerModel.create({
       title: { ar: title_ar, en: title_en },
       withAction,
       link: withAction ? link : null,
       media: { ar: media_ar, en: media_en },
-      startDate: startDate ? new Date(startDate) : new Date(),
-      endDate: endDate ? new Date(endDate) : undefined,
+      startDate: start,
+      endDate: end,
       createdBy: req?.user?.userId,
+      isExpired: this.computeIsExpired(end),
       isActive: true,
       isDeleted: false,
     });
+
+    // Log
+    await this.historyService.log(
+      LogModule.BANNER,
+      LogAction.CREATE,
+      req?.user?.userId,
+      null,
+      {
+        bannerId: banner._id,
+        title: banner.title,
+      },
+    );
 
     return {
       isSuccess: true,
@@ -273,6 +359,14 @@ export class BannerService {
     if (!bannerToUpdate) {
       throw new NotFoundException(getMessage('banner_bannerNotFound', lang));
     }
+
+    if (!bannerToUpdate.isActive || bannerToUpdate.isDeleted) {
+      throw new NotFoundException(
+        getMessage('banner_cannotUpdateInActiveOrDeleted', lang),
+      );
+    }
+
+    const before = bannerToUpdate.toObject();
 
     // ---------------- Conflict Check ----------------
     const conflictQuery: any = { _id: { $ne: id }, $or: [] };
@@ -367,14 +461,16 @@ export class BannerService {
         new Date(startDate) ?? bannerToUpdate?.startDate;
     }
 
-    if (endDate) {
-      bannerToUpdate.endDate = new Date(endDate) ?? bannerToUpdate?.endDate;
-    } else {
-      bannerToUpdate.endDate = null;
+    if (endDate !== undefined) {
+      bannerToUpdate.endDate = endDate ? new Date(endDate) : null;
     }
 
+    const end = bannerToUpdate.endDate;
+
+    bannerToUpdate.isExpired = this.computeIsExpired(end);
+
     const updateData: Partial<Banner> = {
-      ...bannerToUpdate,
+      ...bannerToUpdate.toObject(),
       updatedBy: req?.user?.userId,
       updatedAt: new Date(),
     };
@@ -390,6 +486,20 @@ export class BannerService {
     if (!updatedBanner) {
       throw new NotFoundException(getMessage('banner_bannerNotFound', lang));
     }
+
+    // Log
+    await this.historyService.log(
+      LogModule.BANNER,
+      LogAction.UPDATE,
+      req?.user?.userId,
+      null,
+      {
+        bannerId: id,
+        title: updatedBanner.title,
+        before,
+        after: updatedBanner.toObject(),
+      },
+    );
 
     return {
       isSuccess: true,
@@ -413,6 +523,20 @@ export class BannerService {
       );
     }
 
+    const activeBannersCount = await this.bannerModel.countDocuments({
+      isActive: true,
+      isDeleted: false,
+      isExpired: false,
+    });
+
+    if (
+      activeBannersCount <= (this.appConfigService.config.minActiveBanners ?? 1)
+    ) {
+      throw new BadRequestException(
+        getMessage('banner_atLeastOneBannerMustRemainActive', lang),
+      );
+    }
+
     const banner = await this.bannerModel.findById(id);
 
     if (!banner) {
@@ -427,7 +551,19 @@ export class BannerService {
 
     await banner.save();
 
-    await activateDefaultIfAllInactive(this.bannerModel, this.defaultBannerId);
+    await this.activateDefaultBanner();
+
+    // Log
+    await this.historyService.log(
+      LogModule.BANNER,
+      LogAction.DELETE,
+      requestingUser.userId,
+      null,
+      {
+        bannerId: id,
+        title: banner.title,
+      },
+    );
 
     return {
       isSuccess: true,
@@ -464,7 +600,19 @@ export class BannerService {
 
     await banner.save();
 
-    await activateDefaultIfAllInactive(this.bannerModel, this.defaultBannerId);
+    await this.activateDefaultBanner();
+
+    // Log
+    await this.historyService.log(
+      LogModule.BANNER,
+      LogAction.UNDELETE,
+      requestingUser.userId,
+      null,
+      {
+        bannerId: id,
+        title: banner.title,
+      },
+    );
 
     return {
       isSuccess: true,
@@ -488,6 +636,23 @@ export class BannerService {
 
     const now = new Date();
 
+    if (!isActive) {
+      const activeBannersCount = await this.bannerModel.countDocuments({
+        isActive: true,
+        isDeleted: false,
+        isExpired: false,
+      });
+
+      if (
+        activeBannersCount <=
+        (this.appConfigService.config.minActiveBanners ?? 1)
+      ) {
+        throw new BadRequestException(
+          getMessage('banner_atLeastOneBannerMustRemainActive', lang),
+        );
+      }
+    }
+
     if (isActive) {
       if (banner.endDate && banner.endDate < now) {
         throw new BadRequestException(
@@ -509,9 +674,23 @@ export class BannerService {
       await this.unDelete(requestingUser, { lang }, id);
     }
 
+    banner.isExpired = this.computeIsExpired(banner.endDate);
+
     await banner.save();
 
-    await activateDefaultIfAllInactive(this.bannerModel, this.defaultBannerId);
+    await this.activateDefaultBanner();
+
+    // Log
+    await this.historyService.log(
+      LogModule.BANNER,
+      isActive ? LogAction.ACTIVATE : LogAction.DEACTIVATE,
+      requestingUser.userId,
+      null,
+      {
+        bannerId: id,
+        title: banner.title,
+      },
+    );
 
     return {
       isSuccess: true,
@@ -521,6 +700,80 @@ export class BannerService {
           : 'banner_bannerDeActivatedSuccessfully',
         lang,
       ),
+    };
+  }
+
+  async setAsDefault(
+    id: string,
+    lang: Locale = 'en',
+    requestingUser: any,
+  ): Promise<BaseResponse> {
+    validateUserRoleAccess(requestingUser, lang);
+
+    const banner = await this.bannerModel.findById(id);
+
+    if (!banner) {
+      throw new NotFoundException(getMessage('banner_bannerNotFound', lang));
+    }
+
+    if (banner.isDeleted) {
+      throw new BadRequestException(
+        getMessage('banner_cannotSetDeletedAsDefault', lang),
+      );
+    }
+
+    const now = new Date();
+
+    // Prevent banners with endDate (interval banners)
+    if (banner.endDate) {
+      throw new BadRequestException(
+        getMessage('banner_defaultMustNotHaveEndDate', lang),
+      );
+    }
+
+    // Prevent banners that haven't started yet
+    if (banner.startDate && banner.startDate > now) {
+      throw new BadRequestException(
+        getMessage('banner_defaultCannotBeFuture', lang),
+      );
+    }
+
+    // Prevent expired banners
+    if (banner.isExpired || (banner.endDate && banner.endDate < now)) {
+      throw new BadRequestException(
+        getMessage('banner_cannotSetExpiredAsDefault', lang),
+      );
+    }
+
+    // only one default allowed
+    await this.bannerModel.updateMany(
+      { isDefault: true },
+      { $set: { isDefault: false } },
+    );
+
+    // Set the new default — always active, no expiry
+    await this.bannerModel.findByIdAndUpdate(id, {
+      isDefault: true,
+      isActive: true,
+      isExpired: false,
+      endDate: null, // default banners never expire
+    });
+
+    // Log
+    await this.historyService.log(
+      LogModule.BANNER,
+      LogAction.SET_DEFAULT,
+      requestingUser.userId,
+      null,
+      {
+        bannerId: id,
+        title: banner.title,
+      },
+    );
+
+    return {
+      isSuccess: true,
+      message: getMessage('banner_bannerSetAsDefaultSuccessfully', lang),
     };
   }
 }

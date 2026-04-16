@@ -43,7 +43,13 @@ export class Banner {
   isActive: boolean;
 
   @Prop({ default: false })
+  isExpired: boolean;
+
+  @Prop({ default: false })
   isDeleted: boolean;
+
+  @Prop({ default: false })
+  isDefault: boolean;
 
   @Prop({ type: Date, default: null })
   deletedAt?: Date;

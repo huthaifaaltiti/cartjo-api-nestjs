@@ -1,4 +1,10 @@
 export const ApiPaths = {
+  AppConfig: {
+    Root: '/api/v1/app-config',
+    Update: 'update',
+    Refresh: 'refresh',
+    GetAll: 'all',
+  },
   Authentication: {
     Root: 'api/v1/authentication',
     Register: 'register',
@@ -27,6 +33,7 @@ export const ApiPaths = {
     Delete: 'delete/:id',
     UnDelete: 'un-delete/:id',
     UpdateStatus: 'status/:id',
+    SetDefault: 'set-default/:id',
   },
   Category: {
     Root: '/api/v1/category',

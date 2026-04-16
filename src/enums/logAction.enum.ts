@@ -5,6 +5,7 @@ export enum LogAction {
   UNDELETE = 'undelete',
   ACTIVATE = 'activate',
   DEACTIVATE = 'deactivate',
+  SET_DEFAULT = 'set_default',
   LOGIN = 'login',
   LOGOUT = 'logout',
   IMPORT = 'import',

@@ -151,4 +151,18 @@ export class BannerController {
 
     return this.bannerService.updateStatus(id, isActive, lang, user);
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Put(ApiPaths.Banner.SetDefault)
+  async setDefault(
+    @Param() param: UpdateStatusParamsDto,
+    @Body() body: Partial<UpdateStatusBodyDto>,
+    @Request() req: any,
+  ) {
+    const { lang } = body;
+    const { user } = req;
+    const { id } = param;
+
+    return this.bannerService.setAsDefault(id, lang, user);
+  }
 }
