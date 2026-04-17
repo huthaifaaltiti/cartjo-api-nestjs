@@ -18,6 +18,13 @@ export class AppConfig {
     min: 1,
   })
   minActiveBanners: number;
+
+  @Prop({
+    type: Number,
+    default: 1,
+    min: 1,
+  })
+  minActiveLogos: number;
 }
 
 export const AppConfigSchema = SchemaFactory.createForClass(AppConfig);

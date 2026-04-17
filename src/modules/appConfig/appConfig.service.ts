@@ -29,6 +29,7 @@ export class AppConfigService implements OnModuleInit {
       config = await this.appConfigModel.create({
         minActiveCategories: 2,
         minActiveBanners: 1,
+        minActiveLogos: 1,
       });
     }
 

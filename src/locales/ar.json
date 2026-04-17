@@ -155,6 +155,8 @@
   "logo_noActiveLogoFound": "لم يتم العثور على الشعار الفعال",
   "logo_activeLogoRetrievedSuccessfully": "تم استرداد الشعار الفعال بنجاح",
   "logo_shouldHasImage": "يجب أن يحتوي الشعار على صورة",
+  "logo_cannotSetDeletedAsDefault": "لا يمكن تعيين شعار محذوف كافتراضي",
+  "logo_cannotActivateDeletedLogo": "لا يمكن تفعيل الشعار المحذوف",
   "banner_bannersRetrievedSuccessfully": "تم استرداد اللافتات بنجاح",
   "banner_noActiveBannerFound": "لم يتم العثور على اللافتة الفعالة",
   "banner_activeBannerRetrievedSuccessfully": "تم استرداد اللافتة الفعالة بنجاح",
