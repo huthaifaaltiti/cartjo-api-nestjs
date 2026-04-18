@@ -11,6 +11,7 @@ import { ShowcaseModule } from '../showcase/showcase.module';
 import { TypeHintsSeeder } from 'src/database/seeders/type-hints.seeder';
 import { ShowCase, ShowCaseSchema } from 'src/schemas/showcase.schema';
 import { Product, ProductSchema } from 'src/schemas/product.schema';
+import { HistoryModule } from '../history/history.module';
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -20,6 +21,7 @@ import { Product, ProductSchema } from 'src/schemas/product.schema';
     ]),
     forwardRef(() => ProductModule),
     forwardRef(() => ShowcaseModule),
+    HistoryModule,
   ],
   providers: [TypeHintConfigService, TypeHintsSeeder],
   controllers: [TypeHintConfigController],

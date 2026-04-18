@@ -9,4 +9,5 @@ export enum LogModule {
   USER = 'user',
   ORDER = 'order',
   CONFIG = 'config',
+  TYPE_HINT_CONFIG = 'typeHintConfig',
 }

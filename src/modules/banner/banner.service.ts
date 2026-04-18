@@ -465,6 +465,14 @@ export class BannerService {
       bannerToUpdate.endDate = endDate ? new Date(endDate) : null;
     }
 
+    if (startDate && endDate) {
+      if (new Date(endDate) < new Date(startDate)) {
+        throw new BadRequestException(
+          getMessage('banner_endDateMustBeAfterStartDate', dto.lang),
+        );
+      }
+    }
+
     const end = bannerToUpdate.endDate;
 
     bannerToUpdate.isExpired = this.computeIsExpired(end);

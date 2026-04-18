@@ -21,7 +21,6 @@ import {
   DataListResponse,
   DataResponse,
 } from 'src/types/service-response.type';
-import { deactivateExpiredDocs } from 'src/common/functions/helpers/deactivateExpiredDocs';
 import { GetAllQueryDto } from './dto/get-all.dto';
 import { UpdateDto } from './dto/update.dto';
 import { DeleteDto } from './dto/delete.dto';
@@ -36,6 +35,9 @@ import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
 import { CRON_JOBS } from 'src/configs/cron.config';
 import { ShowCase, ShowCaseDocument } from 'src/schemas/showcase.schema';
 import { Product, ProductDocument } from 'src/schemas/product.schema';
+import { HistoryService } from '../history/history.service';
+import { LogModule } from 'src/enums/logModules.enum';
+import { LogAction } from 'src/enums/LogAction.enum';
 
 export class TypeHintConfigService {
   private SYSTEM_TYPE_KEYS = SYSTEM_TYPE_HINTS.map(hint => hint.key);
@@ -55,11 +57,49 @@ export class TypeHintConfigService {
 
     @Inject(forwardRef(() => ShowcaseService))
     private showcaseService: ShowcaseService,
+
+    private historyService: HistoryService,
   ) {}
 
   @Cron(CRON_JOBS.TYPE_HINT.DEACTIVATE_EXPIRED_TYPE_HINTS)
   async deactivateExpiredTypeHintConfigs() {
-    await deactivateExpiredDocs(this.typeHintConfigModel);
+    const now = new Date();
+
+    try {
+      const result = await this.typeHintConfigModel.updateMany(
+        {
+          isActive: true,
+          isDeleted: false,
+          endDate: { $ne: null, $lt: now }, // ensure endDate exists & expired
+        },
+        {
+          $set: {
+            isActive: false,
+            isExpired: true,
+            updatedAt: now,
+          },
+        },
+      );
+
+      if (result.modifiedCount > 0) {
+        console.log(
+          `[CRON] Deactivated ${result.modifiedCount} expired type-Hint Config`,
+        );
+      }
+    } catch (error) {
+      console.error(
+        '[CRON] Failed to deactivate expired type-Hint Configs:',
+        error,
+      );
+    }
+  }
+
+  private computeIsExpired(endDate?: Date): boolean {
+    const now = new Date();
+
+    if (!endDate) return false;
+
+    return endDate < now;
   }
 
   async getAll(
@@ -156,6 +196,7 @@ export class TypeHintConfigService {
     const findQuery = {
       isActive: true,
       isDeleted: false,
+      isExpired: false,
       $or: [
         { startDate: { $lte: now }, endDate: { $gte: now } }, // Banner started before or at the current moment  startDate <= now, banner ends after or at the current moment endDate >= now
         { startDate: { $lte: now }, endDate: null }, // Banner already started (startDate <= now) but it has no end date
@@ -258,18 +299,34 @@ export class TypeHintConfigService {
       );
     }
 
+    const start = startDate ? new Date(startDate) : new Date();
+    const end = endDate ? new Date(endDate) : undefined;
+
     const typeHintData = {
       key,
       label: { ar: label_ar, en: label_en },
       priority,
-      startDate: startDate ? new Date(startDate) : null,
-      endDate: endDate ? new Date(endDate) : null,
+      startDate: start,
+      endDate: end,
       isActive: true,
       isDeleted: false,
-      createdBy: reqUser?._id || null,
+      isExpired: this.computeIsExpired(end),
+      createdBy: reqUser?.userId || null,
     };
 
     const typeHint = await this.typeHintConfigModel.create(typeHintData);
+
+    // Log
+    await this.historyService.log(
+      LogModule.TYPE_HINT_CONFIG,
+      LogAction.CREATE,
+      reqUser?.userId,
+      null,
+      {
+        typeHintConfigId: typeHint._id,
+        title: typeHint.label,
+      },
+    );
 
     return {
       isSuccess: true,
@@ -280,114 +337,6 @@ export class TypeHintConfigService {
       data: typeHint.toObject(),
     };
   }
-
-  // async update(
-  //   reqUser: any,
-  //   dto: UpdateDto,
-  //   id: mongoose.Types.ObjectId,
-  // ): Promise<DataResponse<TypeHintConfig>> {
-  //   validateUserRoleAccess(reqUser, dto.lang);
-
-  //   if (!Types.ObjectId.isValid(id)) {
-  //     throw new NotFoundException(
-  //       getMessage('typeHintConfig_invalidBannerId', dto.lang),
-  //     );
-  //   }
-
-  //   const typeHintConfig = await this.typeHintConfigModel.findById(id);
-
-  //   if (!typeHintConfig || typeHintConfig.isDeleted) {
-  //     throw new NotFoundException(
-  //       getMessage('typeHintConfig_typeHintConfigNotFound', dto.lang),
-  //     );
-  //   }
-
-  //   // prevent updating system's type-hints
-  //   if (typeHintConfig.isSystem) {
-  //     throw new BadRequestException(
-  //       getMessage('typeHintConfig_cannotChangeSystemKey', dto.lang),
-  //     );
-  //   }
-
-  //   let key = typeHintConfig.key;
-
-  //   if (dto.label_en) {
-  //     key = slugify(dto.label_en, { lower: true });
-  //   }
-
-  //   if (key) {
-  //     if (
-  //       this.SYSTEM_TYPE_KEYS.includes(typeHintConfig.key as SystemTypeHints)
-  //     ) {
-  //       throw new BadRequestException(
-  //         getMessage('typeHintConfig_cannotUpdateDefaultKeys', dto.lang),
-  //       );
-  //     }
-
-  //     typeHintConfig.key = key || typeHintConfig?.key;
-  //   }
-
-  //   // Check for conflicts on title if updated
-  //   if (
-  //     (dto.label_ar && dto.label_ar !== typeHintConfig.label.ar) ||
-  //     (dto.label_en && dto.label_en !== typeHintConfig.label.en)
-  //   ) {
-  //     const newKey = slugify(dto.label_en, { lower: true });
-  //     const conflict = await this.typeHintConfigModel.findOne({
-  //       _id: { $ne: id },
-  //       $or: [
-  //         { key: newKey },
-  //         { 'label.ar': dto.label_ar },
-  //         { 'label.en': dto.label_en },
-  //       ],
-  //       isDeleted: false,
-  //     });
-
-  //     if (conflict) {
-  //       throw new BadRequestException(
-  //         getMessage(
-  //           'typeHintConfig_typeHintConfigWithThisDetailsAlreadyExist',
-  //           dto.lang,
-  //         ),
-  //       );
-  //     }
-
-  //     key = newKey;
-  //   }
-
-  //   if (dto.label_ar || dto.label_en) {
-  //     typeHintConfig.label = {
-  //       ar: dto.label_ar || typeHintConfig.label.ar,
-  //       en: dto.label_en || typeHintConfig.label.en,
-  //     };
-  //   }
-
-  //   if (dto.priority) {
-  //     typeHintConfig.priority = dto.priority || typeHintConfig.priority;
-  //   }
-
-  //   if (dto.startDate) {
-  //     typeHintConfig.startDate = new Date(dto.startDate);
-  //   }
-
-  //   if (dto.endDate) {
-  //     typeHintConfig.endDate = new Date(dto.endDate);
-  //   }
-
-  //   typeHintConfig.updatedAt = new Date();
-  //   typeHintConfig.updatedBy = reqUser?.userId;
-
-  //   await typeHintConfig.save();
-
-  //   return {
-  //     isSuccess: true,
-  //     message: getMessage(
-  //       'typeHintConfig_typeHintConfigUpdatedSuccessfully',
-  //       dto.lang,
-  //     ),
-  //     data: typeHintConfig.toObject(),
-  //   };
-  // }
 
   async update(
     reqUser: any,
@@ -404,27 +353,47 @@ export class TypeHintConfigService {
 
     const typeHintConfig = await this.typeHintConfigModel.findById(id);
 
-    if (!typeHintConfig || typeHintConfig.isDeleted) {
+    console.log({ typeHintConfig });
+
+    // notFound config
+    if (!typeHintConfig) {
       throw new NotFoundException(
         getMessage('typeHintConfig_typeHintConfigNotFound', dto.lang),
       );
     }
 
-    // ❌ system keys are immutable
+    // deleted config
+    if (typeHintConfig.isDeleted) {
+      throw new NotFoundException(
+        getMessage('typeHintConfig_cannotUpdateInActiveOrDeleted', dto.lang),
+      );
+    }
+
+    // inactive configs
+    if (!typeHintConfig.isActive && !typeHintConfig.isExpired) {
+      throw new NotFoundException(
+        getMessage('typeHintConfig_cannotUpdateInActiveOrDeleted', dto.lang),
+      );
+    }
+
+    // system config
     if (typeHintConfig.isSystem) {
       throw new BadRequestException(
         getMessage('typeHintConfig_cannotChangeSystemKey', dto.lang),
       );
     }
 
+    const before = typeHintConfig.toObject();
+
     const oldKey = typeHintConfig.key;
+
     const keyFromDto = dto.label_en
       ? slugify(dto.label_en, { lower: true })
       : oldKey;
 
     const isKeyChanged = keyFromDto !== oldKey;
 
-    // ❌ prevent changing default/system keys
+    // prevent changing default/system keys
     if (
       isKeyChanged &&
       this.SYSTEM_TYPE_KEYS.includes(oldKey as SystemTypeHints)
@@ -434,11 +403,16 @@ export class TypeHintConfigService {
       );
     }
 
-    // ❌ prevent key change if used
+    // prevent key change if used
     if (isKeyChanged) {
       const [showcaseExists, productExists] = await Promise.all([
         this.showcaseModel.exists({ type: oldKey, isDeleted: false }),
-        this.productModel.exists({ typeHint: oldKey, isDeleted: false }),
+        this.productModel.exists({
+          typeHints: { $in: [oldKey] },
+          isDeleted: false,
+          isActive: true,
+          isAvailable: true,
+        }),
       ]);
 
       if (showcaseExists || productExists) {
@@ -448,7 +422,7 @@ export class TypeHintConfigService {
       }
     }
 
-    // ❌ uniqueness check (key + labels)
+    // uniqueness check (key + labels)
     if (
       (dto.label_ar && dto.label_ar !== typeHintConfig.label.ar) ||
       (dto.label_en && dto.label_en !== typeHintConfig.label.en)
@@ -473,10 +447,24 @@ export class TypeHintConfigService {
       }
     }
 
-    // ✅ apply updates
-    if (isKeyChanged) {
-      typeHintConfig.key = keyFromDto;
+    const newStartDate = dto.startDate
+      ? new Date(dto.startDate)
+      : typeHintConfig.startDate;
+
+    const newEndDate =
+      dto.endDate !== undefined
+        ? dto.endDate
+          ? new Date(dto.endDate)
+          : null
+        : typeHintConfig.endDate;
+
+    if (newStartDate && newEndDate && newEndDate < newStartDate) {
+      throw new BadRequestException(
+        getMessage('typeHintConfig_endDateMustBeAfterStartDate', dto.lang),
+      );
     }
+
+    if (isKeyChanged) typeHintConfig.key = keyFromDto;
 
     if (dto.label_ar || dto.label_en) {
       typeHintConfig.label = {
@@ -485,22 +473,41 @@ export class TypeHintConfigService {
       };
     }
 
-    if (dto.priority !== undefined) {
-      typeHintConfig.priority = dto.priority;
-    }
+    typeHintConfig.startDate = newStartDate;
+    typeHintConfig.endDate = newEndDate;
 
-    if (dto.startDate) {
-      typeHintConfig.startDate = new Date(dto.startDate);
-    }
+    // If the config was expired but the admin set a valid new endDate, revive it
+    const nowExpired = this.computeIsExpired(newEndDate);
 
-    if (dto.endDate) {
-      typeHintConfig.endDate = new Date(dto.endDate);
+    console.log({ nowExpired });
+    console.log({ typeHintConfig });
+    if (typeHintConfig.isExpired && !nowExpired) {
+      typeHintConfig.isExpired = false;
+      typeHintConfig.isActive = true; // re-activate since dates are now valid
+    } else {
+      typeHintConfig.isExpired = nowExpired;
     }
 
     typeHintConfig.updatedAt = new Date();
     typeHintConfig.updatedBy = reqUser?.userId;
 
+    console.log({ typeHintConfig });
+
     await typeHintConfig.save();
+
+    // Log
+    await this.historyService.log(
+      LogModule.TYPE_HINT_CONFIG,
+      LogAction.UPDATE,
+      reqUser?.userId,
+      null,
+      {
+        typeHintConfigId: id,
+        title: typeHintConfig.label,
+        before,
+        after: typeHintConfig.toObject(),
+      },
+    );
 
     return {
       isSuccess: true,
@@ -545,6 +552,18 @@ export class TypeHintConfigService {
 
     await typeHintConfig.save();
 
+    // Log
+    await this.historyService.log(
+      LogModule.TYPE_HINT_CONFIG,
+      LogAction.DELETE,
+      requestingUser.userId,
+      null,
+      {
+        typeHintConfigId: id,
+        title: typeHintConfig.label,
+      },
+    );
+
     return {
       isSuccess: true,
       message: getMessage(
@@ -586,6 +605,18 @@ export class TypeHintConfigService {
 
     await typeHintConfig.save();
 
+    // Log
+    await this.historyService.log(
+      LogModule.TYPE_HINT_CONFIG,
+      LogAction.UNDELETE,
+      requestingUser.userId,
+      null,
+      {
+        typeHintConfigId: id,
+        title: typeHintConfig.label,
+      },
+    );
+
     return {
       isSuccess: true,
       message: getMessage(
@@ -610,7 +641,6 @@ export class TypeHintConfigService {
       );
     }
 
-    // prevent changing system-type-hints active status
     if (typeHintConfig.isSystem) {
       throw new ForbiddenException(
         getMessage(
@@ -620,20 +650,25 @@ export class TypeHintConfigService {
       );
     }
 
-    const now = new Date();
+    if (typeHintConfig.isDeleted) {
+      throw new BadRequestException(
+        getMessage('typeHintConfig_cannotUpdateInActiveOrDeleted', dto.lang),
+      );
+    }
+
+    // const now = new Date();
 
     if (dto.isActive) {
-      if (typeHintConfig.endDate && typeHintConfig.endDate < now) {
+      const currentlyExpired = this.computeIsExpired(typeHintConfig.endDate);
+
+      if (currentlyExpired) {
         throw new BadRequestException(
           getMessage('typeHintConfig_cannotActivateExpired', dto.lang),
         );
       }
 
-      // Optional: Prevent activation if start date is in the future
-      if (typeHintConfig.startDate && typeHintConfig.startDate > now) {
-        throw new BadRequestException(
-          getMessage('typeHintConfig_cannotActivateBeforeStartDate', dto.lang),
-        );
+      if (typeHintConfig.isExpired && !currentlyExpired) {
+        typeHintConfig.isExpired = false;
       }
     } else {
       // deactivate showcases based on type-hint key
@@ -651,11 +686,19 @@ export class TypeHintConfigService {
 
     typeHintConfig.isActive = dto.isActive;
 
-    if (typeHintConfig?.isDeleted && dto.isActive) {
-      await this.unDelete(requestingUser, { lang: dto.lang }, id);
-    }
-
     await typeHintConfig.save();
+
+    // Log
+    await this.historyService.log(
+      LogModule.TYPE_HINT_CONFIG,
+      dto.isActive ? LogAction.ACTIVATE : LogAction.DEACTIVATE,
+      requestingUser.userId,
+      null,
+      {
+        typeHintConfigId: id,
+        title: typeHintConfig.label,
+      },
+    );
 
     return {
       isSuccess: true,

@@ -19,6 +19,9 @@ export class TypeHintConfig {
   @Prop({ type: Date, default: null })
   endDate?: Date | undefined;
 
+  @Prop({ default: false })
+  isExpired: boolean;
+
   @Prop({ default: true })
   isActive: boolean;
 
