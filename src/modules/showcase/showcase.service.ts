@@ -31,6 +31,9 @@ import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
 import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
 import { TYPE_HINT_THRESHOLDS } from 'src/configs/typeHint.config';
 import { CRON_JOBS } from 'src/configs/cron.config';
+import { LogModule } from 'src/enums/logModules.enum';
+import { LogAction } from 'src/enums/LogAction.enum';
+import { HistoryService } from '../history/history.service';
 
 export class ShowcaseService {
   constructor(
@@ -48,36 +51,130 @@ export class ShowcaseService {
 
     @Inject(forwardRef(() => TypeHintConfigService))
     private typeHintConfigService: TypeHintConfigService,
+
+    private historyService: HistoryService,
   ) {}
 
-  @Cron(CRON_JOBS.SHOWCASE.CHECK_INACTIVE_TYPE_HINT)
-  async checkInactiveTypeHints(): Promise<void> {
-    const inactiveHints = await this.typeHintConfigModel
-      .find({ isActive: false })
-      .lean();
+  @Cron(CRON_JOBS.SHOWCASE.DEACTIVATE_EXPIRED_SHOWCASES)
+  async deactivateExpiredShowcases() {
+    const now = new Date();
 
-    if (!inactiveHints.length) return;
-
-    for (const hint of inactiveHints) {
-      const showcases = await this.showcaseModel
-        .find({ type: hint.key, isDeleted: false })
-        .lean();
-
-      if (!showcases.length) continue;
-
-      await this.showcaseModel.updateMany(
-        { type: hint.key },
+    try {
+      const result = await this.showcaseModel.updateMany(
+        {
+          isActive: true,
+          isDeleted: false,
+          isExpired: false,
+          endDate: { $ne: null, $lt: now }, // ensure endDate exists & expired
+        },
         {
           $set: {
             isActive: false,
-            reason: getMessage('showcase_typeHintNotActive'),
+            isExpired: true,
+            updatedAt: now,
           },
         },
       );
 
-      console.log(
-        `Deactivated ${showcases.length} showcase(s) because type "${hint.key}" is inactive`,
+      if (result.modifiedCount > 0) {
+        // Log
+        await this.historyService.log(
+          LogModule.SHOWCASE,
+          LogAction.UPDATE,
+          null, // system
+          null,
+          {
+            action: 'CRON_DEACTIVATE_EXPIRED',
+            affectedCount: result.modifiedCount,
+          },
+        );
+
+        console.log(
+          `[CRON] Deactivated ${result.modifiedCount} expired showcases`,
+        );
+      }
+    } catch (error) {
+      // Log
+      await this.historyService.log(
+        LogModule.SHOWCASE,
+        LogAction.UPDATE,
+        null,
+        null,
+        {
+          action: 'CRON_DEACTIVATE_FAILED',
+          error: (error as Error)?.message,
+        },
       );
+      console.error('[CRON] Failed to deactivate expired showcases:', error);
+    }
+  }
+
+  @Cron(CRON_JOBS.SHOWCASE.CHECK_INACTIVE_TYPE_HINT)
+  async checkInactiveTypeHints(): Promise<void> {
+    try {
+      const inactiveHints = await this.typeHintConfigModel
+        .find({ isActive: false })
+        .lean();
+
+      if (!inactiveHints.length) {
+        await this.historyService.log(
+          LogModule.SHOWCASE,
+          LogAction.UPDATE,
+          null,
+          null,
+          {
+            action: 'CRON_CHECK_INACTIVE_TYPE_HINT',
+            message: 'No inactive type hints found',
+          },
+        );
+        return;
+      }
+
+      for (const hint of inactiveHints) {
+        const showcases = await this.showcaseModel
+          .find({ type: hint.key, isDeleted: false })
+          .lean();
+
+        if (!showcases.length) continue;
+
+        const result = await this.showcaseModel.updateMany(
+          { type: hint.key },
+          {
+            $set: {
+              isActive: false,
+              reason: getMessage('showcase_typeHintNotActive'),
+            },
+          },
+        );
+
+        // Log
+        await this.historyService.log(
+          LogModule.SHOWCASE,
+          LogAction.UPDATE,
+          null, // system action
+          null,
+          {
+            action: 'CRON_DEACTIVATE_BY_INACTIVE_TYPE_HINT',
+            typeHint: hint.key,
+            affectedCount: result.modifiedCount,
+            showcaseIds: showcases.map(s => s._id),
+          },
+        );
+      }
+    } catch (error) {
+      // Log
+      await this.historyService.log(
+        LogModule.SHOWCASE,
+        LogAction.UPDATE,
+        null,
+        null,
+        {
+          action: 'CRON_CHECK_INACTIVE_TYPE_HINT_FAILED',
+          error: (error as Error)?.message,
+        },
+      );
+
+      throw error;
     }
   }
 
@@ -172,39 +269,30 @@ export class ShowcaseService {
     const findQuery = {
       isActive: true,
       isDeleted: false,
+      isExpired: false,
       $or: [
-        { $and: [{ startDate: { $lte: now } }, { endDate: { $gte: now } }] },
+        { startDate: { $lte: now }, endDate: { $gte: now } },
         {
-          $and: [
-            { startDate: { $lte: now } },
-            { $or: [{ endDate: null }, { endDate: { $exists: false } }] },
-          ],
+          startDate: { $lte: now },
+          $or: [{ endDate: null }, { endDate: { $exists: false } }],
         },
         {
-          $and: [
-            { $or: [{ startDate: null }, { startDate: { $exists: false } }] },
-            { $or: [{ endDate: null }, { endDate: { $exists: false } }] },
-          ],
+          $or: [{ startDate: null }, { startDate: { $exists: false } }],
+          $and: [{ $or: [{ endDate: null }, { endDate: { $exists: false } }] }],
         },
       ],
     };
 
     const [showcases, wishlist, typeHintsConfigs] = await Promise.all([
-      await this.showcaseModel
+      this.showcaseModel
         .find(findQuery)
         .populate('deletedBy', 'firstName lastName email _id')
         .populate('unDeletedBy', 'firstName lastName email _id')
         .populate('createdBy', 'firstName lastName email _id')
         .lean(),
-      userId ? await this.wishListModel.findOne({ user: userId }).lean() : null,
-      await this.typeHintConfigModel.find().lean(),
+      userId ? this.wishListModel.findOne({ user: userId }).lean() : null,
+      this.typeHintConfigModel.find().lean(),
     ]);
-
-    const priorityMap = new Map(typeHintsConfigs.map(c => [c.key, c.priority]));
-    const wishListSet = new Set(
-      wishlist?.products?.map(p => p.toString()) || [],
-    );
-    const usedProductIds = new Set<string>();
 
     if (!showcases.length) {
       throw new NotFoundException(
@@ -212,64 +300,174 @@ export class ShowcaseService {
       );
     }
 
-    const wishListProducts: string[] = [];
-    if (wishlist)
-      wishListProducts.push(...wishlist.products.map(p => p.toString()));
+    // Active type-hint configs
+    const activeTypeHintKeys = new Set(
+      typeHintsConfigs
+        .filter(c => c.isActive && !c.isDeleted && !c.isExpired)
+        .map(c => c.key),
+    );
+
+    const activeShowcases = showcases.filter(s =>
+      activeTypeHintKeys.has(s.type),
+    );
+
+    if (!activeShowcases.length) {
+      throw new NotFoundException(
+        getMessage('showcase_noActiveShowcasesFound', lang),
+      );
+    }
+
+    const priorityMap = new Map(typeHintsConfigs.map(c => [c.key, c.priority]));
+    const wishListSet = new Set(
+      wishlist?.products?.map(p => p.toString()) || [],
+    );
+
+    const strategy: Record<string, any> = {
+      [SystemTypeHints.MOST_VIEWED]: {
+        viewCount: { $gte: TYPE_HINT_THRESHOLDS.most_viewed },
+      },
+      [SystemTypeHints.BEST_SELLERS]: {
+        totalSellCount: { $gte: TYPE_HINT_THRESHOLDS.best_sellers },
+      },
+      [SystemTypeHints.MOST_FAVORITED]: {
+        favoriteCount: { $gte: TYPE_HINT_THRESHOLDS.most_favorited },
+      },
+      [SystemTypeHints.TRENDING]: {
+        weeklyFavoriteCount: { $gte: TYPE_HINT_THRESHOLDS.trending },
+      },
+    };
 
     const populatedShowcases = await Promise.all(
-      showcases.map(async showcase => {
-        const productsQuery: any = {
+      activeShowcases.map(async showcase => {
+        // Build product match stage based on showcase type
+        const productMatchStage: any = {
           isActive: true,
           isDeleted: false,
-          _id: { $nin: Array.from(usedProductIds) }, // Careful: Parallel sets can overlap
+          ...(strategy[showcase.type] ?? { typeHints: showcase.type }),
         };
 
-        const strategy = {
-          [SystemTypeHints.MOST_VIEWED]: {
-            viewCount: { $gte: TYPE_HINT_THRESHOLDS.most_viewed },
-          },
-          [SystemTypeHints.BEST_SELLERS]: {
-            sellCount: { $gte: TYPE_HINT_THRESHOLDS.best_sellers },
-          },
-          [SystemTypeHints.MOST_FAVORITED]: {
-            favoriteCount: { $gte: TYPE_HINT_THRESHOLDS.most_favorited },
-          },
-          [SystemTypeHints.TRENDING]: {
-            weeklyFavoriteCount: { $gte: TYPE_HINT_THRESHOLDS.trending },
-          },
-        };
+        const products = await this.productModel.aggregate([
+          { $match: productMatchStage },
 
-        Object.assign(
-          productsQuery,
-          strategy[showcase.type] || { typeHints: [showcase.type] },
-        );
+          // Lookup & require active category
+          {
+            $lookup: {
+              from: 'categories',
+              localField: 'categoryId',
+              foreignField: '_id',
+              as: 'categoryId',
+            },
+          },
+          {
+            $unwind: {
+              path: '$categoryId',
+              preserveNullAndEmptyArrays: false,
+            },
+          },
+          {
+            $match: {
+              'categoryId.isActive': true,
+              'categoryId.isDeleted': false,
+            },
+          },
 
-        // => With random index
-        const r = Math.random();
-        let products = await this.productModel
-          .find({
-            ...productsQuery,
-            random: { $gte: r },
-          })
-          .sort({ random: 1 })
-          .limit(Number(limit))
-          .populate('categoryId')
-          .populate('subCategoryId')
-          .lean();
+          // Lookup & require active subcategory
+          {
+            $lookup: {
+              from: 'subCategories', // ← verify collection name
+              localField: 'subCategoryId',
+              foreignField: '_id',
+              as: 'subCategoryId',
+            },
+          },
+          {
+            $addFields: {
+              subCategoryId: {
+                $cond: {
+                  if: { $gt: [{ $size: '$subCategoryId' }, 0] },
+                  then: { $arrayElemAt: ['$subCategoryId', 0] },
+                  else: null,
+                },
+              },
+            },
+          },
+          {
+            $match: {
+              subCategoryId: { $ne: null },
+              'subCategoryId.isActive': true,
+              'subCategoryId.isDeleted': false,
+            },
+          },
 
-        if (products.length < limit) {
-          const more = await this.productModel
-            .find({
-              ...productsQuery,
-              random: { $lt: r },
-              _id: { $nin: products.map(p => p._id) },
-            })
-            .sort({ random: 1 })
-            .limit(Number(limit) - products.length)
-            .lean();
+          // Lookup createdBy
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'createdBy',
+              foreignField: '_id',
+              pipeline: [{ $project: { firstName: 1, lastName: 1, email: 1 } }],
+              as: 'createdBy',
+            },
+          },
+          {
+            $addFields: {
+              createdBy: {
+                $cond: {
+                  if: { $gt: [{ $size: '$createdBy' }, 0] },
+                  then: { $arrayElemAt: ['$createdBy', 0] },
+                  else: null,
+                },
+              },
+            },
+          },
 
-          products.push(...more);
-        }
+          // Lookup deletedBy
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'deletedBy',
+              foreignField: '_id',
+              pipeline: [{ $project: { firstName: 1, lastName: 1, email: 1 } }],
+              as: 'deletedBy',
+            },
+          },
+          {
+            $addFields: {
+              deletedBy: {
+                $cond: {
+                  if: { $gt: [{ $size: '$deletedBy' }, 0] },
+                  then: { $arrayElemAt: ['$deletedBy', 0] },
+                  else: null,
+                },
+              },
+            },
+          },
+
+          // Lookup unDeletedBy
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'unDeletedBy',
+              foreignField: '_id',
+              pipeline: [{ $project: { firstName: 1, lastName: 1, email: 1 } }],
+              as: 'unDeletedBy',
+            },
+          },
+          {
+            $addFields: {
+              unDeletedBy: {
+                $cond: {
+                  if: { $gt: [{ $size: '$unDeletedBy' }, 0] },
+                  then: { $arrayElemAt: ['$unDeletedBy', 0] },
+                  else: null,
+                },
+              },
+            },
+          },
+
+          // Random sample of exactly `limit` valid products
+          { $sample: { size: Number(limit) } },
+        ]);
 
         return {
           ...showcase,
@@ -281,7 +479,7 @@ export class ShowcaseService {
         };
       }),
     );
-    
+
     return {
       isSuccess: true,
       message: getMessage(
@@ -330,6 +528,14 @@ export class ShowcaseService {
     };
   }
 
+  private computeIsExpired(endDate?: Date): boolean {
+    const now = new Date();
+
+    if (!endDate) return false;
+
+    return endDate < now;
+  }
+
   async create(
     requestingUser: any,
     dto: CreateDto,
@@ -338,11 +544,12 @@ export class ShowcaseService {
 
     // prevent create showcase without products from same type
     const foundProducts = await this.productModel.findOne({
-      typeHint: dto.type,
+      typeHints: { $in: [dto.type] },
       isDeleted: false,
       isActive: true,
-      availableCount: { $gt: 0 },
+      isAvailable: true,
     });
+
     if (!foundProducts) {
       throw new BadRequestException(
         getMessage('showcase_noProductsWithThisTypeForShowcase', dto.lang),
@@ -390,6 +597,9 @@ export class ShowcaseService {
       );
     }
 
+    const start = dto.startDate ? new Date(dto.startDate) : new Date();
+    const end = dto.endDate ? new Date(dto.endDate) : undefined;
+
     const showcase = await this.showcaseModel.create({
       title: { ar: dto.title_ar, en: dto.title_en },
       description: { ar: dto.description_ar, en: dto.description_en },
@@ -399,12 +609,25 @@ export class ShowcaseService {
       },
       showAllButtonLink: dto.showAllButtonLink,
       type: dto.type,
-      startDate: dto.startDate ? new Date(dto.startDate) : null,
-      endDate: dto.endDate ? new Date(dto.endDate) : null,
+      startDate: start,
+      endDate: end,
       isActive: true,
       isDeleted: false,
+      isExpired: this.computeIsExpired(end),
       createdBy: requestingUser?.userId,
     });
+
+    // Log
+    await this.historyService.log(
+      LogModule.SHOWCASE,
+      LogAction.CREATE,
+      requestingUser?.userId,
+      null,
+      {
+        showcaseId: showcase._id,
+        title: showcase.title,
+      },
+    );
 
     return {
       isSuccess: true,
@@ -428,11 +651,34 @@ export class ShowcaseService {
 
     const showcase = await this.showcaseModel.findById(id);
 
-    if (!showcase || showcase.isDeleted) {
+    if (!showcase) {
       throw new NotFoundException(
         getMessage('showcase_showcaseNotFound', dto.lang),
       );
     }
+
+    // Deleted
+    if (showcase.isDeleted) {
+      throw new NotFoundException(
+        getMessage('showcase_cannotUpdateInActiveOrDeleted', dto.lang),
+      );
+    }
+
+    // inactive
+    if (!showcase.isActive && !showcase.isExpired) {
+      throw new NotFoundException(
+        getMessage('showcase_cannotUpdateInActiveOrDeleted', dto.lang),
+      );
+    }
+
+    // system
+    if (showcase.isSystem) {
+      throw new BadRequestException(
+        getMessage('showcase_cannotModifySystemProperties', dto.lang),
+      );
+    }
+
+    const before = showcase.toObject();
 
     // Check for conflicts on title if updated
     if (
@@ -503,17 +749,56 @@ export class ShowcaseService {
       showcase.type = dto.type;
     }
 
-    if (dto.startDate) {
-      showcase.startDate = new Date(dto.startDate);
+    const newStartDate =
+      dto.startDate !== undefined
+        ? dto.startDate
+          ? new Date(dto.startDate)
+          : null
+        : showcase.startDate;
+
+    const newEndDate =
+      dto.endDate !== undefined
+        ? dto.endDate
+          ? new Date(dto.endDate)
+          : null
+        : showcase.endDate;
+
+    if (newStartDate && newEndDate && newEndDate < newStartDate) {
+      throw new BadRequestException(
+        getMessage('showcase_endDateMustBeAfterStartDate', dto.lang),
+      );
     }
-    if (dto.endDate) {
-      showcase.endDate = new Date(dto.endDate);
+
+    const nowExpired = this.computeIsExpired(newEndDate);
+
+    if (showcase.isExpired && !nowExpired) {
+      showcase.isExpired = false;
+      showcase.isActive = true; // revive if admin fixed date
+    } else {
+      showcase.isExpired = nowExpired;
     }
+
+    showcase.startDate = newStartDate;
+    showcase.endDate = newEndDate;
 
     showcase.updatedAt = new Date();
     showcase.updatedBy = requestingUser?.userId;
 
     await showcase.save();
+
+    // Log
+    await this.historyService.log(
+      LogModule.SHOWCASE,
+      LogAction.UPDATE,
+      requestingUser?.userId,
+      null,
+      {
+        showcaseId: id,
+        title: showcase.title,
+        before,
+        after: showcase.toObject(),
+      },
+    );
 
     return {
       isSuccess: true,
@@ -558,6 +843,18 @@ export class ShowcaseService {
 
     await showcase.save();
 
+    // Log
+    await this.historyService.log(
+      LogModule.SHOWCASE,
+      LogAction.DELETE,
+      requestingUser.userId,
+      null,
+      {
+        showcaseId: showcase._id,
+        title: showcase.title,
+      },
+    );
+
     return {
       isSuccess: true,
       message: getMessage('showcase_showcaseDeletedSuccessfully', lang),
@@ -600,6 +897,18 @@ export class ShowcaseService {
 
     await showcase.save();
 
+    // Log
+    await this.historyService.log(
+      LogModule.SHOWCASE,
+      LogAction.UNDELETE,
+      requestingUser.userId,
+      null,
+      {
+        showcaseId: showcase._id,
+        title: showcase.title,
+      },
+    );
+
     return {
       isSuccess: true,
       message: getMessage('showcase_showcaseUnDeletedSuccessfully', lang),
@@ -639,7 +948,9 @@ export class ShowcaseService {
       // ✅ 1. CHECK PARENT TYPE HINT STATUS
       const typeHintConfig = await this.typeHintConfigModel.findOne({
         key: showcase.type,
+        isActive: true,
         isDeleted: false,
+        isExpired: false,
       });
 
       if (!typeHintConfig) {
@@ -677,6 +988,18 @@ export class ShowcaseService {
 
     await showcase.save();
 
+    // Log
+    await this.historyService.log(
+      LogModule.SHOWCASE,
+      LogAction.UPDATE,
+      requestingUser.userId,
+      null,
+      {
+        showcaseId: id,
+        isActive,
+      },
+    );
+
     return {
       isSuccess: true,
       message: getMessage(
@@ -704,6 +1027,18 @@ export class ShowcaseService {
           updatedBy: requestingUser.userId,
           updatedAt: new Date(),
         },
+      },
+    );
+
+    // Log
+    await this.historyService.log(
+      LogModule.SHOWCASE,
+      LogAction.UPDATE,
+      requestingUser?.userId,
+      null,
+      {
+        action: 'DEACTIVATE_BY_TYPE_HINT',
+        typeHint,
       },
     );
   }

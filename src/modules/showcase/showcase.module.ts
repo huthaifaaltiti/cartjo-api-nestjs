@@ -12,6 +12,7 @@ import {
 } from 'src/schemas/typeHintConfig.schema';
 import { WishList, WishListSchema } from 'src/schemas/wishList.schema';
 import { ShowcaseSeeder } from 'src/database/seeders/showcases.seeder';
+import { HistoryModule } from '../history/history.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ShowcaseSeeder } from 'src/database/seeders/showcases.seeder';
     ]),
     forwardRef(() => ProductModule),
     forwardRef(() => TypeHintConfigModule),
+    HistoryModule,
   ],
   providers: [ShowcaseService, ShowcaseSeeder],
   controllers: [ShowcaseController],

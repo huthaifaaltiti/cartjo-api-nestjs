@@ -49,6 +49,9 @@ export class ShowCase {
   @Prop({ default: false })
   isSystem: boolean;
 
+  @Prop({ default: false })
+  isExpired: boolean;
+
   @Prop({ default: true })
   isActive: boolean;
 
