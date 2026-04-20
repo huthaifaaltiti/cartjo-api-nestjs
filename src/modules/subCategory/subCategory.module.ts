@@ -8,6 +8,7 @@ import { SubCategory, SubCategorySchema } from 'src/schemas/subCategory.schema';
 import { Category, CategorySchema } from 'src/schemas/category.schema';
 import { RevalidationModule } from '../revalidation/revalidation.module';
 import { ProductModule } from '../product/product.module';
+import { HistoryModule } from '../history/history.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ProductModule } from '../product/product.module';
     forwardRef(() => CategoryModule),
     RevalidationModule,
     forwardRef(() => ProductModule),
+    HistoryModule,
   ],
   providers: [SubCategoryService],
   controllers: [SubCategoryController],
