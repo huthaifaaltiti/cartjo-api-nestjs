@@ -28,7 +28,6 @@ import { UpdateStatusBodyDto } from './dto/update-active-status.dto';
 import { UnDeleteDto } from './dto/unDelete.dto';
 import { GetListQueryDto } from './dto/get-list.dto';
 import slugify from 'slugify';
-import { ProductService } from '../product/product.service';
 import { ShowcaseService } from '../showcase/showcase.service';
 import { SYSTEM_TYPE_HINTS } from 'src/database/seeds/type-hints.seed';
 import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
@@ -52,8 +51,8 @@ export class TypeHintConfigService {
     @InjectModel(Product.name)
     private readonly productModel: Model<ProductDocument>,
 
-    @Inject(forwardRef(() => ProductService))
-    private productService: ProductService,
+    // @Inject(forwardRef(() => ProductService))
+    // private productService: ProductService,
 
     @Inject(forwardRef(() => ShowcaseService))
     private showcaseService: ShowcaseService,
@@ -82,11 +81,34 @@ export class TypeHintConfigService {
       );
 
       if (result.modifiedCount > 0) {
+        await this.historyService.log(
+          LogModule.TYPE_HINT_CONFIG,
+          LogAction.UPDATE,
+          null, // system action
+          null,
+          {
+            action: 'CRON_DEACTIVATE_EXPIRED_TYPE_HINT',
+            affectedCount: result.modifiedCount,
+            matchedCount: result.matchedCount,
+          },
+        );
+
         console.log(
           `[CRON] Deactivated ${result.modifiedCount} expired type-Hint Config`,
         );
       }
     } catch (error) {
+      await this.historyService.log(
+        LogModule.TYPE_HINT_CONFIG,
+        LogAction.UPDATE,
+        null,
+        null,
+        {
+          action: 'CRON_DEACTIVATE_EXPIRED_TYPE_HINT_FAILED',
+          error: (error as Error)?.message,
+        },
+      );
+
       console.error(
         '[CRON] Failed to deactivate expired type-Hint Configs:',
         error,
@@ -353,8 +375,6 @@ export class TypeHintConfigService {
 
     const typeHintConfig = await this.typeHintConfigModel.findById(id);
 
-    console.log({ typeHintConfig });
-
     // notFound config
     if (!typeHintConfig) {
       throw new NotFoundException(
@@ -479,8 +499,6 @@ export class TypeHintConfigService {
     // If the config was expired but the admin set a valid new endDate, revive it
     const nowExpired = this.computeIsExpired(newEndDate);
 
-    console.log({ nowExpired });
-    console.log({ typeHintConfig });
     if (typeHintConfig.isExpired && !nowExpired) {
       typeHintConfig.isExpired = false;
       typeHintConfig.isActive = true; // re-activate since dates are now valid
@@ -490,8 +508,6 @@ export class TypeHintConfigService {
 
     typeHintConfig.updatedAt = new Date();
     typeHintConfig.updatedBy = reqUser?.userId;
-
-    console.log({ typeHintConfig });
 
     await typeHintConfig.save();
 
@@ -678,10 +694,10 @@ export class TypeHintConfigService {
       );
 
       // deactivate products based on type-hint key
-      await this.productService.deactivateByTypeHint(
-        typeHintConfig.key,
-        requestingUser,
-      );
+      // await this.productService.deactivateByTypeHint(
+      //   typeHintConfig.key,
+      //   requestingUser,
+      // );
     }
 
     typeHintConfig.isActive = dto.isActive;
