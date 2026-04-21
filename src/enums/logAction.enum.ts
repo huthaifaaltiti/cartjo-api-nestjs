@@ -3,6 +3,7 @@ export enum LogAction {
   UPDATE = 'update',
   DELETE = 'delete',
   UNDELETE = 'undelete',
+  RESTORE = 'restore',
   ACTIVATE = 'activate',
   DEACTIVATE = 'deactivate',
   SET_DEFAULT = 'set_default',

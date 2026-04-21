@@ -15,6 +15,7 @@ import {
   TypeHintConfigSchema,
 } from 'src/schemas/typeHintConfig.schema';
 import { Cart, CartSchema } from 'src/schemas/cart.schema';
+import { HistoryModule } from '../history/history.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { Cart, CartSchema } from 'src/schemas/cart.schema';
     forwardRef(() => CategoryModule),
     forwardRef(() => TypeHintConfigModule),
     forwardRef(() => SubCategoryModule),
+    HistoryModule,
   ],
   providers: [ProductService],
   controllers: [ProductController],
