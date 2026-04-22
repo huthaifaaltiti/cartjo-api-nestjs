@@ -23,8 +23,8 @@ import {
   UpdateStatusBodyDto,
   UpdateStatusParamsDto,
 } from './dto/update-active-status.dto';
-import { OptionalJwtAuthGuard } from 'src/common/utils/optionalJwtAuthGuard';
-import { ApiPaths } from 'src/common/constants/api-paths';
+import { OptionalJwtAuthGuard } from '../../common/utils/optionalJwtAuthGuard';
+import { ApiPaths } from '../../common/constants/api-paths';
 
 @Controller(ApiPaths.Showcase.Root)
 export class ShowcaseController {

@@ -5,8 +5,8 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { PaymentStatus } from 'src/enums/paymentStatus.enum';
-import { Locale } from 'src/types/Locale';
+import { PaymentStatus } from '../../../enums/paymentStatus.enum';
+import { Locale } from '../../../types/Locale';
 
 export class ChangePaymentStatusBodyDto {
   @IsString()

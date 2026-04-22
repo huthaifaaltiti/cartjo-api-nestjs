@@ -1,12 +1,12 @@
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
-import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
+import { validateUserRoleAccess } from '../../common/utils/validateUserRoleAccess';
 import { CreateDto } from './dto/create.dto';
 import {
   TypeHintConfig,
   TypeHintConfigDocument,
-} from 'src/schemas/typeHintConfig.schema';
-import { getMessage } from 'src/common/utils/translator';
+} from '../../schemas/typeHintConfig.schema';
+import { getMessage } from '../../common/utils/translator';
 import {
   BadRequestException,
   ForbiddenException,
@@ -15,12 +15,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { Locale } from 'src/types/Locale';
+import { Locale } from '../../types/Locale';
 import {
   BaseResponse,
   DataListResponse,
   DataResponse,
-} from 'src/types/service-response.type';
+} from '../../types/service-response.type';
 import { GetAllQueryDto } from './dto/get-all.dto';
 import { UpdateDto } from './dto/update.dto';
 import { DeleteDto } from './dto/delete.dto';
@@ -29,14 +29,14 @@ import { UnDeleteDto } from './dto/unDelete.dto';
 import { GetListQueryDto } from './dto/get-list.dto';
 import slugify from 'slugify';
 import { ShowcaseService } from '../showcase/showcase.service';
-import { SYSTEM_TYPE_HINTS } from 'src/database/seeds/type-hints.seed';
-import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
-import { CRON_JOBS } from 'src/configs/cron.config';
-import { ShowCase, ShowCaseDocument } from 'src/schemas/showcase.schema';
-import { Product, ProductDocument } from 'src/schemas/product.schema';
+import { SYSTEM_TYPE_HINTS } from '../../database/seeds/type-hints.seed';
+import { SystemTypeHints } from '../../enums/systemTypeHints.enum';
+import { CRON_JOBS } from '../../configs/cron.config';
+import { ShowCase, ShowCaseDocument } from '../../schemas/showcase.schema';
+import { Product, ProductDocument } from '../../schemas/product.schema';
 import { HistoryService } from '../history/history.service';
-import { LogModule } from 'src/enums/logModules.enum';
-import { LogAction } from 'src/enums/LogAction.enum';
+import { LogModule } from '../../enums/logModules.enum';
+import { LogAction } from '../../enums/LogAction.enum';
 
 export class TypeHintConfigService {
   private SYSTEM_TYPE_KEYS = SYSTEM_TYPE_HINTS.map(hint => hint.key);

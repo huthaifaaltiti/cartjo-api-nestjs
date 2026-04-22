@@ -8,17 +8,17 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
 import { Cron } from '@nestjs/schedule';
-import { getMessage } from 'src/common/utils/translator';
-import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
+import { getMessage } from '../../common/utils/translator';
+import { validateUserRoleAccess } from '../../common/utils/validateUserRoleAccess';
 import { TypeHintConfigService } from '../typeHintConfig/typeHintConfig.service';
-import { ShowCase, ShowCaseDocument } from 'src/schemas/showcase.schema';
-import { Product, ProductDocument } from 'src/schemas/product.schema';
-import { Locale } from 'src/types/Locale';
+import { ShowCase, ShowCaseDocument } from '../../schemas/showcase.schema';
+import { Product, ProductDocument } from '../../schemas/product.schema';
+import { Locale } from '../../types/Locale';
 import {
   BaseResponse,
   DataListResponse,
   DataResponse,
-} from 'src/types/service-response.type';
+} from '../../types/service-response.type';
 import { CreateDto } from './dto/create.dto';
 import { UpdateDto } from './dto/update.dto';
 import { DeleteDto } from './dto/delete.dto';
@@ -26,13 +26,13 @@ import { UnDeleteDto } from './dto/unDelete.dto';
 import {
   TypeHintConfig,
   TypeHintConfigDocument,
-} from 'src/schemas/typeHintConfig.schema';
-import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
-import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
-import { TYPE_HINT_THRESHOLDS } from 'src/configs/typeHint.config';
-import { CRON_JOBS } from 'src/configs/cron.config';
-import { LogModule } from 'src/enums/logModules.enum';
-import { LogAction } from 'src/enums/LogAction.enum';
+} from '../../schemas/typeHintConfig.schema';
+import { WishList, WishListDocument } from '../../schemas/wishList.schema';
+import { SystemTypeHints } from '../../enums/systemTypeHints.enum';
+import { TYPE_HINT_THRESHOLDS } from '../../configs/typeHint.config';
+import { CRON_JOBS } from '../../configs/cron.config';
+import { LogModule } from '../../enums/logModules.enum';
+import { LogAction } from '../../enums/LogAction.enum';
 import { HistoryService } from '../history/history.service';
 
 export class ShowcaseService {

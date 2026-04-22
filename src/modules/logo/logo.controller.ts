@@ -28,7 +28,7 @@ import {
 } from './dto/update-logo-status.dto';
 import { GetLogoParamDto, GetLogoQueryDto } from './dto/get-logo.dto';
 import { GetLogosQueryDto } from './dto/get-logos-query.dto';
-import { ApiPaths } from 'src/common/constants/api-paths';
+import { ApiPaths } from '../../common/constants/api-paths';
 
 @Controller(ApiPaths.Logo.Root)
 export class LogoController {

@@ -6,7 +6,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { Locale } from 'src/types/Locale';
+import { Locale } from '../../../types/Locale';
 
 export class CreateAdminBodyDto {
   @IsString()

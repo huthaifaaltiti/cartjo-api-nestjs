@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { History, HistoryDocument } from 'src/schemas/history.schema';
-import { LogModule } from 'src/enums/logModules.enum';
-import { LogAction } from 'src/enums/logAction.enum';
+import { LogModule } from '../../enums/logModules.enum';
+import { History, HistoryDocument } from '../../schemas/history.schema';
+import { LogAction } from '../../enums/logAction.enum';
 
 @Injectable()
 export class HistoryService {

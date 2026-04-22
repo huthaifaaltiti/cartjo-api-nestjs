@@ -1,4 +1,4 @@
-import { ProductVariantAttributeKey } from "src/enums/productVariantAttributeKey.enum";
+import { ProductVariantAttributeKey } from "../../enums/productVariantAttributeKey.enum";
 
 export default function generateSKU({
   productSlug,

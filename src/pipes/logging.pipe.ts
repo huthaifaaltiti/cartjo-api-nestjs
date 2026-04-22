@@ -1,5 +1,5 @@
 import { Injectable, PipeTransform } from '@nestjs/common';
-import { getAppHostName } from 'src/common/utils/getAppHostName';
+import { getAppHostName } from '../common/utils/getAppHostName';
 
 @Injectable()
 export class LoggingPipe implements PipeTransform {

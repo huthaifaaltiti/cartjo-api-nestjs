@@ -1,12 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
 import { hashSync, compareSync } from 'bcrypt';
-import { UserRole } from 'src/enums/user-role.enum';
-import { Gender } from 'src/enums/gender.enum';
-import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
-import { NATIONALITY_CODES } from 'src/common/constants/nationalities';
 import { MediaPreview } from './common.schema';
-import { VerificationChannelType } from 'src/enums/VerificationChannelType.enum';
+import { VerificationChannelType } from '../enums/VerificationChannelType.enum';
+import { NATIONALITY_CODES } from '../common/constants/nationalities';
+import { UserRole } from '../enums/user-role.enum';
+import { Gender } from '../enums/gender.enum';
+import { PreferredLanguage } from '../enums/preferredLanguage.enum';
 
 export type UserDocument = User &
   Document & {
@@ -79,9 +79,6 @@ export class User extends Document {
 
   @Prop({
     type: String,
-    required: function () {
-      return this.authProvider === 'local';
-    },
   })
   countryCode?: string;
 
@@ -95,9 +92,6 @@ export class User extends Document {
   @Prop({
     type: String,
     unique: true,
-    required: function () {
-      return this.authProvider === 'local';
-    },
   })
   phoneNumber?: string;
 
@@ -116,9 +110,6 @@ export class User extends Document {
 
   @Prop({
     type: String,
-    required: function () {
-      return this.authProvider === 'local';
-    },
     set: (value: string) => (value ? hashSync(value, 12) : value),
   })
   password?: string;

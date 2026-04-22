@@ -19,8 +19,8 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { GetProductsQueryDto } from './dto/get-products.dto';
 import { GetProductParamDto, GetProductQueryDto } from './dto/get-product.dto';
 import { GetSuggestedProductsQueryDto } from './dto/get-suggested-products.dto';
-import { OptionalJwtAuthGuard } from 'src/common/utils/optionalJwtAuthGuard';
-import { ApiPaths } from 'src/common/constants/api-paths';
+import { OptionalJwtAuthGuard } from '../../common/utils/optionalJwtAuthGuard';
+import { ApiPaths } from '../../common/constants/api-paths';
 import {
   CreateProductVariantBodyDto,
   CreateProductVariantParamsDto,

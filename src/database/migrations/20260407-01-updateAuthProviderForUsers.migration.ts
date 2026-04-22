@@ -1,5 +1,5 @@
 import { Connection } from 'mongoose';
-import { VerificationChannelType } from 'src/enums/VerificationChannelType.enum';
+import { VerificationChannelType } from '../../enums/VerificationChannelType.enum';
 
 export default async function updateAuthProviderForUsers(
   mongo: Connection,

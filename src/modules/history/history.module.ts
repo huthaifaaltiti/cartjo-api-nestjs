@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { History, HistorySchema } from 'src/schemas/history.schema';
 import { HistoryService } from './history.service';
+import { History, HistorySchema } from '../../schemas/history.schema';
 
 @Module({
   imports: [

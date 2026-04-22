@@ -1,20 +1,20 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Product, ProductSchema } from 'src/schemas/product.schema';
-import { Category, CategorySchema } from 'src/schemas/category.schema';
+import { Product, ProductSchema } from '../../schemas/product.schema';
+import { Category, CategorySchema } from '../../schemas/category.schema';
 import { MediaModule } from '../media/media.module';
 import { ProductService } from './product.service';
 import { ProductController } from './product.controller';
 import { CategoryModule } from '../category/category.module';
 import { TypeHintConfigModule } from '../typeHintConfig/typeHintConfig.module';
-import { WishList, WishListSchema } from 'src/schemas/wishList.schema';
+import { WishList, WishListSchema } from '../../schemas/wishList.schema';
 import { SubCategoryModule } from '../subCategory/subCategory.module';
-import { SubCategory, SubCategorySchema } from 'src/schemas/subCategory.schema';
+import { SubCategory, SubCategorySchema } from '../../schemas/subCategory.schema';
 import {
   TypeHintConfig,
   TypeHintConfigSchema,
-} from 'src/schemas/typeHintConfig.schema';
-import { Cart, CartSchema } from 'src/schemas/cart.schema';
+} from '../../schemas/typeHintConfig.schema';
+import { Cart, CartSchema } from '../../schemas/cart.schema';
 import { HistoryModule } from '../history/history.module';
 
 @Module({

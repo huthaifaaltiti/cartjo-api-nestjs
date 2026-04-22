@@ -9,7 +9,7 @@ import {
   Query,
   Res,
 } from '@nestjs/common';
-import { ApiPaths } from 'src/common/constants/api-paths';
+import { ApiPaths } from '../../common/constants/api-paths';
 import { AuthGuard } from '@nestjs/passport';
 import { OrderService } from './order.service';
 import { ChangePaymentStatusBodyDto } from './dto/paymentStatus.dto';

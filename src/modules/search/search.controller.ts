@@ -1,6 +1,6 @@
 import { Controller, Get, Query, Request, UseGuards } from '@nestjs/common';
-import { ApiPaths } from 'src/common/constants/api-paths';
-import { OptionalJwtAuthGuard } from 'src/common/utils/optionalJwtAuthGuard';
+import { ApiPaths } from '../../common/constants/api-paths';
+import { OptionalJwtAuthGuard } from '../../common/utils/optionalJwtAuthGuard';
 import { SearchProductsQueryDto } from './dto/get-search-products.dto';
 import { SearchService } from './search.service';
 

@@ -5,9 +5,8 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { ViewMode } from 'src/types/common';
-
-import { Locale } from 'src/types/Locale';
+import { Locale } from '../../../types/Locale';
+import { ViewMode } from '../../../types/common';
 
 export class GetProductsQueryDto {
   @IsOptional()

@@ -7,8 +7,8 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { Currency } from 'src/enums/currency.enum';
-import { Locale } from 'src/types/Locale';
+import { Currency } from '../../../enums/currency.enum';
+import { Locale } from '../../../types/Locale';
 
 export class MapLocation {
   @IsNumber()

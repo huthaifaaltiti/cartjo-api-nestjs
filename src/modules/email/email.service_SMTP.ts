@@ -7,11 +7,11 @@ import { Model } from 'mongoose';
 import {
   EmailTemplate,
   EmailTemplateDocument,
-} from 'src/schemas/email-template.schema';
-import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
-import { Queues } from 'src/enums/queues.enum';
-import { Processors } from 'src/enums/processors.enum';
-import { AppEnvironments } from 'src/enums/appEnvs.enum';
+} from '../../schemas/email-template.schema';
+import { Queues } from '../../enums/queues.enum';
+import { AppEnvironments } from '../../enums/appEnvs.enum';
+import { PreferredLanguage } from '../../enums/preferredLanguage.enum';
+import { Processors } from '../../enums/processors.enum';
 
 @Injectable()
 export class EmailService {

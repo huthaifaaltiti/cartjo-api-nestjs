@@ -4,20 +4,20 @@ import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { Model } from 'mongoose';
 import * as nodemailer from 'nodemailer';
+import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
 import {
   EmailTemplate,
   EmailTemplateDocument,
-} from 'src/schemas/email-template.schema';
-import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
-import { Queues } from 'src/enums/queues.enum';
-import { Processors } from 'src/enums/processors.enum';
-import { AppEnvironments } from 'src/enums/appEnvs.enum';
+} from '../../schemas/email-template.schema';
+import { Queues } from '../../enums/queues.enum';
 import { EmailLogService } from './EmailLogService.service';
-import { EmailSendingStatus } from 'src/enums/emailSendingStatus.enum';
-import { EmailTemplates } from 'src/enums/emailTemplates.enum';
-import { getEmailFromMapping } from 'src/common/utils/getEmailFromMapping';
-import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
-import { EmailSendingProvider } from 'src/enums/emailSendingProvider.enum';
+import { AppEnvironments } from '../../enums/appEnvs.enum';
+import { EmailTemplates } from '../../enums/emailTemplates.enum';
+import { getEmailFromMapping } from '../../common/utils/getEmailFromMapping';
+import { PreferredLanguage } from '../../enums/preferredLanguage.enum';
+import { EmailSendingStatus } from '../../enums/emailSendingStatus.enum';
+import { EmailSendingProvider } from '../../enums/emailSendingProvider.enum';
+import { Processors } from '../../enums/processors.enum';
 
 type DevEmailProvider = 'ethereal' | 'ses';
 

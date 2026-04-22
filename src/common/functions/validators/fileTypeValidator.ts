@@ -1,7 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
 import { extname } from 'path';
-import { Locale } from 'src/types/Locale';
-import { getMessage } from 'src/common/utils/translator';
+import { Locale } from '../../../types/Locale';
+import { getMessage } from '../../utils/translator';
 
 type FileType = Express.Multer.File | File;
 type AllowedTypes = string[];

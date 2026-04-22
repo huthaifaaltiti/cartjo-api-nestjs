@@ -3,14 +3,14 @@ import { MongooseModule } from '@nestjs/mongoose';
 import {
   TypeHintConfig,
   TypeHintConfigSchema,
-} from 'src/schemas/typeHintConfig.schema';
+} from '../../schemas/typeHintConfig.schema';
 import { TypeHintConfigService } from './typeHintConfig.service';
 import { TypeHintConfigController } from './typeHintConfig.controller';
 import { ProductModule } from '../product/product.module';
 import { ShowcaseModule } from '../showcase/showcase.module';
-import { TypeHintsSeeder } from 'src/database/seeders/type-hints.seeder';
-import { ShowCase, ShowCaseSchema } from 'src/schemas/showcase.schema';
-import { Product, ProductSchema } from 'src/schemas/product.schema';
+import { TypeHintsSeeder } from '../../database/seeders/type-hints.seeder';
+import { ShowCase, ShowCaseSchema } from '../../schemas/showcase.schema';
+import { Product, ProductSchema } from '../../schemas/product.schema';
 import { HistoryModule } from '../history/history.module';
 @Module({
   imports: [

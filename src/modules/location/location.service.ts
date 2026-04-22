@@ -2,17 +2,20 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { MediaService } from '../media/media.service';
-import { getMessage } from 'src/common/utils/translator';
-import { excelSheetParser } from 'src/common/utils/excelSheetParser';
-import { buildTownHierarchy } from 'src/common/utils/buildTownHierarchy';
-import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
-import { Location, LocationDocument } from 'src/schemas/location.schema';
 import { DeleteLocationBodyDto } from './dto/delete-location-body.dto';
-import { Modules } from 'src/enums/appModules.enum';
-import { Locale } from 'src/types/Locale';
-import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
-import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
-import { MEDIA_CONFIG } from 'src/configs/media.config';
+import { Location, LocationDocument } from '../../schemas/location.schema';
+import { validateUserRoleAccess } from '../../common/utils/validateUserRoleAccess';
+import { Locale } from '../../types/Locale';
+import { fileSizeValidator } from '../../common/functions/validators/fileSizeValidator';
+import { fileTypeValidator } from '../../common/functions/validators/fileTypeValidator';
+import { MEDIA_CONFIG } from '../../configs/media.config';
+import { excelSheetParser } from '../../common/utils/excelSheetParser';
+import {
+  buildTownHierarchy,
+  LocationNode,
+} from '../../common/utils/buildTownHierarchy';
+import { Modules } from '../../enums/appModules.enum';
+import { getMessage } from '../../common/utils/translator';
 
 @Injectable()
 export class LocationService {
@@ -29,7 +32,7 @@ export class LocationService {
   ): Promise<{
     isSuccess: Boolean;
     message: string;
-    locations: Location[] | null;
+    locations: LocationNode[] | null;
   }> {
     validateUserRoleAccess(requestingUser, lang);
 
@@ -85,7 +88,7 @@ export class LocationService {
   async getLocations(lang: Locale = 'en'): Promise<{
     isSuccess: boolean;
     message: string;
-    locations: Location[];
+    locations: LocationNode[];
   }> {
     const locations = await this.locationModel.find().lean().exec();
 

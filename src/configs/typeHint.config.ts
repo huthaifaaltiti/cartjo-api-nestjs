@@ -1,4 +1,4 @@
-import { SystemTypeHints } from "src/enums/systemTypeHints.enum";
+import { SystemTypeHints } from '../enums/systemTypeHints.enum';
 
 export const SYSTEM_GENERATED_HINTS = [
   SystemTypeHints.MOST_VIEWED as string,
@@ -17,7 +17,7 @@ export const TYPE_HINT_THRESHOLDS = {
   most_viewed: 10,
   best_sellers: 10,
   most_favorited: 10,
-  trending: 10
+  trending: 10,
 };
 
 export type SystemGeneratedHint = (typeof SYSTEM_GENERATED_HINTS)[number];

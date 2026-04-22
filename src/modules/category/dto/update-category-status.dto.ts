@@ -5,7 +5,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { Locale } from 'src/types/Locale';
+import { Locale } from '../../../types/Locale';
 
 export class UpdateCategoryStatusParamsDto {
   @IsMongoId({ message: 'Invalid Category ID format' })

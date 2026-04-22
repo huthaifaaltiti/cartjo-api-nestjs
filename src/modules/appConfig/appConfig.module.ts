@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AppConfig, AppConfigSchema } from 'src/schemas/appConfig.schema';
 import { AppConfigController } from './appConfig.controller';
 import { AppConfigService } from './appConfig.service';
+import { AppConfig, AppConfigSchema } from '../../schemas/appConfig.schema';
 
 @Module({
   imports: [

@@ -9,8 +9,8 @@ import {
   MinLength,
   ValidateIf,
 } from 'class-validator';
-import { validationConfig } from 'src/configs/validationConfig';
-import { Locale } from 'src/types/Locale';
+import { validationConfig } from '../../../configs/validationConfig';
+import { Locale } from '../../../types/Locale';
 
 const { bannerLinkMinChars, bannerLinkMaxChars, titleMinChars, titleMaxChars } =
   validationConfig.banner;

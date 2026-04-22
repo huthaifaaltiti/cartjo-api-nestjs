@@ -1,6 +1,6 @@
 import { IsMongoId, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import mongoose from 'mongoose';
-import { Locale } from 'src/types/Locale';
+import { Locale } from '../../../types/Locale';
 export class UnDeleteDto {
   @IsOptional()
   @IsString()

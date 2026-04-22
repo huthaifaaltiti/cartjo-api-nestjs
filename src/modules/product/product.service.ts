@@ -10,30 +10,30 @@ import {
   BaseResponse,
   DataListResponse,
   DataResponse,
-} from 'src/types/service-response.type';
-import { Product, ProductDocument } from 'src/schemas/product.schema';
+} from '../../types/service-response.type';
+import { Product, ProductDocument } from '../../schemas/product.schema';
 import { CreateProductDto } from './dto/create-product.dto';
-import { Locale } from 'src/types/Locale';
-import { Category, CategoryDocument } from 'src/schemas/category.schema';
-import { Modules } from 'src/enums/appModules.enum';
+import { Locale } from '../../types/Locale';
+import { Category, CategoryDocument } from '../../schemas/category.schema';
+import { Modules } from '../../enums/appModules.enum';
 import { MediaService } from '../media/media.service';
 import { TypeHintConfigService } from '../typeHintConfig/typeHintConfig.service';
-import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
-import { getMessage } from 'src/common/utils/translator';
-import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
+import { validateUserRoleAccess } from '../../common/utils/validateUserRoleAccess';
+import { getMessage } from '../../common/utils/translator';
+import { WishList, WishListDocument } from '../../schemas/wishList.schema';
 import { GetProductsQueryDto } from './dto/get-products.dto';
-import { MEDIA_CONFIG } from 'src/configs/media.config';
-import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
+import { MEDIA_CONFIG } from '../../configs/media.config';
+import { SystemTypeHints } from '../../enums/systemTypeHints.enum';
 import { Cron } from '@nestjs/schedule';
-import { WEEKLY_SCORE_WEIGHTS } from 'src/configs/weeklyScoreWeights.config';
-import { CRON_JOBS } from 'src/configs/cron.config';
+import { WEEKLY_SCORE_WEIGHTS } from '../../configs/weeklyScoreWeights.config';
+import { CRON_JOBS } from '../../configs/cron.config';
 import {
   SYSTEM_GENERATED_HINTS,
   SystemGeneratedHint,
-} from 'src/configs/typeHint.config';
-import { Currency } from 'src/enums/currency.enum';
-import generateSKU from 'src/common/utils/generateSKU.util';
-import { ProductVariantAttributeKey } from 'src/enums/productVariantAttributeKey.enum';
+} from '../../configs/typeHint.config';
+import { Currency } from '../../enums/currency.enum';
+import generateSKU from '../../common/utils/generateSKU.util';
+import { ProductVariantAttributeKey } from '../../enums/productVariantAttributeKey.enum';
 import {
   UpdateProductBodyDto,
   UpdateProductVariantParamsDto,
@@ -41,23 +41,23 @@ import {
   CreateProductVariantParamsDto,
   CreateProductVariantBodyDto,
 } from './dto/update-product.dto';
-import { generateSecureStamp } from 'src/common/utils/generateSecureStamp.util';
+import { generateSecureStamp } from '../../common/utils/generateSecureStamp.util';
 import {
   TypeHintConfig,
   TypeHintConfigDocument,
-} from 'src/schemas/typeHintConfig.schema';
+} from '../../schemas/typeHintConfig.schema';
 import {
   SubCategory,
   SubCategoryDocument,
-} from 'src/schemas/subCategory.schema';
+} from '../../schemas/subCategory.schema';
 import { UpdateProductStatusBodyDto } from './dto/update-product-status.dto';
 import { DeleteProductDto } from './dto/delete-product.dto';
 import { UnDeleteProductBodyDto } from './dto/unDelete-product.dto';
-import { Cart, CartDocument } from 'src/schemas/cart.schema';
-import { ViewMode } from 'src/enums/viewMode.enum';
+import { Cart, CartDocument } from '../../schemas/cart.schema';
+import { ViewMode } from '../../enums/viewMode.enum';
 import { HistoryService } from '../history/history.service';
-import { LogModule } from 'src/enums/logModules.enum';
-import { LogAction } from 'src/enums/LogAction.enum';
+import { LogModule } from '../../enums/logModules.enum';
+import { LogAction } from '../../enums/LogAction.enum';
 
 @Injectable()
 export class ProductService {

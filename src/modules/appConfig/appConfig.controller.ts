@@ -8,9 +8,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiPaths } from 'src/common/constants/api-paths';
 import { AppConfigService } from './appConfig.service';
 import { UpdateConfigDto } from './dto/update-config.dto';
+import { ApiPaths } from '../../common/constants/api-paths';
 
 @Controller(ApiPaths.AppConfig.Root)
 export class AppConfigController {

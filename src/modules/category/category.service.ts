@@ -9,28 +9,28 @@ import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
 import slugify from 'slugify';
 import { MediaService } from '../media/media.service';
-import {
-  BaseResponse,
-  DataListResponse,
-  DataResponse,
-} from 'src/types/service-response.type';
-import { Category, CategoryDocument } from 'src/schemas/category.schema';
-import { Locale } from 'src/types/Locale';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { DeleteCategoryDto } from './dto/delete-category.dto';
 import { UnDeleteCategoryBodyDto } from './dto/unDelete-category.dto';
-import { Modules } from 'src/enums/appModules.enum';
-import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
-import { getMessage } from 'src/common/utils/translator';
-import { MediaPreview } from 'src/schemas/common.schema';
 import { GetActiveOnesQueryDto } from './dto/get-active-ones.dto';
-import { MEDIA_CONFIG } from 'src/configs/media.config';
 import { AppConfigService } from '../appConfig/appConfig.service';
 import { HistoryService } from '../history/history.service';
-import { LogModule } from 'src/enums/logModules.enum';
-import { LogAction } from 'src/enums/LogAction.enum';
 import { SubCategoryService } from '../subCategory/subCategory.service';
+import { Category, CategoryDocument } from '../../schemas/category.schema';
+import {
+  BaseResponse,
+  DataListResponse,
+  DataResponse,
+} from '../../types/service-response.type';
+import { validateUserRoleAccess } from '../../common/utils/validateUserRoleAccess';
+import { getMessage } from '../../common/utils/translator';
+import { MEDIA_CONFIG } from '../../configs/media.config';
+import { Modules } from '../../enums/appModules.enum';
+import { LogModule } from '../../enums/logModules.enum';
+import { LogAction } from '../../enums/logAction.enum';
+import { MediaPreview } from '../../schemas/common.schema';
+import { Locale } from '../../types/Locale';
 
 @Injectable()
 export class CategoryService {

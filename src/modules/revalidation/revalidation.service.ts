@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { getNextJsUrl } from 'src/common/utils/getNextJsUrl';
+import { getNextJsUrl } from '../../common/utils/getNextJsUrl';
 
 @Injectable()
 export class RevalidationService {

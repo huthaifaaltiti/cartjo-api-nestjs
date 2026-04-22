@@ -5,9 +5,9 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { AppConfig, AppConfigDocument } from 'src/schemas/appConfig.schema';
 import { UpdateConfigDto } from './dto/update-config.dto';
-import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
+import { AppConfig, AppConfigDocument } from '../../schemas/appConfig.schema';
+import { validateUserRoleAccess } from '../../common/utils/validateUserRoleAccess';
 
 @Injectable()
 export class AppConfigService implements OnModuleInit {

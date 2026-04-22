@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { getMessage } from 'src/common/utils/translator';
-import { NATIONALITIES } from 'src/common/constants/nationalities';
 import { GetStaticNationalitiesQueryDto } from './dto/get-all.dto';
+import { NATIONALITIES } from '../../common/constants/nationalities';
+import { getMessage } from '../../common/utils/translator';
 
 @Injectable()
 export class NationalityService {

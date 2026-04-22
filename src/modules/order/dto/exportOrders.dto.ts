@@ -1,7 +1,7 @@
 import { IsEnum, IsOptional, IsDateString } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { ExportFormat } from 'src/enums/ExportFormat.enum';
-import { Locale } from 'src/types/Locale';
+import { ExportFormat } from '../../../enums/ExportFormat.enum';
+import { Locale } from '../../../types/Locale';
 
 export class ExportOrdersQueryDto {
   @ApiPropertyOptional({ enum: ExportFormat })

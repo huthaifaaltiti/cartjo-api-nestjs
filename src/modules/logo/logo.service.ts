@@ -6,26 +6,26 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { MediaService } from '../media/media.service';
-import {
-  BaseResponse,
-  DataListResponse,
-  DataResponse,
-} from 'src/types/service-response.type';
-import { Logo, LogoDocument } from 'src/schemas/logo.schema';
-import { Modules } from 'src/enums/appModules.enum';
-import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
-import { getMessage } from 'src/common/utils/translator';
 import { CreateLogoDto } from './dto/create-logo.dto';
 import { UpdateLogoDto } from './dto/update-logo.dto';
 import { DeleteLogoDto } from './dto/delete-logo.dto';
 import { UnDeleteLogoBodyDto } from './dto/unDelete-logo.dto';
-import { Locale } from 'src/types/Locale';
-import { MEDIA_CONFIG } from 'src/configs/media.config';
-import { MediaPreview } from 'src/schemas/common.schema';
 import { HistoryService } from '../history/history.service';
-import { LogModule } from 'src/enums/logModules.enum';
-import { LogAction } from 'src/enums/LogAction.enum';
 import { AppConfigService } from '../appConfig/appConfig.service';
+import { Logo, LogoDocument } from '../../schemas/logo.schema';
+import { Locale } from '../../types/Locale';
+import {
+  BaseResponse,
+  DataListResponse,
+  DataResponse,
+} from '../../types/service-response.type';
+import { validateUserRoleAccess } from '../../common/utils/validateUserRoleAccess';
+import { getMessage } from '../../common/utils/translator';
+import { MediaPreview } from '../../schemas/common.schema';
+import { MEDIA_CONFIG } from '../../configs/media.config';
+import { Modules } from '../../enums/appModules.enum';
+import { LogModule } from '../../enums/logModules.enum';
+import { LogAction } from '../../enums/logAction.enum';
 
 @Injectable()
 export class LogoService {
@@ -434,7 +434,6 @@ export class LogoService {
     lang: Locale = 'en',
     requestingUser: any,
   ): Promise<BaseResponse> {
-
     validateUserRoleAccess(requestingUser, lang);
 
     const logo = await this.logoModel.findById(id);

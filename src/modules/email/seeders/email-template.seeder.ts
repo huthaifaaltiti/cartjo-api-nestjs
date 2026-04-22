@@ -1,8 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { EmailTemplates } from 'src/enums/emailTemplates.enum';
-import { EmailTemplate } from 'src/schemas/email-template.schema';
 import {
   passwordResetSuccessTemplate,
   privacyPolicyTemplate,
@@ -19,6 +17,8 @@ import {
   passwordChangedTemplate,
   emailVerifiedTemplate,
 } from './email-templates';
+import { EmailTemplate } from '../../../schemas/email-template.schema';
+import { EmailTemplates } from '../../../enums/emailTemplates.enum';
 
 @Injectable()
 export class EmailTemplateSeeder {

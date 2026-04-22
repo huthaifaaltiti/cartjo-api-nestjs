@@ -8,11 +8,6 @@ import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { Model } from 'mongoose';
 import { MongoError } from 'mongodb';
-import { getMessage } from 'src/common/utils/translator';
-import { generateUsername } from 'src/common/utils/generators';
-import { RolePermissions } from 'src/common/constants/roles-permissions.constant';
-import { UserRole } from 'src/enums/user-role.enum';
-import { User, UserDocument } from 'src/schemas/user.schema';
 import {
   ForgotPasswordBodyDto,
   RegisterDto,
@@ -21,27 +16,32 @@ import {
   VerifyEmailQueryDto,
   VerifyResetPasswordCodeBodyDto,
 } from './dto/register.dto';
-import { Modules } from 'src/enums/appModules.enum';
 import { MediaService } from '../media/media.service';
 import { randomBytes } from 'crypto';
 import { EmailService } from '../email/email.service';
-import { EmailTemplates } from 'src/enums/emailTemplates.enum';
-import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
-import { BaseResponse } from 'src/types/service-response.type';
-import { getAppUrl } from 'src/common/utils/getAppUrl';
-import commonEmailTemplateData from 'src/common/utils/commonEmailTemplateData';
-import { MEDIA_CONFIG } from 'src/configs/media.config';
-import { MediaPreview } from 'src/schemas/common.schema';
 import { OAuth2Client } from 'google-auth-library';
 import { Response } from 'express';
 import { AuthJwtService } from '../auth-jwt/auth-jwt.service';
-import { buildGoogleOAuthConfig } from 'src/configs/google-oauth.config';
-import { VerificationChannelType } from 'src/enums/VerificationChannelType.enum';
+import { User, UserDocument } from '../../schemas/user.schema';
+import { buildGoogleOAuthConfig } from '../../configs/google-oauth.config';
+import { MediaPreview } from '../../schemas/common.schema';
+import { MEDIA_CONFIG } from '../../configs/media.config';
+import { Modules } from '../../enums/appModules.enum';
+import { getMessage } from '../../common/utils/translator';
+import { UserRole } from '../../enums/user-role.enum';
+import { generateUsername } from '../../common/functions/generators/username.generator';
+import { RolePermissions } from '../../common/constants/roles-permissions.constant';
+import { VerificationChannelType } from '../../enums/VerificationChannelType.enum';
+import { EmailTemplates } from '../../enums/emailTemplates.enum';
+import { getAppUrl } from '../../common/utils/getAppUrl';
+import commonEmailTemplateData from '../../common/utils/commonEmailTemplateData';
+import { PreferredLanguage } from '../../enums/preferredLanguage.enum';
+import { BaseResponse } from '../../types/service-response.type';
 import {
   isPhoneNumberLike,
   normalizePhoneNumber,
-} from 'src/common/utils/normalizePhoneNumber';
-import { COUNTRY_CONFIGS } from 'src/configs/countryPhone.config';
+} from '../../common/utils/normalizePhoneNumber';
+import { COUNTRY_CONFIGS } from '../../configs/countryPhone.config';
 
 @Injectable()
 export class AuthService {

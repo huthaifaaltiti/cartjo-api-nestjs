@@ -1,4 +1,4 @@
-import { CountryPhoneConfig } from 'src/configs/countryPhone.config';
+import { CountryPhoneConfig } from "../../configs/countryPhone.config";
 
 export const normalizePhoneNumber = (
   val: string,

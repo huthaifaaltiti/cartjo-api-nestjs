@@ -15,7 +15,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { LocationService } from './location.service';
 import { BulkUploadBodyDto } from './dto/bulk-upload-body.dto';
 import { DeleteLocationBodyDto } from './dto/delete-location-body.dto';
-import { ApiPaths } from 'src/common/constants/api-paths';
+import { ApiPaths } from '../../common/constants/api-paths';
 
 @Controller(ApiPaths.Location.Root)
 export class LocationController {

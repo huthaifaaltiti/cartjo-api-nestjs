@@ -1,8 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
-import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
 import { ProductVariant } from './sub-schemas/product-variant.schema';
 import { MediaPreview, NameRef } from './common.schema';
+import { SystemTypeHints } from '../enums/systemTypeHints.enum';
 
 export type ProductDocument = Product & Document;
 

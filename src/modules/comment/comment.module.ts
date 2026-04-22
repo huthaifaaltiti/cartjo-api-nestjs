@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MediaModule } from '../media/media.module';
-import { Comment, CommentSchema } from 'src/schemas/comment.schema';
 import { CommentService } from './comment.service';
 import { CommentController } from './comment.controller';
-import { Product, ProductSchema } from 'src/schemas/product.schema';
+import { Comment, CommentSchema } from '../../schemas/comment.schema';
+import { Product, ProductSchema } from '../../schemas/product.schema';
 
 @Module({
   imports: [

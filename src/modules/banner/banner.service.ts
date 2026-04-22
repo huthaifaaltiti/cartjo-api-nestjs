@@ -8,27 +8,27 @@ import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
 import { Cron } from '@nestjs/schedule';
 import { MediaService } from '../media/media.service';
-import { Banner, BannerDocument } from 'src/schemas/banner.schema';
+import { CreateBannerDto } from './dto/create.dto';
+import { UpdateBannerDto } from './dto/update.dto';
+import { DeleteDto } from './dto/delete.dto';
+import { UnDeleteDto } from './dto/unDelete.dto';
+import { AppConfigService } from '../appConfig/appConfig.service';
+import { HistoryService } from '../history/history.service';
+import { Banner, BannerDocument } from '../../schemas/banner.schema';
+import { CRON_JOBS } from '../../configs/cron.config';
+import { Locale } from '../../types/Locale';
 import {
   BaseResponse,
   DataListResponse,
   DataResponse,
-} from 'src/types/service-response.type';
-import { Locale } from 'src/types/Locale';
-import { CreateBannerDto } from './dto/create.dto';
-import { Modules } from 'src/enums/appModules.enum';
-import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
-import { getMessage } from 'src/common/utils/translator';
-import { UpdateBannerDto } from './dto/update.dto';
-import { DeleteDto } from './dto/delete.dto';
-import { UnDeleteDto } from './dto/unDelete.dto';
-import { MediaPreview } from 'src/schemas/common.schema';
-import { MEDIA_CONFIG } from 'src/configs/media.config';
-import { CRON_JOBS } from 'src/configs/cron.config';
-import { AppConfigService } from '../appConfig/appConfig.service';
-import { LogModule } from 'src/enums/logModules.enum';
-import { LogAction } from 'src/enums/LogAction.enum';
-import { HistoryService } from '../history/history.service';
+} from '../../types/service-response.type';
+import { validateUserRoleAccess } from '../../common/utils/validateUserRoleAccess';
+import { getMessage } from '../../common/utils/translator';
+import { MEDIA_CONFIG } from '../../configs/media.config';
+import { Modules } from '../../enums/appModules.enum';
+import { LogModule } from '../../enums/logModules.enum';
+import { LogAction } from '../../enums/logAction.enum';
+import { MediaPreview } from '../../schemas/common.schema';
 
 @Injectable()
 export class BannerService {

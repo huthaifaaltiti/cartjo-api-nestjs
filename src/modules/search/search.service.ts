@@ -1,19 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Product, ProductDocument } from 'src/schemas/product.schema';
+import { Product, ProductDocument } from '../../schemas/product.schema';
 import { SearchProductsQueryDto } from './dto/get-search-products.dto';
-import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
-import { getMessage } from 'src/common/utils/translator';
+import { WishList, WishListDocument } from '../../schemas/wishList.schema';
+import { getMessage } from '../../common/utils/translator';
 import {
   SYSTEM_GENERATED_HINTS,
   SystemGeneratedHint,
-} from 'src/configs/typeHint.config';
-import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
+} from '../../configs/typeHint.config';
+import { SystemTypeHints } from '../../enums/systemTypeHints.enum';
 import {
   TypeHintConfig,
   TypeHintConfigDocument,
-} from 'src/schemas/typeHintConfig.schema';
+} from '../../schemas/typeHintConfig.schema';
 
 @Injectable()
 export class SearchService {

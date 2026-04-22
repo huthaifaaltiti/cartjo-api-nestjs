@@ -1,5 +1,4 @@
-import { FetchError } from 'src/types/common';
-// import { Locale } from 'src/types/Locale';
+import { FetchError } from "../../types/common";
 
 /**
  * General fetch wrapper

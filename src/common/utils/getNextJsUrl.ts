@@ -1,4 +1,4 @@
-import { AppEnvironments } from 'src/enums/appEnvs.enum';
+import { AppEnvironments } from "../../enums/appEnvs.enum";
 
 export function getNextJsUrl(): string {
   const env = process.env.NODE_ENV;

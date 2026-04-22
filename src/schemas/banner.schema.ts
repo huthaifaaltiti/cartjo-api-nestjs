@@ -1,7 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
-
-import { TranslatedText } from 'src/types/TranslatedText.type';
+import { TranslatedText } from '../types/TranslatedText.type';
 
 export type BannerDocument = Banner & Document;
 

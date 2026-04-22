@@ -2,40 +2,37 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
-  // Inject,
-  // forwardRef,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
-import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
-import { getMessage } from 'src/common/utils/translator';
 import { MediaService } from '../media/media.service';
-import {
-  SubCategory,
-  SubCategoryDocument,
-} from 'src/schemas/subCategory.schema';
-import {
-  BaseResponse,
-  DataListResponse,
-  DataResponse,
-} from 'src/types/service-response.type';
-import { Locale } from 'src/types/Locale';
-import { Category, CategoryDocument } from 'src/schemas/category.schema';
-import { Modules } from 'src/enums/appModules.enum';
 import { CreateSubCategoryDto } from './dto/create-subCategory.dto';
 import { UpdateSubCategoryDto } from './dto/update-subCategory.dto';
 import { DeleteSubCategoryDto } from './dto/delete-subCategory.dto';
 import { UnDeleteSubCategoryBodyDto } from './dto/unDelete-subCategory.dto';
-import { MediaPreview } from 'src/schemas/common.schema';
 import slugify from 'slugify';
-import { revalidateTag } from 'src/common/utils/revalidate';
-import { REVALIDATION_TAGS } from 'src/common/constants/revalidation-tags';
 import { RevalidationService } from '../revalidation/revalidation.service';
-import { MEDIA_CONFIG } from 'src/configs/media.config';
 import { HistoryService } from '../history/history.service';
-import { LogModule } from 'src/enums/logModules.enum';
-import { LogAction } from 'src/enums/LogAction.enum';
-// import { ProductService } from '../product/product.service';
+import {
+  SubCategory,
+  SubCategoryDocument,
+} from '../../schemas/subCategory.schema';
+import { Category, CategoryDocument } from '../../schemas/category.schema';
+import {
+  BaseResponse,
+  DataListResponse,
+  DataResponse,
+} from '../../types/service-response.type';
+import { validateUserRoleAccess } from '../../common/utils/validateUserRoleAccess';
+import { getMessage } from '../../common/utils/translator';
+import { MEDIA_CONFIG } from '../../configs/media.config';
+import { Modules } from '../../enums/appModules.enum';
+import { revalidateTag } from '../../common/utils/revalidate';
+import { REVALIDATION_TAGS } from '../../common/constants/revalidation-tags';
+import { LogModule } from '../../enums/logModules.enum';
+import { LogAction } from '../../enums/logAction.enum';
+import { MediaPreview } from '../../schemas/common.schema';
+import { Locale } from '../../types/Locale';
 
 @Injectable()
 export class SubCategoryService {

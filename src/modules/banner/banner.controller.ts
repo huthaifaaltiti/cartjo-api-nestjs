@@ -25,7 +25,7 @@ import {
   UpdateStatusBodyDto,
   UpdateStatusParamsDto,
 } from './dto/update-active-status.dto';
-import { ApiPaths } from 'src/common/constants/api-paths';
+import { ApiPaths } from '../../common/constants/api-paths';
 
 @Controller(ApiPaths.Banner.Root)
 export class BannerController {

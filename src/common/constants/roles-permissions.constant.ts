@@ -1,5 +1,5 @@
-import { Permission } from 'src/enums/permission.enum';
-import { UserRole } from 'src/enums/user-role.enum';
+import { Permission } from '../../enums/permission.enum';
+import { UserRole } from '../../enums/user-role.enum';
 
 export const RolePermissions: Record<UserRole, Permission[]> = {
   [UserRole.OWNER]: [

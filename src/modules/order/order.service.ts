@@ -5,22 +5,6 @@ import {
 } from '@nestjs/common';
 import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { Cart, CartDocument } from 'src/schemas/cart.schema';
-import {
-  Order,
-  OrderCartItem,
-  OrderDocument,
-  OrderItemSnapshot,
-} from 'src/schemas/order.schema';
-import { PaymentStatus } from 'src/enums/paymentStatus.enum';
-import { PaymentMethod } from 'src/enums/paymentMethod.enum';
-import { generateRandomString } from 'src/common/utils/generateRandomString';
-import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
-import { getMessage } from 'src/common/utils/translator';
-import {
-  DataListResponse,
-  DataResponse,
-} from 'src/types/service-response.type';
 import {
   DeleteOrderBodyDto,
   DeleteOrderParamsDto,
@@ -32,37 +16,45 @@ import {
 import { ChangePaymentStatusBodyDto } from './dto/paymentStatus.dto';
 import { GetOrdersQueryDto } from './dto/getOrders.dto';
 import { GetOrderParamDto, GetOrderQueryDto } from './dto/getOrder.dto';
-import { checkUserRole } from 'src/common/utils/checkUserRole';
-import { UserRole } from 'src/enums/user-role.enum';
 import { EmailService } from '../email/email.service';
-import { EmailTemplates } from 'src/enums/emailTemplates.enum';
-import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
-import { ExportFormat } from 'src/enums/ExportFormat.enum';
 import { ExportOrdersQueryDto } from './dto/exportOrders.dto';
 import * as ExcelJS from 'exceljs';
 import * as PDFDocument from 'pdfkit';
 import { Response } from 'express';
-import { getAppUrl } from 'src/common/utils/getAppUrl';
-import commonEmailTemplateData from 'src/common/utils/commonEmailTemplateData';
 import { CreateOrderBodyDto } from './dto/createOrder.dto';
-import getCurrencyLabel from 'src/common/utils/getCurrencyLabel';
-import getPaymentMethodLabel from 'src/common/utils/getPaymentMethodLabel';
 import {
   GetMyOrdersParamDto,
   GetMyOrdersQueryDto,
 } from './dto/getMyOrders.dto';
-import { validateSameUserAccess } from 'src/common/utils/validateSameUserAccess';
 import { GetMyOrderParamDto, GetMyOrderQueryDto } from './dto/getMyOrder.dto';
 import { ChangeDeliveryStatusBodyDto } from './dto/deliveryStatus.dto';
-import { OrderDeliveryStatus } from 'src/enums/orderDeliveryStatus.enum';
-import { User } from 'src/schemas/user.schema';
 import {
   GetMyOrderReturnsParamDto,
   GetMyOrderReturnsQueryDto,
 } from './dto/getMyOrderReturns.dto';
-import { Product, ProductDocument } from 'src/schemas/product.schema';
-import { Currency } from 'src/enums/currency.enum';
-import { WEEKLY_SCORE_WEIGHTS } from 'src/configs/weeklyScoreWeights.config';
+import { Order, OrderCartItem, OrderDocument, OrderItemSnapshot } from '../../schemas/order.schema';
+import { Cart, CartDocument } from '../../schemas/cart.schema';
+import { Product, ProductDocument } from '../../schemas/product.schema';
+import { WEEKLY_SCORE_WEIGHTS } from '../../configs/weeklyScoreWeights.config';
+import { OrderDeliveryStatus } from '../../enums/orderDeliveryStatus.enum';
+import { User } from '../../schemas/user.schema';
+import { EmailTemplates } from '../../enums/emailTemplates.enum';
+import { PreferredLanguage } from '../../enums/preferredLanguage.enum';
+import { getAppUrl } from '../../common/utils/getAppUrl';
+import getCurrencyLabel from '../../common/utils/getCurrencyLabel';
+import commonEmailTemplateData from '../../common/utils/commonEmailTemplateData';
+import { DataListResponse, DataResponse } from '../../types/service-response.type';
+import { checkUserRole } from '../../common/utils/checkUserRole';
+import { UserRole } from '../../enums/user-role.enum';
+import { getMessage } from '../../common/utils/translator';
+import { PaymentMethod } from '../../enums/paymentMethod.enum';
+import { generateRandomString } from '../../common/utils/generateRandomString';
+import { PaymentStatus } from '../../enums/paymentStatus.enum';
+import { Currency } from '../../enums/currency.enum';
+import getPaymentMethodLabel from '../../common/utils/getPaymentMethodLabel';
+import { validateUserRoleAccess } from '../../common/utils/validateUserRoleAccess';
+import { validateSameUserAccess } from '../../common/utils/validateSameUserAccess';
+import { ExportFormat } from '../../enums/ExportFormat.enum';
 
 @Injectable()
 export class OrderService {

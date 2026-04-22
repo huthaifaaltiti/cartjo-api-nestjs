@@ -1,7 +1,7 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { AuthorizationService } from './authorization.service';
 import { LoginDto } from './dto/login.dto';
-import { ApiPaths } from 'src/common/constants/api-paths';
+import { ApiPaths } from '../../common/constants/api-paths';
 
 @Controller(ApiPaths.Authorization.Root)
 export class AuthorizationController {

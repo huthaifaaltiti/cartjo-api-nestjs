@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
-import { LogAction } from 'src/enums/LogAction.enum';
-import { LogModule } from 'src/enums/logModules.enum';
+import { LogAction } from '../enums/logAction.enum';
+import { LogModule } from '../enums/logModules.enum';
 
 export type HistoryDocument = History & Document;
 

@@ -1,7 +1,7 @@
 import { Connection } from 'mongoose';
-import { ProductVariantAttributeKey } from 'src/enums/productVariantAttributeKey.enum';
-import { SellingType } from 'src/enums/sellingType.enum';
-import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
+import { SystemTypeHints } from '../../enums/systemTypeHints.enum';
+import { ProductVariantAttributeKey } from '../../enums/productVariantAttributeKey.enum';
+import { SellingType } from '../../enums/sellingType.enum';
 
 export default async function migrateProductsToVariants(
   mongo: Connection,

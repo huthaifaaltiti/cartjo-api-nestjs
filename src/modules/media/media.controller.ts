@@ -6,22 +6,16 @@ import {
   UseGuards,
   Body,
   Request,
-  // Get,
-  // Param,
-  // Res,
-  // NotFoundException,
-  // InternalServerErrorException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
-// import { Response } from 'express';
 import { MediaService } from './media.service';
 import { UploadFileBodyDto } from './dto/upload-file.dto';
-import { Modules } from 'src/enums/appModules.enum';
-import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
-import { ApiPaths } from 'src/common/constants/api-paths';
-import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
-import { MEDIA_CONFIG } from 'src/configs/media.config';
+import { ApiPaths } from '../../common/constants/api-paths';
+import { fileSizeValidator } from '../../common/functions/validators/fileSizeValidator';
+import { fileTypeValidator } from '../../common/functions/validators/fileTypeValidator';
+import { MEDIA_CONFIG } from '../../configs/media.config';
+import { Modules } from '../../enums/appModules.enum';
 
 @Controller(ApiPaths.Media.Root)
 export class MediaController {

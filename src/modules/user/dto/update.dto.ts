@@ -11,11 +11,11 @@ import {
   ValidateNested,
   IsIn,
 } from 'class-validator';
-import { Locale } from 'src/types/Locale';
-import { Gender } from 'src/enums/gender.enum';
-import { ShippingAddressDto } from 'src/modules/payment/dto/checkout.dto';
 import { Type } from 'class-transformer';
-import { NATIONALITY_CODES } from 'src/common/constants/nationalities';
+import { Gender } from '../../../enums/gender.enum';
+import { NATIONALITY_CODES } from '../../../common/constants/nationalities';
+import { Locale } from '../../../types/Locale';
+import { ShippingAddressDto } from '../../payment/dto/checkout.dto';
 
 export class UpdateUserDto {
   @IsOptional()
