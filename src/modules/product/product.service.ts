@@ -57,7 +57,7 @@ import { Cart, CartDocument } from '../../schemas/cart.schema';
 import { ViewMode } from '../../enums/viewMode.enum';
 import { HistoryService } from '../history/history.service';
 import { LogModule } from '../../enums/logModules.enum';
-import { LogAction } from '../../enums/LogAction.enum';
+import { LogAction } from '../../enums/logAction.enum';
 
 @Injectable()
 export class ProductService {

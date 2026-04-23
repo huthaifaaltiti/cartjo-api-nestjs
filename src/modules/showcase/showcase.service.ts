@@ -32,8 +32,8 @@ import { SystemTypeHints } from '../../enums/systemTypeHints.enum';
 import { TYPE_HINT_THRESHOLDS } from '../../configs/typeHint.config';
 import { CRON_JOBS } from '../../configs/cron.config';
 import { LogModule } from '../../enums/logModules.enum';
-import { LogAction } from '../../enums/LogAction.enum';
 import { HistoryService } from '../history/history.service';
+import { LogAction } from '../../enums/logAction.enum';
 
 export class ShowcaseService {
   constructor(
