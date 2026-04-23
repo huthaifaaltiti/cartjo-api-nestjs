@@ -36,7 +36,7 @@ import { ShowCase, ShowCaseDocument } from '../../schemas/showcase.schema';
 import { Product, ProductDocument } from '../../schemas/product.schema';
 import { HistoryService } from '../history/history.service';
 import { LogModule } from '../../enums/logModules.enum';
-import { LogAction } from '../../enums/LogAction.enum';
+import { LogAction } from '../../enums/logAction.enum';
 
 export class TypeHintConfigService {
   private SYSTEM_TYPE_KEYS = SYSTEM_TYPE_HINTS.map(hint => hint.key);
