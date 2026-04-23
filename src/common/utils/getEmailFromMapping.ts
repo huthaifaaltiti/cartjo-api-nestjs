@@ -1,4 +1,4 @@
-import { EmailTemplates } from 'src/enums/emailTemplates.enum';
+import { EmailTemplates } from '../../enums/emailTemplates.enum';
 
 export const getEmailFromMapping = (): Record<string, string> => ({
   // NO_REPLY
@@ -14,7 +14,8 @@ export const getEmailFromMapping = (): Record<string, string> => ({
   [EmailTemplates.ORDER_CANCELED]: process.env.EMAIL_FROM_NOTIFICATIONS!,
   [EmailTemplates.ORDER_DELIVERED]: process.env.EMAIL_FROM_NOTIFICATIONS!,
   [EmailTemplates.ORDER_DELIVERY_FAILED]: process.env.EMAIL_FROM_NOTIFICATIONS!,
-  [EmailTemplates.ORDER_OUT_FOR_DELIVERY]: process.env.EMAIL_FROM_NOTIFICATIONS!,
+  [EmailTemplates.ORDER_OUT_FOR_DELIVERY]:
+    process.env.EMAIL_FROM_NOTIFICATIONS!,
   [EmailTemplates.ORDER_RETURNED]: process.env.EMAIL_FROM_NOTIFICATIONS!,
 
   // SYSTEM

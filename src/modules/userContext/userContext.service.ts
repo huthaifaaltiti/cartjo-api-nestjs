@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { WishListService } from '../wishList/wishList.service';
+import { CartService } from '../cart/cart.service';
+import { GetUserContextQuery } from './dto/get-user-context.dto';
 import {
   UserContext,
   UserContextDocument,
-} from 'src/schemas/userContext.schema';
-import { WishListService } from '../wishList/wishList.service';
-import { CartService } from '../cart/cart.service';
-import { DataResponse } from 'src/types/service-response.type';
-import { getMessage } from 'src/common/utils/translator';
-import { GetUserContextQuery } from './dto/get-user-context.dto';
-import { User, UserDocument } from 'src/schemas/user.schema';
+} from '../../schemas/userContext.schema';
+import { User, UserDocument } from '../../schemas/user.schema';
+import { getMessage } from '../../common/utils/translator';
+import { DataResponse } from '../../types/service-response.type';
 
 @Injectable()
 export class UserContextService {

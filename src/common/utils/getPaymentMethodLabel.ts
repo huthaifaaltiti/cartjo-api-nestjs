@@ -1,7 +1,7 @@
-import { isArabicLocale } from 'src/configs/locales.config';
-import { Locale } from 'src/types/Locale';
+import { isArabicLocale } from '../../configs/locales.config';
+import { PaymentMethod } from '../../enums/paymentMethod.enum';
+import { Locale } from '../../types/Locale';
 import { PaymentMethods } from '../constants/paymentMethods.constant';
-import { PaymentMethod } from 'src/enums/paymentMethod.enum';
 
 const getPaymentMethodLabel = (lang: Locale, method: PaymentMethod): string => {
   const isArabic = isArabicLocale(lang);

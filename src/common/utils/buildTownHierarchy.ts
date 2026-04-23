@@ -1,4 +1,4 @@
-type LocationNode = {
+export type LocationNode = {
   name: {
     en: string;
     ar: string;

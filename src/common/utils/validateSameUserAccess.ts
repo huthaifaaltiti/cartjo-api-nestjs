@@ -1,6 +1,6 @@
 import { ForbiddenException } from '@nestjs/common';
 import { getMessage } from './translator';
-import { Locale } from 'src/types/Locale';
+import { Locale } from '../../types/Locale';
 
 export const validateSameUserAccess = (
   requestingUserId: string,

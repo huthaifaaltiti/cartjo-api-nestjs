@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ProductModule } from '../product/product.module';
-import { Product, ProductSchema } from 'src/schemas/product.schema';
 import { WishListController } from './wishList.controller';
 import { WishListService } from './wishList.service';
-import { WishList, WishListSchema } from 'src/schemas/wishList.schema';
-import { Cart, CartSchema } from 'src/schemas/cart.schema';
 import { CartModule } from '../cart/cart.module';
+import { WishList, WishListSchema } from '../../schemas/wishList.schema';
+import { Cart, CartSchema } from '../../schemas/cart.schema';
+import { Product, ProductSchema } from '../../schemas/product.schema';
 
 @Module({
   imports: [

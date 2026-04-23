@@ -7,13 +7,6 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
-import {
-  BaseResponse,
-  DataListResponse,
-  DataResponse,
-} from 'src/types/service-response.type';
-import { Comment, CommentDocument } from 'src/schemas/comment.schema';
-import { getMessage } from 'src/common/utils/translator';
 import { GetCommentsQueryDto } from './dto/get-all.dto';
 import { CreateCommentDto } from './dto/create.dto';
 import {
@@ -23,9 +16,16 @@ import {
 import { GetCommentParamDto, GetCommentQueryDto } from './dto/get-one.dto';
 import { DeleteCommentBodyDto } from './dto/delete.dto';
 import { UnDeleteCommentBodyDto } from './dto/un-delete.dto';
-import { ALLOWED_AUTHENTICATED_ROLES } from 'src/common/constants/roles.constants';
-import { Product, ProductDocument } from 'src/schemas/product.schema';
-import { Locale } from 'src/types/Locale';
+import { Product, ProductDocument } from '../../schemas/product.schema';
+import { Comment, CommentDocument } from '../../schemas/comment.schema';
+import {
+  BaseResponse,
+  DataListResponse,
+  DataResponse,
+} from '../../types/service-response.type';
+import { getMessage } from '../../common/utils/translator';
+import { Locale } from '../../types/Locale';
+import { ALLOWED_AUTHENTICATED_ROLES } from '../../common/constants/roles.constants';
 
 @Injectable()
 export class CommentService {

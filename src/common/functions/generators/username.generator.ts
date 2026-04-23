@@ -1,5 +1,5 @@
 import { Model } from 'mongoose';
-import { UserDocument } from 'src/schemas/user.schema';
+import { UserDocument } from '../../../schemas/user.schema';
 
 export const generateUsername = async (
   fN: string,

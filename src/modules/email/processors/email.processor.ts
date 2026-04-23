@@ -2,14 +2,14 @@ import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bull';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { Queues } from '../../../enums/queues.enum';
+import { EmailService } from '../email.service';
 import {
   EmailTemplate,
   EmailTemplateDocument,
-} from 'src/schemas/email-template.schema';
-import { Queues } from 'src/enums/queues.enum';
-import { EmailService } from '../email.service';
-import { Processors } from 'src/enums/processors.enum';
-import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
+} from '../../../schemas/email-template.schema';
+import { Processors } from '../../../enums/processors.enum';
+import { PreferredLanguage } from '../../../enums/preferredLanguage.enum';
 
 @Processor(Queues.EMAIL_QUEUE)
 export class EmailProcessor {

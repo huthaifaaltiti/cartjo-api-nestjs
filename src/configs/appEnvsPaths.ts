@@ -1,4 +1,4 @@
-import { AppEnvironments } from 'src/enums/appEnvs.enum';
+import { AppEnvironments } from '../enums/appEnvs.enum';
 
 export const appEnvsHosts: Record<AppEnvironments, string> = {
   [AppEnvironments.DEVELOPMENT]: process.env.API_HOST_DEVELOPMENT!,

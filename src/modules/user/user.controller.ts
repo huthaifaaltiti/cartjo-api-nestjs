@@ -15,7 +15,6 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserService } from './user.service';
-import { ALLOWED_AUTHENTICATED_ROLES } from 'src/common/constants/roles.constants';
 import { GetUsersStatsQueryDto } from './dto/get-users-stats.dto';
 import { GetAllUsersQueryDto } from './dto/get-all-users-query.dto';
 import { DeleteUserBodyDto } from './dto/delete-user-body.dto';
@@ -31,12 +30,13 @@ import {
 import { GetUserParamDto, GetUserQueryDto } from './dto/get-user.dto';
 import { CreateAdminBodyDto } from './dto/create-admin.dto';
 import { UpdateAdminUserParamsDto } from './dto/update-admin.dto';
-import { ApiPaths } from 'src/common/constants/api-paths';
 import {
   UpdateDefaultAddressDto,
   UpdateUserDto,
   UpdateUserParamsDto,
 } from './dto/update.dto';
+import { ApiPaths } from '../../common/constants/api-paths';
+import { ALLOWED_AUTHENTICATED_ROLES } from '../../common/constants/roles.constants';
 
 @Controller(ApiPaths.User.Root)
 export class UserController {

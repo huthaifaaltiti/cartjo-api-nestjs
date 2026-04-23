@@ -13,10 +13,10 @@ import {
   MaxLength,
   ValidateNested,
 } from 'class-validator';
-import { validationConfig } from 'src/configs/validationConfig';
-import { Currency } from 'src/enums/currency.enum';
-import { ProductVariantAttributeKey } from 'src/enums/productVariantAttributeKey.enum';
-import { Locale } from 'src/types/Locale';
+import { validationConfig } from '../../../configs/validationConfig';
+import { Currency } from '../../../enums/currency.enum';
+import { ProductVariantAttributeKey } from '../../../enums/productVariantAttributeKey.enum';
+import { Locale } from '../../../types/Locale';
 
 const {
   product: {

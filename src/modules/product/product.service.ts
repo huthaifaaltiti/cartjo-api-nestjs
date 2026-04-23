@@ -10,30 +10,30 @@ import {
   BaseResponse,
   DataListResponse,
   DataResponse,
-} from 'src/types/service-response.type';
-import { Product, ProductDocument } from 'src/schemas/product.schema';
+} from '../../types/service-response.type';
+import { Product, ProductDocument } from '../../schemas/product.schema';
 import { CreateProductDto } from './dto/create-product.dto';
-import { Locale } from 'src/types/Locale';
-import { Category, CategoryDocument } from 'src/schemas/category.schema';
-import { Modules } from 'src/enums/appModules.enum';
+import { Locale } from '../../types/Locale';
+import { Category, CategoryDocument } from '../../schemas/category.schema';
+import { Modules } from '../../enums/appModules.enum';
 import { MediaService } from '../media/media.service';
 import { TypeHintConfigService } from '../typeHintConfig/typeHintConfig.service';
-import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
-import { getMessage } from 'src/common/utils/translator';
-import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
+import { validateUserRoleAccess } from '../../common/utils/validateUserRoleAccess';
+import { getMessage } from '../../common/utils/translator';
+import { WishList, WishListDocument } from '../../schemas/wishList.schema';
 import { GetProductsQueryDto } from './dto/get-products.dto';
-import { MEDIA_CONFIG } from 'src/configs/media.config';
-import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
+import { MEDIA_CONFIG } from '../../configs/media.config';
+import { SystemTypeHints } from '../../enums/systemTypeHints.enum';
 import { Cron } from '@nestjs/schedule';
-import { WEEKLY_SCORE_WEIGHTS } from 'src/configs/weeklyScoreWeights.config';
-import { CRON_JOBS } from 'src/configs/cron.config';
+import { WEEKLY_SCORE_WEIGHTS } from '../../configs/weeklyScoreWeights.config';
+import { CRON_JOBS } from '../../configs/cron.config';
 import {
   SYSTEM_GENERATED_HINTS,
   SystemGeneratedHint,
-} from 'src/configs/typeHint.config';
-import { Currency } from 'src/enums/currency.enum';
-import generateSKU from 'src/common/utils/generateSKU.util';
-import { ProductVariantAttributeKey } from 'src/enums/productVariantAttributeKey.enum';
+} from '../../configs/typeHint.config';
+import { Currency } from '../../enums/currency.enum';
+import generateSKU from '../../common/utils/generateSKU.util';
+import { ProductVariantAttributeKey } from '../../enums/productVariantAttributeKey.enum';
 import {
   UpdateProductBodyDto,
   UpdateProductVariantParamsDto,
@@ -41,19 +41,23 @@ import {
   CreateProductVariantParamsDto,
   CreateProductVariantBodyDto,
 } from './dto/update-product.dto';
-import { generateSecureStamp } from 'src/common/utils/generateSecureStamp.util';
+import { generateSecureStamp } from '../../common/utils/generateSecureStamp.util';
 import {
   TypeHintConfig,
   TypeHintConfigDocument,
-} from 'src/schemas/typeHintConfig.schema';
+} from '../../schemas/typeHintConfig.schema';
 import {
   SubCategory,
   SubCategoryDocument,
-} from 'src/schemas/subCategory.schema';
+} from '../../schemas/subCategory.schema';
 import { UpdateProductStatusBodyDto } from './dto/update-product-status.dto';
 import { DeleteProductDto } from './dto/delete-product.dto';
 import { UnDeleteProductBodyDto } from './dto/unDelete-product.dto';
-import { Cart, CartDocument } from 'src/schemas/cart.schema';
+import { Cart, CartDocument } from '../../schemas/cart.schema';
+import { ViewMode } from '../../enums/viewMode.enum';
+import { HistoryService } from '../history/history.service';
+import { LogModule } from '../../enums/logModules.enum';
+import { LogAction } from '../../enums/logAction.enum';
 
 @Injectable()
 export class ProductService {
@@ -79,21 +83,50 @@ export class ProductService {
 
     @InjectModel(Cart.name)
     private cartModel: Model<CartDocument>,
+
+    private historyService: HistoryService,
   ) {}
 
   @Cron(CRON_JOBS.PRODUCT.RESET_WEEKLY_STATS)
   async resetWeeklyStats() {
-    await this.productModel.updateMany(
-      {},
-      {
-        $set: {
-          weeklyViewCount: 0,
-          weeklyFavoriteCount: 0,
-          weeklySellCount: 0,
-          weeklyScore: 0,
+    try {
+      const result = await this.productModel.updateMany(
+        {},
+        {
+          $set: {
+            weeklyViewCount: 0,
+            weeklyFavoriteCount: 0,
+            weeklySellCount: 0,
+            weeklyScore: 0,
+          },
         },
-      },
-    );
+      );
+
+      await this.historyService.log(
+        LogModule.PRODUCT,
+        LogAction.UPDATE,
+        null, // system action
+        null,
+        {
+          action: 'CRON_PRODUCTS_WEEKLY_STATS',
+          affectedCount: result.modifiedCount,
+          matchedCount: result.matchedCount,
+        },
+      );
+    } catch (error) {
+      await this.historyService.log(
+        LogModule.PRODUCT,
+        LogAction.UPDATE,
+        null,
+        null,
+        {
+          action: 'CRON_PRODUCTS_WEEKLY_STATS_FAILED',
+          error: (error as Error)?.message,
+        },
+      );
+
+      console.error('[CRON] Failed to reset products weekly stats:', error);
+    }
   }
 
   async incrementView(productId: string) {
@@ -131,7 +164,10 @@ export class ProductService {
       createdTo,
       beforeNumOfDays,
       typeHint,
+      viewMode = ViewMode.PUBLIC,
     } = params;
+
+    const isAdminView = viewMode === ViewMode.ADMIN;
 
     const query: any = {};
     const sort: any = { _id: -1 };
@@ -148,64 +184,32 @@ export class ProductService {
 
     // Only filter by typeHint if it's NOT a system-generated hint
     if (typeHint && !isSystemGeneratedHint) {
-      query.typeHint = { $in: [typeHint] };
+      query.typeHints = { $in: [typeHint] };
     }
 
-    // ✅ MOST_VIEWED: Filter active products and sort by viewCount
+    // MOST_VIEWED: Filter active products and sort by viewCount
     if (typeHint === SystemTypeHints.MOST_VIEWED) {
-      query.isActive = true;
-      query.isDeleted = false;
+      if (!isAdminView) {
+        query.isActive = true;
+        query.isDeleted = false;
+      }
+
       sort.viewCount = -1;
       delete sort._id;
     }
 
-    // ✅ TRENDING: Filter active products and sort by weekly metrics
+    // TRENDING: Filter active products and sort by weekly metrics
     if (typeHint === SystemTypeHints.TRENDING) {
-      query.isActive = true;
-      query.isDeleted = false;
+      if (!isAdminView) {
+        query.isActive = true;
+        query.isDeleted = false;
+      }
+
       sort.weeklyScore = -1;
       sort.weeklyFavoriteCount = -1;
       sort.weeklyViewCount = -1;
       delete sort._id;
     }
-
-    /*
-    ✅ 1.3 Fetch MOST_VIEWED Products (IMPORTANT)
-
-You must SORT, not $sample.
-
-🔥 Add support inside getAll
-
-Extend your typeHint logic:
-
-if (typeHint === SystemTypeHints.MOST_VIEWED) {
-  query.isActive = true;
-  query.isDeleted = false;
-}
-
-
-Then change sorting dynamically:
-
-const sort: any = { _id: -1 };
-
-if (typeHint === SystemTypeHints.MOST_VIEWED) {
-  sort.viewCount = -1;
-  delete sort._id;
-}
-
-
-Use it:
-
-const products = await this.productModel
-  .find(query)
-  .sort(sort)
-  .limit(Number(limit))
-  .populate(...)
-  .lean();
-
-
-✅ MOST_VIEWED now truly means highest viewCount first
-    */
 
     if (categoryId) {
       query.categoryId = new Types.ObjectId(categoryId);
@@ -226,7 +230,7 @@ const products = await this.productModel
       ];
     }
 
-    // ✅ Dynamic filters
+    // Dynamic filters
     if (priceFrom || priceTo) {
       query.price = {};
 
@@ -260,18 +264,23 @@ const products = await this.productModel
       if (createdTo) query.createdAt.$lte = new Date(createdTo);
     }
 
-    // ✅ MOST_VIEWED: Filter active products and sort by viewCount
+    // MOST_VIEWED: Filter active products and sort by viewCount
     if (typeHint === SystemTypeHints.MOST_VIEWED) {
-      query.isActive = true;
-      query.isDeleted = false;
+      if (!isAdminView) {
+        query.isActive = true;
+        query.isDeleted = false;
+      }
       sort.viewCount = -1;
       delete sort._id;
     }
 
-    // ✅ TRENDING: Sort by weekly metrics
+    // TRENDING: Sort by weekly metrics
     if (typeHint === SystemTypeHints.TRENDING) {
-      query.isActive = true;
-      query.isDeleted = false;
+      if (!isAdminView) {
+        query.isActive = true;
+        query.isDeleted = false;
+      }
+
       sort.weeklyScore = -1;
       sort.weeklyFavoriteCount = -1;
       sort.weeklyViewCount = -1;
@@ -286,9 +295,21 @@ const products = await this.productModel
       .populate('deletedBy', 'firstName lastName email _id')
       .populate('unDeletedBy', 'firstName lastName email _id')
       .populate('createdBy', 'firstName lastName email _id')
-      .populate('categoryId')
-      .populate('subCategoryId')
+      .populate({
+        path: 'categoryId',
+        match: isAdminView ? {} : { isActive: true, isDeleted: false },
+      })
+      .populate({
+        path: 'subCategoryId',
+        match: isAdminView ? {} : { isActive: true, isDeleted: false },
+      })
       .lean();
+
+    const validProducts = isAdminView
+      ? products
+      : products.filter(
+          (p: any) => p.categoryId !== null && p.subCategoryId !== null,
+        );
 
     // Enrich with isWishListed per user
     let wishListProducts: string[] = [];
@@ -302,16 +323,39 @@ const products = await this.productModel
       }
     }
 
-    const enrichedProducts = products.map(p => ({
+    const enrichedProducts = validProducts.map(p => ({
       ...p,
       isWishListed: wishListProducts.includes(p._id.toString()),
     }));
+
+    const allKeys = [...new Set(products.flatMap(p => p.typeHints || []))];
+
+    const typeHints = await this.typeHintConfigModel
+      .find({
+        key: { $in: allKeys },
+        isDeleted: false,
+      })
+      .lean();
+
+    const filteredProducts = isAdminView
+      ? enrichedProducts
+      : enrichedProducts.filter(p => {
+          const hints = typeHints.filter(
+            h =>
+              p.typeHints?.includes(h.key) &&
+              h.isActive &&
+              !h.isDeleted &&
+              !h.isExpired,
+          );
+
+          return hints.length > 0;
+        });
 
     return {
       isSuccess: true,
       message: getMessage('products_productsRetrievedSuccessfully', lang),
       dataCount: enrichedProducts.length,
-      data: enrichedProducts,
+      data: filteredProducts,
     };
   }
 
@@ -331,48 +375,166 @@ const products = await this.productModel
       );
     }
 
-    // search active items bu category
-    const findQuery: any = {
-      isActive: true,
-      isDeleted: false,
-      categoryId: new Types.ObjectId(categoryId),
-    };
+    const products = await this.productModel.aggregate([
+      // Match active products by category
+      {
+        $match: {
+          isActive: true,
+          isDeleted: false,
+          categoryId: new Types.ObjectId(categoryId),
+        },
+      },
 
-    // Get random products each request
-    const products = await this.productModel
-      .aggregate([
-        { $match: findQuery },
+      // Lookup & require active category
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'categoryId',
+          foreignField: '_id',
+          as: 'categoryId',
+        },
+      },
+      { $unwind: { path: '$categoryId', preserveNullAndEmptyArrays: false } },
+      {
+        $match: {
+          'categoryId.isActive': true,
+          'categoryId.isDeleted': false,
+        },
+      },
 
-        { $sample: { size: Number(limit) } },
-
-        // populate category
-        {
-          $lookup: {
-            from: 'categories',
-            localField: 'categoryId',
-            foreignField: '_id',
-            as: 'categoryId',
+      // Lookup & require active subcategory
+      {
+        $lookup: {
+          from: 'subCategories', // ← verify collection name
+          localField: 'subCategoryId',
+          foreignField: '_id',
+          as: 'subCategoryId',
+        },
+      },
+      {
+        $addFields: {
+          subCategoryId: {
+            $cond: {
+              if: { $gt: [{ $size: '$subCategoryId' }, 0] },
+              then: { $arrayElemAt: ['$subCategoryId', 0] },
+              else: null,
+            },
           },
         },
-        { $unwind: '$categoryId' },
+      },
+      {
+        $match: {
+          subCategoryId: { $ne: null },
+          'subCategoryId.isActive': true,
+          'subCategoryId.isDeleted': false,
+        },
+      },
 
-        // populate subCategory
-        {
-          $lookup: {
-            from: 'subCategories',
-            localField: 'subCategoryId',
-            foreignField: '_id',
-            as: 'subCategoryId',
+      // Lookup createdBy
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'createdBy',
+          foreignField: '_id',
+          pipeline: [{ $project: { firstName: 1, lastName: 1, email: 1 } }],
+          as: 'createdBy',
+        },
+      },
+      {
+        $addFields: {
+          createdBy: {
+            $cond: {
+              if: { $gt: [{ $size: '$createdBy' }, 0] },
+              then: { $arrayElemAt: ['$createdBy', 0] },
+              else: null,
+            },
           },
         },
-        {
-          $unwind: {
-            path: '$subCategoryId',
-            preserveNullAndEmptyArrays: true,
+      },
+
+      // Lookup deletedBy
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'deletedBy',
+          foreignField: '_id',
+          pipeline: [{ $project: { firstName: 1, lastName: 1, email: 1 } }],
+          as: 'deletedBy',
+        },
+      },
+      {
+        $addFields: {
+          deletedBy: {
+            $cond: {
+              if: { $gt: [{ $size: '$deletedBy' }, 0] },
+              then: { $arrayElemAt: ['$deletedBy', 0] },
+              else: null,
+            },
           },
         },
-      ])
-      .exec();
+      },
+
+      // Lookup unDeletedBy
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'unDeletedBy',
+          foreignField: '_id',
+          pipeline: [{ $project: { firstName: 1, lastName: 1, email: 1 } }],
+          as: 'unDeletedBy',
+        },
+      },
+      {
+        $addFields: {
+          unDeletedBy: {
+            $cond: {
+              if: { $gt: [{ $size: '$unDeletedBy' }, 0] },
+              then: { $arrayElemAt: ['$unDeletedBy', 0] },
+              else: null,
+            },
+          },
+        },
+      },
+
+      // Lookup typeHints configs
+      {
+        $lookup: {
+          from: 'typehintconfigs', // ⚠️ ensure correct collection name
+          localField: 'typeHints',
+          foreignField: 'key',
+          as: 'typeHintsDetails',
+        },
+      },
+
+      // Keep only active + not deleted + not expired hints
+      {
+        $addFields: {
+          activeTypeHints: {
+            $filter: {
+              input: '$typeHintsDetails',
+              as: 'hint',
+              cond: {
+                $and: [
+                  { $eq: ['$$hint.isActive', true] },
+                  { $eq: ['$$hint.isDeleted', false] },
+                  { $eq: ['$$hint.isExpired', false] },
+                ],
+              },
+            },
+          },
+        },
+      },
+
+      // ❌ REMOVE products where NO active hints exist
+      {
+        $match: {
+          'activeTypeHints.0': { $exists: true },
+        },
+      },
+
+      // ✅ Sample AFTER filtering — so you always get exactly `limit` valid products
+      { $sample: { size: Number(limit) } },
+    ]);
 
     if (!products.length) {
       return {
@@ -383,7 +545,7 @@ const products = await this.productModel
       };
     }
 
-    // Fetch wishlist for user
+    // Wishlist enrichment
     let wishListProducts: string[] = [];
     if (userId) {
       const wishList = await this.wishListModel
@@ -426,59 +588,179 @@ const products = await this.productModel
       subCategoryId,
     } = params;
 
-    const productsQuery: any = {
+    const limitNum = Number(limit);
+
+    const matchStage: any = {
       isActive: true,
       isDeleted: false,
     };
 
     if (mainProductId) {
-      productsQuery._id = { $ne: new Types.ObjectId(mainProductId) };
+      matchStage._id = { $ne: new Types.ObjectId(mainProductId) };
     }
 
     if (categoryId) {
-      productsQuery.categoryId = new Types.ObjectId(categoryId);
+      matchStage.categoryId = new Types.ObjectId(categoryId);
     }
 
     if (subCategoryId) {
-      productsQuery.subCategoryId = new Types.ObjectId(subCategoryId);
+      matchStage.subCategoryId = new Types.ObjectId(subCategoryId);
     }
 
-    const r = Math.random();
-    let products = await this.productModel
-      .find({
-        ...productsQuery,
-        random: { $gte: r },
-      })
-      .sort({ random: 1 })
-      .limit(Number(limit))
-      .lean();
+    const products = await this.productModel.aggregate([
+      { $match: matchStage },
 
-    if (products.length < Number(limit)) {
-      const more = await this.productModel
-        .find({
-          ...productsQuery,
-          random: { $lt: r },
-          _id: { $nin: products.map(p => p._id) },
-        })
-        .sort({ random: 1 })
-        .limit(Number(limit) - products.length)
-        .lean();
+      // Lookup & require active category
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'categoryId',
+          foreignField: '_id',
+          as: 'categoryId',
+        },
+      },
+      { $unwind: { path: '$categoryId', preserveNullAndEmptyArrays: false } },
+      {
+        $match: {
+          'categoryId.isActive': true,
+          'categoryId.isDeleted': false,
+        },
+      },
 
-      products.push(...more);
-    }
+      // Lookup & require active subcategory
+      {
+        $lookup: {
+          from: 'subCategories',
+          localField: 'subCategoryId',
+          foreignField: '_id',
+          as: 'subCategoryId',
+        },
+      },
+      {
+        $addFields: {
+          subCategoryId: {
+            $cond: {
+              if: { $gt: [{ $size: '$subCategoryId' }, 0] },
+              then: { $arrayElemAt: ['$subCategoryId', 0] },
+              else: null,
+            },
+          },
+        },
+      },
+      {
+        $match: {
+          subCategoryId: { $ne: null },
+          'subCategoryId.isActive': true,
+          'subCategoryId.isDeleted': false,
+        },
+      },
 
-    // Populate fields manually since aggregate doesn't auto-populate
-    const populatedProducts = await this.productModel.populate(products, [
-      { path: 'deletedBy', select: 'firstName lastName email _id' },
-      { path: 'unDeletedBy', select: 'firstName lastName email _id' },
-      { path: 'createdBy', select: 'firstName lastName email _id' },
-      { path: 'categoryId' },
-      { path: 'subCategoryId' },
-      { path: 'mainMediaId' },
-      { path: 'mediaListIds' },
+      // Lookup createdBy
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'createdBy',
+          foreignField: '_id',
+          pipeline: [{ $project: { firstName: 1, lastName: 1, email: 1 } }],
+          as: 'createdBy',
+        },
+      },
+      {
+        $addFields: {
+          createdBy: {
+            $cond: {
+              if: { $gt: [{ $size: '$createdBy' }, 0] },
+              then: { $arrayElemAt: ['$createdBy', 0] },
+              else: null,
+            },
+          },
+        },
+      },
+
+      // Lookup deletedBy
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'deletedBy',
+          foreignField: '_id',
+          pipeline: [{ $project: { firstName: 1, lastName: 1, email: 1 } }],
+          as: 'deletedBy',
+        },
+      },
+      {
+        $addFields: {
+          deletedBy: {
+            $cond: {
+              if: { $gt: [{ $size: '$deletedBy' }, 0] },
+              then: { $arrayElemAt: ['$deletedBy', 0] },
+              else: null,
+            },
+          },
+        },
+      },
+
+      // Lookup unDeletedBy
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'unDeletedBy',
+          foreignField: '_id',
+          pipeline: [{ $project: { firstName: 1, lastName: 1, email: 1 } }],
+          as: 'unDeletedBy',
+        },
+      },
+      {
+        $addFields: {
+          unDeletedBy: {
+            $cond: {
+              if: { $gt: [{ $size: '$unDeletedBy' }, 0] },
+              then: { $arrayElemAt: ['$unDeletedBy', 0] },
+              else: null,
+            },
+          },
+        },
+      },
+
+      // Lookup typeHints configs
+      {
+        $lookup: {
+          from: 'typehintconfigs',
+          localField: 'typeHints',
+          foreignField: 'key',
+          as: 'typeHintsDetails',
+        },
+      },
+
+      // Keep only active + not deleted hints
+      {
+        $addFields: {
+          activeTypeHints: {
+            $filter: {
+              input: '$typeHintsDetails',
+              as: 'hint',
+              cond: {
+                $and: [
+                  { $eq: ['$$hint.isActive', true] },
+                  { $eq: ['$$hint.isDeleted', false] },
+                  { $eq: ['$$hint.isExpired', false] },
+                ],
+              },
+            },
+          },
+        },
+      },
+      // ❌ REMOVE products where NO active hints exist
+      {
+        $match: {
+          'activeTypeHints.0': { $exists: true }, // at least 1 active hint
+        },
+      },
+
+      // Random sample of exactly limitNum valid products
+      { $sample: { size: limitNum } },
     ]);
 
-    // Enrich with isWishListed per user
+    // Wishlist enrichment
     let wishListProducts: string[] = [];
     if (userId) {
       const wishList = await this.wishListModel
@@ -490,7 +772,7 @@ const products = await this.productModel
       }
     }
 
-    const enrichedProducts = populatedProducts.map(p => ({
+    const enrichedProducts = products.map(p => ({
       ...p,
       isWishListed: wishListProducts.includes(p._id.toString()),
     }));
@@ -522,6 +804,8 @@ const products = await this.productModel
       .populate('deletedBy', 'firstName lastName email _id')
       .populate('unDeletedBy', 'firstName lastName email _id')
       .populate('createdBy', 'firstName lastName email _id')
+      .populate('categoryId')
+      .populate('subCategoryId')
       .lean();
 
     if (!product) {
@@ -539,12 +823,22 @@ const products = await this.productModel
       isWishListed = !!wishList;
     }
 
+    const allKeys = [...new Set(product.typeHints)];
+
+    const typeHints = await this.typeHintConfigModel
+      .find({
+        key: { $in: allKeys },
+        isDeleted: false,
+      })
+      .lean();
+
     return {
       isSuccess: true,
       message: getMessage('products_productRetrievedSuccessfully', lang),
       data: {
-        ...product,
+        ...(product as any),
         isWishListed,
+        typeHintsDetails: typeHints,
       },
     };
   }
@@ -803,6 +1097,18 @@ const products = await this.productModel
 
     await product.save();
 
+    // Log
+    await this.historyService.log(
+      LogModule.PRODUCT,
+      LogAction.CREATE,
+      req?.user?.userId,
+      null,
+      {
+        productId: product._id,
+        name: product.name,
+      },
+    );
+
     return {
       isSuccess: true,
       message: getMessage('products_productCreatedSuccessfully', lang),
@@ -837,6 +1143,8 @@ const products = await this.productModel
         getMessage('products_productNotFound', lang),
       );
     }
+
+    const before = product.toObject();
 
     // Final Category/SubCategory
     const finalCategoryId = categoryId ?? product.categoryId;
@@ -1001,6 +1309,20 @@ const products = await this.productModel
 
     await product.save();
 
+    // Log
+    await this.historyService.log(
+      LogModule.PRODUCT,
+      LogAction.UPDATE,
+      req?.user?.userId,
+      null,
+      {
+        productId: id,
+        name: product.name,
+        before,
+        after: product.toObject(),
+      },
+    );
+
     return {
       isSuccess: true,
       message: getMessage('products_productUpdatedSuccessfully', lang),
@@ -1138,6 +1460,21 @@ const products = await this.productModel
     product.updatedAt = new Date();
 
     await product.save();
+
+    // Log
+    await this.historyService.log(
+      LogModule.PRODUCT,
+      LogAction.CREATE,
+      req.user.userId,
+      null,
+      {
+        action: 'VARIANT_CREATED',
+        variantId: newVariant.variantId,
+        productId: product._id,
+        sku: newVariant.sku,
+        variant: newVariant,
+      },
+    );
 
     return {
       isSuccess: true,
@@ -1322,6 +1659,20 @@ const products = await this.productModel
 
     await product.save();
 
+    // Log
+    await this.historyService.log(
+      LogModule.PRODUCT,
+      LogAction.UPDATE,
+      req.user.userId,
+      null,
+      {
+        action: 'VARIANT_UPDATED',
+        variantId,
+        productId,
+        updatedFields: Object.keys(body),
+      },
+    );
+
     return {
       isSuccess: true,
       message: getMessage('products_variantUpdatedSuccessfully', body.lang),
@@ -1453,6 +1804,18 @@ const products = await this.productModel
 
     await product.save();
 
+    // Log
+    await this.historyService.log(
+      LogModule.PRODUCT,
+      isActive ? LogAction.ACTIVATE : LogAction.DEACTIVATE,
+      requestingUser?.userId,
+      id,
+      {
+        productId: id,
+        name: product.name,
+      },
+    );
+
     return {
       isSuccess: true,
       message: getMessage(
@@ -1471,8 +1834,6 @@ const products = await this.productModel
   ): Promise<BaseResponse> {
     const { isActive, lang } = body;
     const { id, vid } = param;
-
-    console.log('updateVariantStatus');
 
     validateUserRoleAccess(requestingUser, lang);
 
@@ -1564,6 +1925,18 @@ const products = await this.productModel
 
     await product.save();
 
+    // Log
+    await this.historyService.log(
+      LogModule.PRODUCT,
+      isActive ? LogAction.ACTIVATE : LogAction.DEACTIVATE,
+      requestingUser?.userId,
+      null,
+      {
+        variantId: vid,
+        productId: id,
+      },
+    );
+
     return {
       isSuccess: true,
       message: getMessage(
@@ -1611,6 +1984,18 @@ const products = await this.productModel
 
     // Remove product from all carts
     await this.removeProductFromCarts(id);
+
+    // Log
+    await this.historyService.log(
+      LogModule.PRODUCT,
+      LogAction.DELETE,
+      requestingUser?.userId,
+      null,
+      {
+        productId: id,
+        name: product.name,
+      },
+    );
 
     return {
       isSuccess: true,
@@ -1677,6 +2062,19 @@ const products = await this.productModel
     // Remove variant from all carts
     await this.removeVariantFromCarts(vid);
 
+    // Log
+    await this.historyService.log(
+      LogModule.PRODUCT,
+      LogAction.DELETE,
+      requestingUser?.userId,
+      null,
+      {
+        action: 'VARIANT_DELETED',
+        variantId: vid,
+        productId: id,
+      },
+    );
+
     return {
       isSuccess: true,
       message: getMessage('products_variantDeletedSuccessfully', lang),
@@ -1709,6 +2107,18 @@ const products = await this.productModel
     product.unDeletedAt = new Date();
 
     await product.save();
+
+    // Log
+    await this.historyService.log(
+      LogModule.PRODUCT,
+      LogAction.RESTORE,
+      requestingUser?.userId,
+      id,
+      {
+        productId: id,
+        name: product.name,
+      },
+    );
 
     return {
       isSuccess: true,
@@ -1762,6 +2172,19 @@ const products = await this.productModel
 
     await product.save();
 
+    // Log
+    await this.historyService.log(
+      LogModule.PRODUCT,
+      LogAction.RESTORE,
+      requestingUser?.userId,
+      null,
+      {
+        action: 'VARIANT_RESTORED',
+        variantId: vid,
+        productId: id,
+      },
+    );
+
     return {
       isSuccess: true,
       message: getMessage('products_variantRestoredSuccessfully', lang),
@@ -1786,6 +2209,18 @@ const products = await this.productModel
         },
       },
     );
+
+    // Log
+    await this.historyService.log(
+      LogModule.PRODUCT,
+      LogAction.DEACTIVATE,
+      requestingUser?.userId,
+      null,
+      {
+        action: 'BULK_DEACTIVATE_BY_SUBCATEGORY',
+        subCategoryId,
+      },
+    );
   }
 
   async deactivateBySubCategories(
@@ -1804,6 +2239,18 @@ const products = await this.productModel
           updatedBy: requestingUser.userId,
           updatedAt: new Date(),
         },
+      },
+    );
+
+    // Log
+    await this.historyService.log(
+      LogModule.PRODUCT,
+      LogAction.DEACTIVATE,
+      requestingUser?.userId,
+      null,
+      {
+        action: 'BULK_DEACTIVATE_BY_SUBCATEGORIES',
+        subCategoryIds: subCategoryIds.map(id => id.toString()),
       },
     );
   }
@@ -1825,6 +2272,18 @@ const products = await this.productModel
           updatedBy: requestingUser.userId,
           updatedAt: new Date(),
         },
+      },
+    );
+
+    // Log
+    await this.historyService.log(
+      LogModule.PRODUCT,
+      LogAction.DEACTIVATE,
+      requestingUser?.userId,
+      null,
+      {
+        action: 'BULK_DEACTIVATE_BY_TYPE_HINT',
+        typeHint,
       },
     );
   }

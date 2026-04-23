@@ -7,10 +7,10 @@ import {
   ValidateNested,
   IsOptional,
 } from 'class-validator';
-import { Currency } from 'src/enums/currency.enum';
-import { PaymentMethod } from 'src/enums/paymentMethod.enum';
-import { ShippingAddressDto } from 'src/modules/payment/dto/checkout.dto';
-import { Locale } from 'src/types/Locale';
+import { Currency } from '../../../enums/currency.enum';
+import { PaymentMethod } from '../../../enums/paymentMethod.enum';
+import { ShippingAddressDto } from '../../payment/dto/checkout.dto';
+import { Locale } from '../../../types/Locale';
 
 export class CreateOrderBodyDto {
   @IsNumber()

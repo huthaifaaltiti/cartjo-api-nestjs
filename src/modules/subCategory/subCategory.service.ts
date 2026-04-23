@@ -2,37 +2,37 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
-  Inject,
-  forwardRef,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
-import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
-import { getMessage } from 'src/common/utils/translator';
 import { MediaService } from '../media/media.service';
-import {
-  SubCategory,
-  SubCategoryDocument,
-} from 'src/schemas/subCategory.schema';
-import {
-  BaseResponse,
-  DataListResponse,
-  DataResponse,
-} from 'src/types/service-response.type';
-import { Locale } from 'src/types/Locale';
-import { Category, CategoryDocument } from 'src/schemas/category.schema';
-import { Modules } from 'src/enums/appModules.enum';
 import { CreateSubCategoryDto } from './dto/create-subCategory.dto';
 import { UpdateSubCategoryDto } from './dto/update-subCategory.dto';
 import { DeleteSubCategoryDto } from './dto/delete-subCategory.dto';
 import { UnDeleteSubCategoryBodyDto } from './dto/unDelete-subCategory.dto';
-import { MediaPreview } from 'src/schemas/common.schema';
 import slugify from 'slugify';
-import { revalidateTag } from 'src/common/utils/revalidate';
-import { REVALIDATION_TAGS } from 'src/common/constants/revalidation-tags';
 import { RevalidationService } from '../revalidation/revalidation.service';
-import { MEDIA_CONFIG } from 'src/configs/media.config';
-import { ProductService } from '../product/product.service';
+import { HistoryService } from '../history/history.service';
+import {
+  SubCategory,
+  SubCategoryDocument,
+} from '../../schemas/subCategory.schema';
+import { Category, CategoryDocument } from '../../schemas/category.schema';
+import {
+  BaseResponse,
+  DataListResponse,
+  DataResponse,
+} from '../../types/service-response.type';
+import { validateUserRoleAccess } from '../../common/utils/validateUserRoleAccess';
+import { getMessage } from '../../common/utils/translator';
+import { MEDIA_CONFIG } from '../../configs/media.config';
+import { Modules } from '../../enums/appModules.enum';
+import { revalidateTag } from '../../common/utils/revalidate';
+import { REVALIDATION_TAGS } from '../../common/constants/revalidation-tags';
+import { LogModule } from '../../enums/logModules.enum';
+import { LogAction } from '../../enums/logAction.enum';
+import { MediaPreview } from '../../schemas/common.schema';
+import { Locale } from '../../types/Locale';
 
 @Injectable()
 export class SubCategoryService {
@@ -40,11 +40,12 @@ export class SubCategoryService {
     @InjectModel(SubCategory.name)
     private subCategoryModel: Model<SubCategoryDocument>,
     private mediaService: MediaService,
-    @Inject(forwardRef(() => ProductService))
-    private productService: ProductService,
+    // @Inject(forwardRef(() => ProductService))
+    // private productService: ProductService,
     @InjectModel(Category.name)
     private categoryModel: Model<CategoryDocument>,
     private revalidationService: RevalidationService,
+    private historyService: HistoryService,
   ) {}
 
   async create(
@@ -119,6 +120,15 @@ export class SubCategoryService {
     await revalidateTag(
       this.revalidationService,
       REVALIDATION_TAGS.ACTIVE_CATEGORIES,
+    );
+
+    // Log
+    await this.historyService.log(
+      LogModule.SUB_CATEGORY,
+      LogAction.CREATE,
+      req?.user?.userId,
+      null,
+      { subCategoryId: subCategory._id, name: subCategory.name },
     );
 
     return {
@@ -252,6 +262,15 @@ export class SubCategoryService {
       REVALIDATION_TAGS.ACTIVE_CATEGORIES,
     );
 
+    // Log
+    await this.historyService.log(
+      LogModule.SUB_CATEGORY,
+      LogAction.UPDATE,
+      req?.user?.userId,
+      null,
+      { subCategoryId: id, updatedFields: updateData },
+    );
+
     return {
       isSuccess: true,
       message: getMessage('subcategories_subCategoryUpdatedSuccessfully', lang),
@@ -290,6 +309,15 @@ export class SubCategoryService {
       REVALIDATION_TAGS.ACTIVE_CATEGORIES,
     );
 
+    // Log
+    await this.historyService.log(
+      LogModule.SUB_CATEGORY,
+      LogAction.DELETE,
+      requestingUser.userId,
+      null,
+      { subCategoryId: id, name: subCategory.name },
+    );
+
     return {
       isSuccess: true,
       message: getMessage('subcategories_subCategoryDeletedSuccessfully', lang),
@@ -325,6 +353,15 @@ export class SubCategoryService {
     await revalidateTag(
       this.revalidationService,
       REVALIDATION_TAGS.ACTIVE_CATEGORIES,
+    );
+
+    // Log
+    await this.historyService.log(
+      LogModule.SUB_CATEGORY,
+      LogAction.UNDELETE,
+      requestingUser.userId,
+      null,
+      { subCategoryId: id, name: subCategory.name },
     );
 
     return {
@@ -371,6 +408,7 @@ export class SubCategoryService {
       subCategory.deletedAt = null;
     }
 
+    const prevStatus = subCategory.isActive;
     subCategory.isActive = isActive;
 
     await subCategory.save();
@@ -382,9 +420,18 @@ export class SubCategoryService {
     );
 
     // If subcategory is deactivated → deactivate its products
-    if (!isActive) {
-      await this.productService.deactivateBySubCategory(id, requestingUser);
-    }
+    // if (!isActive) {
+    //   await this.productService.deactivateBySubCategory(id, requestingUser);
+    // }
+
+    // Log
+    await this.historyService.log(
+      LogModule.SUB_CATEGORY,
+      isActive ? LogAction.ACTIVATE : LogAction.DEACTIVATE,
+      requestingUser.userId,
+      null,
+      { subCategoryId: id, prevStatus, newStatus: isActive },
+    );
 
     return {
       isSuccess: true,
@@ -503,9 +550,22 @@ export class SubCategoryService {
     );
 
     // Deactivate ALL products under those subcategories (ONE QUERY)
-    await this.productService.deactivateBySubCategories(
-      subCategoryIds,
-      requestingUser,
+    // await this.productService.deactivateBySubCategories(
+    //   subCategoryIds,
+    //   requestingUser,
+    // );
+
+    // Log
+    await this.historyService.log(
+      LogModule.SUB_CATEGORY,
+      LogAction.DEACTIVATE,
+      requestingUser.userId,
+      null,
+      {
+        action: 'DEACTIVATE_BY_CATEGORY',
+        categoryId,
+        affectedSubCategories: subCategoryIds.length,
+      },
     );
   }
 }

@@ -1,4 +1,4 @@
-import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
+import { SystemTypeHints } from '../../enums/systemTypeHints.enum';
 import { SYSTEM_TYPE_HINTS } from './type-hints.seed';
 
 const SYSTEM_USER_ID =

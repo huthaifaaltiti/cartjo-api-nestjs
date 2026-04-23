@@ -1,15 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Product, ProductDocument } from 'src/schemas/product.schema';
+import { Product, ProductDocument } from '../../schemas/product.schema';
 import { SearchProductsQueryDto } from './dto/get-search-products.dto';
-import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
-import { getMessage } from 'src/common/utils/translator';
+import { WishList, WishListDocument } from '../../schemas/wishList.schema';
+import { getMessage } from '../../common/utils/translator';
 import {
   SYSTEM_GENERATED_HINTS,
   SystemGeneratedHint,
-} from 'src/configs/typeHint.config';
-import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
+} from '../../configs/typeHint.config';
+import { SystemTypeHints } from '../../enums/systemTypeHints.enum';
+import {
+  TypeHintConfig,
+  TypeHintConfigDocument,
+} from '../../schemas/typeHintConfig.schema';
 
 @Injectable()
 export class SearchService {
@@ -19,6 +23,9 @@ export class SearchService {
 
     @InjectModel(WishList.name)
     private wishListModel: Model<WishListDocument>,
+
+    @InjectModel(TypeHintConfig.name)
+    private typeHintConfigModel: Model<TypeHintConfigDocument>,
   ) {}
 
   async searchProducts(query: SearchProductsQueryDto, userId?: string) {
@@ -43,6 +50,7 @@ export class SearchService {
       isActive: true,
       isDeleted: false,
     };
+
     const sort: any = { _id: -1 };
 
     // ✅ Cursor pagination
@@ -64,31 +72,29 @@ export class SearchService {
       };
     }
 
-    // Query search
+    // Text search
     if (q) {
-      const searchRegex = new RegExp(q, 'i');
+      const regex = new RegExp(q, 'i');
       queryMatch.$or = [
-        { [`name.${lang}`]: searchRegex },
-        { [`description.${lang}`]: searchRegex },
-        { tags: searchRegex },
-        { slug: searchRegex },
-        { [`variants.description.${lang}`]: searchRegex },
-        { ['variants.sku']: searchRegex },
-        { ['variants.tags']: searchRegex },
+        { [`name.${lang}`]: regex },
+        { [`description.${lang}`]: regex },
+        { tags: regex },
+        { slug: regex },
+        { [`variants.description.${lang}`]: regex },
+        { ['variants.sku']: regex },
+        { ['variants.tags']: regex },
       ];
     }
 
-    // ✅ Only filter by typeHint if NOT system-generated
+    // TypeHint filter (non-system only)
     if (typeHint && !isSystemGeneratedHint) {
       queryMatch.typeHints = { $in: [typeHint] };
     }
 
-    // ✅ Category filters
     if (categoryId) {
       queryMatch.categoryId = new Types.ObjectId(categoryId);
     }
 
-    // ✅ SubCategory filters
     if (subCategoryId) {
       queryMatch.subCategoryId = new Types.ObjectId(subCategoryId);
     }
@@ -121,20 +127,15 @@ export class SearchService {
 
     // Date filters
     if (beforeNumOfDays) {
-      let days = Number(beforeNumOfDays);
-      if (days > 36500) days = 36500; // ~100 years sanity cap
-
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - days);
-
-      // Products created before the cutoff date
-      // queryMatch.createdAt = { $lte: cutoffDate };
+      let days = Math.min(Number(beforeNumOfDays), 36500);
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - days);
 
       queryMatch.variants = {
         ...(queryMatch.variants || {}),
         $elemMatch: {
           ...(queryMatch.variants?.$elemMatch || {}),
-          createdAt: { $gte: cutoffDate },
+          createdAt: { $gte: cutoff },
           isActive: true,
         },
       };
@@ -161,46 +162,55 @@ export class SearchService {
       };
     }
 
-    // ✅ SYSTEM TYPE HINTS BEHAVIOR
-    // products ordered by views
+    // System sorting
     if (typeHint === SystemTypeHints.MOST_VIEWED) {
-      queryMatch.isActive = true;
-      queryMatch.isDeleted = false;
       sort.viewCount = -1;
+      delete sort._id;
     }
 
     if (typeHint === SystemTypeHints.TRENDING) {
-      queryMatch.isActive = true;
-      queryMatch.isDeleted = false;
       sort.weeklyScore = -1;
       sort.weeklyFavoriteCount = -1;
       sort.weeklyViewCount = -1;
+      delete sort._id;
     }
 
     if (typeHint === SystemTypeHints.BEST_SELLERS) {
-      queryMatch.isActive = true;
-      queryMatch.isDeleted = false;
       sort.sellCount = -1;
     }
 
     if (typeHint === SystemTypeHints.MOST_FAVORITED) {
-      queryMatch.isActive = true;
-      queryMatch.isDeleted = false;
       sort.favoriteCount = -1;
+      delete sort._id;
     }
 
     const products = await this.productModel
       .find(queryMatch)
       .sort(sort)
-      .limit(Math.min(Number(limit), 100)) // cap at 100 max
-      .populate('deletedBy', 'firstName lastName email _id')
-      .populate('unDeletedBy', 'firstName lastName email _id')
+      .limit(Math.min(Number(limit), 100))
+      .populate({
+        path: 'categoryId',
+        match: { isActive: true, isDeleted: false },
+      })
+      .populate({
+        path: 'subCategoryId',
+        match: { isActive: true, isDeleted: false },
+      })
       .populate('createdBy', 'firstName lastName email _id')
-      .populate('categoryId')
-      .populate('subCategoryId')
       .lean();
 
-    // Enrich with isWishListed
+    const allKeys = [...new Set(products.flatMap(p => p.typeHints || []))];
+
+    const typeHints = await this.typeHintConfigModel
+      .find({
+        key: { $in: allKeys },
+        isDeleted: false,
+      })
+      .lean();
+
+    const typeHintMap = new Map(typeHints.map(h => [h.key, h]));
+
+    // Wishlist
     let wishListProducts: string[] = [];
     if (userId) {
       const wishList = await this.wishListModel
@@ -216,21 +226,26 @@ export class SearchService {
 
     const enrichedProducts = products
       .map(p => {
-        const productId = String(p._id);
+        // remove invalid category/subcategory
+        if (!p.categoryId || !p.subCategoryId) return null;
 
-        // const filteredVariants =
-        //   p.variants?.filter(v => v.isActive === true && v.isDeleted === false) ||
-        //   [];
         const filteredVariants =
           p.variants?.filter(v => v.isActive === true) || [];
 
         if (!filteredVariants.length) return null;
 
+        const activeTypeHints = (p.typeHints || [])
+          .map(key => typeHintMap.get(key))
+          .filter((h: any) => h && h.isActive && !h.isDeleted && !h.isExpired);
+
+        // remove product if no active typeHints
+        if (!activeTypeHints.length) return null;
+
         return {
           ...p,
-          // variants: filteredVariants,
           variants: filteredVariants,
-          isWishListed: wishListProducts.includes(productId),
+          isWishListed: wishListProducts.includes(String(p._id)),
+          typeHintsData: activeTypeHints,
         };
       })
       .filter(Boolean);
@@ -238,8 +253,8 @@ export class SearchService {
     return {
       isSuccess: true,
       message: getMessage('products_productsRetrievedSuccessfully', lang),
-      dataCount: enrichedProducts.length ?? 0,
-      data: enrichedProducts ?? [],
+      dataCount: enrichedProducts.length,
+      data: enrichedProducts,
     };
   }
 }

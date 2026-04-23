@@ -8,9 +8,9 @@ import {
   IsOptional,
   IsEnum,
 } from 'class-validator';
-import { validationConfig } from 'src/configs/validationConfig';
-import { Locale as LocaleEnum } from 'src/enums/locale.enum';
-import { Locale } from 'src/types/Locale';
+import { validationConfig } from '../../../configs/validationConfig';
+import { Locale as LocaleEnum } from '../../../enums/locale.enum';
+import { Locale } from '../../../types/Locale';
 
 export class LoginDto {
   @IsString()

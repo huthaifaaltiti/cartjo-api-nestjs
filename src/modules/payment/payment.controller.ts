@@ -1,5 +1,5 @@
 import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
-import { ApiPaths } from 'src/common/constants/api-paths';
+import { ApiPaths } from '../../common/constants/api-paths';
 import { PaymentService } from './payment.service';
 import { AuthGuard } from '@nestjs/passport';
 import { ProcessPaymentBodyDto, VerifyPaymentBodyDto } from './dto/payment.dto';

@@ -6,23 +6,26 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { MediaService } from '../media/media.service';
-import {
-  BaseResponse,
-  DataListResponse,
-  DataResponse,
-} from 'src/types/service-response.type';
-import { Logo, LogoDocument } from 'src/schemas/logo.schema';
-import { Modules } from 'src/enums/appModules.enum';
-import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
-import { activateDefaultIfAllInactive } from 'src/common/functions/helpers/activateDefaultIfAllInactive.helper';
-import { getMessage } from 'src/common/utils/translator';
 import { CreateLogoDto } from './dto/create-logo.dto';
 import { UpdateLogoDto } from './dto/update-logo.dto';
 import { DeleteLogoDto } from './dto/delete-logo.dto';
 import { UnDeleteLogoBodyDto } from './dto/unDelete-logo.dto';
-import { Locale } from 'src/types/Locale';
-import { MEDIA_CONFIG } from 'src/configs/media.config';
-import { MediaPreview } from 'src/schemas/common.schema';
+import { HistoryService } from '../history/history.service';
+import { AppConfigService } from '../appConfig/appConfig.service';
+import { Logo, LogoDocument } from '../../schemas/logo.schema';
+import { Locale } from '../../types/Locale';
+import {
+  BaseResponse,
+  DataListResponse,
+  DataResponse,
+} from '../../types/service-response.type';
+import { validateUserRoleAccess } from '../../common/utils/validateUserRoleAccess';
+import { getMessage } from '../../common/utils/translator';
+import { MediaPreview } from '../../schemas/common.schema';
+import { MEDIA_CONFIG } from '../../configs/media.config';
+import { Modules } from '../../enums/appModules.enum';
+import { LogModule } from '../../enums/logModules.enum';
+import { LogAction } from '../../enums/logAction.enum';
 
 @Injectable()
 export class LogoService {
@@ -32,8 +35,45 @@ export class LogoService {
     @InjectModel(Logo.name)
     private logoModel: Model<LogoDocument>,
     private mediaService: MediaService,
+    private historyService: HistoryService,
+    private appConfigService: AppConfigService,
   ) {
     this.defaultLogoId = process.env.DEFAULT_LOGO_ID;
+  }
+
+  private async activateDefaultLogo() {
+    const existingDefault = await this.logoModel.findOne({
+      isDefault: true,
+      isDeleted: false,
+      isActive: true,
+    });
+
+    if (existingDefault) return;
+
+    // 2. Find eligible logos
+    const eligibleLogos = await this.logoModel.find({
+      isDeleted: false,
+    });
+
+    if (!eligibleLogos.length) {
+      console.warn('[FALLBACK] No eligible logos to set as default');
+      return;
+    }
+
+    const randomLogo =
+      eligibleLogos[Math.floor(Math.random() * eligibleLogos.length)];
+
+    await this.logoModel.updateMany(
+      { isDefault: true },
+      { $set: { isDefault: false } },
+    );
+
+    await this.logoModel.findByIdAndUpdate(randomLogo._id, {
+      isDefault: true,
+      isActive: true,
+    });
+
+    console.log(`[FALLBACK] Random default logo selected: ${randomLogo._id}`);
   }
 
   async getAll(
@@ -174,6 +214,18 @@ export class LogoService {
 
     await logo.save();
 
+    // Log
+    await this.historyService.log(
+      LogModule.LOGO,
+      LogAction.CREATE,
+      req?.user?.userId,
+      null,
+      {
+        logoId: logo._id,
+        name: logo.name,
+      },
+    );
+
     return {
       isSuccess: true,
       message: getMessage('logo_logoCreatedSuccessfully', lang),
@@ -195,6 +247,8 @@ export class LogoService {
     if (!logoToUpdate) {
       throw new BadRequestException(getMessage('logo_logoNotFound', lang));
     }
+
+    const before = logoToUpdate.toObject();
 
     if (name) {
       const existingLogo = await this.logoModel.findOne({
@@ -232,7 +286,7 @@ export class LogoService {
       updatedAt: new Date(),
     };
 
-    if (mediaObj.url !== logoToUpdate.media?.url) {
+    if (mediaObj && mediaObj.url !== logoToUpdate.media?.url) {
       updateData.media = mediaObj;
     }
 
@@ -242,6 +296,19 @@ export class LogoService {
     const updatedLogo = await this.logoModel.findByIdAndUpdate(id, updateData, {
       new: true,
     });
+
+    // Log
+    await this.historyService.log(
+      LogModule.LOGO,
+      LogAction.UPDATE,
+      req?.user?.userId,
+      null,
+      {
+        logoId: id,
+        before,
+        after: updatedLogo.toObject(),
+      },
+    );
 
     return {
       isSuccess: true,
@@ -271,6 +338,19 @@ export class LogoService {
       throw new BadRequestException(getMessage('logo_logoNotFound', lang));
     }
 
+    const activeLogosCount = await this.logoModel.countDocuments({
+      isActive: true,
+      isDeleted: false,
+    });
+
+    if (
+      activeLogosCount <= (this.appConfigService.config.minActiveLogos ?? 1)
+    ) {
+      throw new BadRequestException(
+        getMessage('logo_atLeastOneLogoMustRemainActive', lang),
+      );
+    }
+
     logo.isDeleted = true;
     logo.isActive = false;
     logo.deletedAt = new Date();
@@ -279,7 +359,19 @@ export class LogoService {
 
     await logo.save();
 
-    await activateDefaultIfAllInactive(this.logoModel, this.defaultLogoId);
+    await this.activateDefaultLogo();
+
+    // Log
+    await this.historyService.log(
+      LogModule.LOGO,
+      LogAction.DELETE,
+      requestingUser.userId,
+      null,
+      {
+        logoId: id,
+        name: logo.name,
+      },
+    );
 
     return {
       isSuccess: true,
@@ -316,7 +408,19 @@ export class LogoService {
 
     await logo.save();
 
-    await activateDefaultIfAllInactive(this.logoModel, this.defaultLogoId);
+    await this.activateDefaultLogo();
+
+    // Log
+    await this.historyService.log(
+      LogModule.LOGO,
+      LogAction.UNDELETE,
+      requestingUser.userId,
+      null,
+      {
+        logoId: id,
+        name: logo.name,
+      },
+    );
 
     return {
       isSuccess: true,
@@ -338,32 +442,54 @@ export class LogoService {
       throw new NotFoundException(getMessage('logo_logoNotFound', lang));
     }
 
-    if (isActive) {
-      // Deactivate all other logos
-      await this.logoModel.updateMany(
-        { _id: { $ne: id } },
-        {
-          $set: {
-            isActive: false,
-            isDeleted: false,
-            deletedAt: null,
-          },
-        },
-      );
+    if (!isActive) {
+      const activeCount = await this.logoModel.countDocuments({
+        isActive: true,
+        isDeleted: false,
+      });
 
-      // Activate current logo
-      logo.isActive = true;
-      logo.isDeleted = false;
-      logo.deletedAt = null;
-    } else {
-      // Deactivate current logo
-      logo.isActive = false;
+      if (activeCount <= 1) {
+        throw new BadRequestException(
+          getMessage('logo_atLeastOneLogoMustRemainActive', lang),
+        );
+      }
+
+      await this.logoModel.findByIdAndUpdate(id, {
+        $set: { isActive: false },
+      });
+
+      await this.activateDefaultLogo();
     }
 
-    await logo.save();
+    if (isActive) {
+      if (logo.isDeleted) {
+        throw new NotFoundException(
+          getMessage('logo_cannotActivateDeletedLogo', lang),
+        );
+      }
 
-    // Activate default logo if all are inactive
-    await activateDefaultIfAllInactive(this.logoModel, this.defaultLogoId);
+      // Deactivate all others
+      await this.logoModel.updateMany(
+        { _id: { $ne: id } },
+        { $set: { isActive: false } },
+      );
+
+      // Activate current
+      await this.logoModel.findByIdAndUpdate(id, {
+        $set: {
+          isActive: true,
+        },
+      });
+    }
+
+    // Log
+    await this.historyService.log(
+      LogModule.LOGO,
+      isActive ? LogAction.ACTIVATE : LogAction.DEACTIVATE,
+      requestingUser.userId,
+      null,
+      { logoId: id, name: logo.name },
+    );
 
     return {
       isSuccess: true,

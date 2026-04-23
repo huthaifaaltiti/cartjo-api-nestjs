@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Nationality, NationalitySchema } from 'src/schemas/nationality.schema';
+import { Nationality, NationalitySchema } from '../../schemas/nationality.schema';
 import { NationalityService } from './nationality.service';
 import { NationalityController } from './nationality.controller';
 

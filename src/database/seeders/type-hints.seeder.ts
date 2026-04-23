@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { TypeHintConfig } from 'src/schemas/typeHintConfig.schema';
+// import { TypeHintConfig } from 'src/schemas/typeHintConfig.schema';
 import { SYSTEM_TYPE_HINTS } from '../seeds/type-hints.seed';
+import { TypeHintConfig } from '../../schemas/typeHintConfig.schema';
 
 @Injectable()
 export class TypeHintsSeeder {

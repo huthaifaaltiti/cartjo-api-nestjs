@@ -8,8 +8,8 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
-import { Locale } from 'src/types/Locale';
+import { PreferredLanguage } from '../../../enums/preferredLanguage.enum';
+import { Locale } from '../../../types/Locale';
 
 export class RegisterDto {
   @IsString()
@@ -64,7 +64,6 @@ export class VerifyEmailQueryDto {
   @IsString()
   lang: Locale;
 }
-
 
 export class ResendVerificationEmailDto {
   @IsEmail({}, { message: 'Invalid email format' })

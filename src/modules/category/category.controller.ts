@@ -38,7 +38,7 @@ import {
 } from './dto/update-category-status.dto';
 import { CategoryService } from './category.service';
 import { GetActiveOnesQueryDto } from './dto/get-active-ones.dto';
-import { ApiPaths } from 'src/common/constants/api-paths';
+import { ApiPaths } from '../../common/constants/api-paths';
 
 @Controller(ApiPaths.Category.Root)
 export class CategoryController {

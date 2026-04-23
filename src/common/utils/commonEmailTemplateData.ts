@@ -1,9 +1,9 @@
+import { copyRights } from '../../configs/copyRights.config';
 import {
   getSocialMediaIconsPaths,
   getSocialMediaLinks,
-} from 'src/configs/social-media.config';
-import { AppEnvironments } from 'src/enums/appEnvs.enum';
-import { copyRights } from 'src/configs/copyRights.config';
+} from '../../configs/social-media.config';
+import { AppEnvironments } from '../../enums/appEnvs.enum';
 
 const commonEmailTemplateData = () => {
   const isProd = process.env.NODE_ENV === AppEnvironments.PRODUCTION;

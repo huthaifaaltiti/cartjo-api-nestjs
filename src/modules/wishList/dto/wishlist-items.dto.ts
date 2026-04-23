@@ -8,9 +8,9 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { Locale } from 'src/types/Locale';
 import mongoose from 'mongoose';
 import { Type } from 'class-transformer';
+import { Locale } from '../../../types/Locale';
 
 export class SentWishlistItem {
   @IsMongoId()

@@ -8,9 +8,9 @@ import {
   IsString,
 } from 'class-validator';
 import mongoose from 'mongoose';
-import { PaymentMethod } from 'src/enums/paymentMethod.enum';
-import { PaymentStatus } from 'src/enums/paymentStatus.enum';
-import { Locale } from 'src/types/Locale';
+import { Locale } from '../../../types/Locale';
+import { PaymentStatus } from '../../../enums/paymentStatus.enum';
+import { PaymentMethod } from '../../../enums/paymentMethod.enum';
 
 export class GetMyOrderReturnsQueryDto {
   @IsOptional()

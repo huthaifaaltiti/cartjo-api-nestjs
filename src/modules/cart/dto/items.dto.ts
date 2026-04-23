@@ -1,7 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { ItemBodyDto } from './item.dto';
 import { IsOptional, IsString } from 'class-validator';
-import { Locale } from 'src/types/Locale';
+import { Locale } from '../../../types/Locale';
 
 export class ItemsBodyDto extends PartialType(ItemBodyDto) {}
 

@@ -1,7 +1,7 @@
 import { ForbiddenException } from '@nestjs/common';
 import { ALLOWED_AUTHENTICATED_ROLES } from '../constants/roles.constants';
 import { getMessage } from './translator';
-import { UserRole } from 'src/enums/user-role.enum';
+import { UserRole } from '../../enums/user-role.enum';
 
 type AccessLevel = 'user' | 'admin';
 

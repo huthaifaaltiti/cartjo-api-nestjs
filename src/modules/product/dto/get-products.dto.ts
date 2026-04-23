@@ -5,8 +5,8 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-
-import { Locale } from 'src/types/Locale';
+import { Locale } from '../../../types/Locale';
+import { ViewMode } from '../../../types/common';
 
 export class GetProductsQueryDto {
   @IsOptional()
@@ -67,4 +67,8 @@ export class GetProductsQueryDto {
   @IsOptional()
   @IsNumberString()
   beforeNumOfDays?: string;
+
+  @IsOptional()
+  @IsString()
+  viewMode?: ViewMode;
 }

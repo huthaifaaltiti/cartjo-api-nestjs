@@ -1,12 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document } from 'mongoose';
-import { PaymentStatus } from 'src/enums/paymentStatus.enum';
 import { DefaultShippingAddress } from './user.schema';
 import { MediaPreview, NameRef } from './common.schema';
-import { OrderDeliveryByStatus } from 'src/enums/orderDeliveryByStatus.enum';
-import { OrderDeliveryStatus } from 'src/enums/orderDeliveryStatus.enum';
-import { Currency } from 'src/enums/currency.enum';
 import { VariantAttribute } from './sub-schemas/product-variant.schema';
+import { Currency } from '../enums/currency.enum';
+import { PaymentStatus } from '../enums/paymentStatus.enum';
+import { OrderDeliveryStatus } from '../enums/orderDeliveryStatus.enum';
+import { OrderDeliveryByStatus } from '../enums/orderDeliveryByStatus.enum';
 
 export type OrderDocument = Order & Document;
 

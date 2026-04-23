@@ -1,0 +1,15 @@
+export enum LogAction {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  UNDELETE = 'undelete',
+  RESTORE = 'restore',
+  ACTIVATE = 'activate',
+  DEACTIVATE = 'deactivate',
+  SET_DEFAULT = 'set_default',
+  LOGIN = 'login',
+  LOGOUT = 'logout',
+  IMPORT = 'import',
+  EXPORT = 'export',
+  OTHER = 'other',
+}

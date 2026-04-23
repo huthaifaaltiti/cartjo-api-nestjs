@@ -6,10 +6,10 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { OrderDeliveryStatus } from 'src/enums/orderDeliveryStatus.enum';
-import { PaymentMethod } from 'src/enums/paymentMethod.enum';
-import { PaymentStatus } from 'src/enums/paymentStatus.enum';
-import { Locale } from 'src/types/Locale';
+import { Locale } from '../../../types/Locale';
+import { PaymentStatus } from '../../../enums/paymentStatus.enum';
+import { OrderDeliveryStatus } from '../../../enums/orderDeliveryStatus.enum';
+import { PaymentMethod } from '../../../enums/paymentMethod.enum';
 
 export class GetOrdersQueryDto {
   @IsOptional()
