@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { ShowCase, ShowCaseDocument } from 'src/schemas/showcase.schema';
 import { SYSTEM_SHOWCASES } from '../seeds/showcases.seed';
+import { ShowCase, ShowCaseDocument } from '../../schemas/showcase.schema';
 
 @Injectable()
 export class ShowcaseSeeder {

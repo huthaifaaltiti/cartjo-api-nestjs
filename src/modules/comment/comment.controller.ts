@@ -11,7 +11,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiPaths } from 'src/common/constants/api-paths';
 import { GetCommentsQueryDto } from './dto/get-all.dto';
 import { CommentService } from './comment.service';
 import { CreateCommentDto } from './dto/create.dto';
@@ -25,7 +24,8 @@ import {
   UnDeleteCommentBodyDto,
   UnDeleteCommentParamsDto,
 } from './dto/un-delete.dto';
-import { OptionalJwtAuthGuard } from 'src/common/utils/optionalJwtAuthGuard';
+import { ApiPaths } from '../../common/constants/api-paths';
+import { OptionalJwtAuthGuard } from '../../common/utils/optionalJwtAuthGuard';
 
 @Controller(ApiPaths.Comment.Root)
 export class CommentController {

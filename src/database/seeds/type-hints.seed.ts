@@ -1,4 +1,4 @@
-import { SystemTypeHints } from 'src/enums/systemTypeHints.enum';
+import { SystemTypeHints } from '../../enums/systemTypeHints.enum';
 
 const SYSTEM_USER_ID =
   process.env.DB_SYSTEM_OBJ_ID ?? '6847e72641171e61ab2295e6';

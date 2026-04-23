@@ -1,8 +1,8 @@
 import { Prop, SchemaFactory } from '@nestjs/mongoose';
 import { Schema as MongooseSchema } from 'mongoose';
 import { MediaPreview, NameRef } from '../common.schema';
-import { Currency } from 'src/enums/currency.enum';
-import { ProductVariantAttributeKey } from 'src/enums/productVariantAttributeKey.enum';
+import { ProductVariantAttributeKey } from '../../enums/productVariantAttributeKey.enum';
+import { Currency } from '../../enums/currency.enum';
 
 export class VariantAttribute {
   @Prop({ required: true, enum: ProductVariantAttributeKey })

@@ -10,8 +10,8 @@ import {
   Max,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { Locale } from 'src/types/Locale';
-import { validationConfig } from 'src/configs/validationConfig';
+import { Locale } from '../../../types/Locale';
+import { validationConfig } from '../../../configs/validationConfig';
 
 const { labelMinChars, labelMaxChars, priorityMinNum, priorityMaxNum } =
   validationConfig.typeHint;

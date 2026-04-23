@@ -24,7 +24,7 @@ import {
   UpdateStatusParamsDto,
 } from './dto/update-active-status.dto';
 import { GetListQueryDto } from './dto/get-list.dto';
-import { ApiPaths } from 'src/common/constants/api-paths';
+import { ApiPaths } from '../../common/constants/api-paths';
 @Controller(ApiPaths.TypeHintConfig.Root)
 export class TypeHintConfigController {
   constructor(private readonly typeHintConfigService: TypeHintConfigService) {}

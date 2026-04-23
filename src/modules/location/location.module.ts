@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { LocationSchema, Location } from 'src/schemas/location.schema';
 import { LocationService } from './location.service';
 import { LocationController } from './location.controller';
 import { MediaModule } from '../media/media.module';
+import { Location, LocationSchema } from '../../schemas/location.schema';
 
 @Module({
   imports: [

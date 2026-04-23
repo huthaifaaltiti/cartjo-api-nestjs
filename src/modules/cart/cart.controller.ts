@@ -9,12 +9,12 @@ import {
   Request,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiPaths } from 'src/common/constants/api-paths';
 import { GetQueryDto } from './dto/get-one.dto';
 import { CartService } from './cart.service';
 import { ItemBodyDto } from './dto/item.dto';
 import { DeleteAllItemsBodyDto } from './dto/delete.dto';
 import { WishlistItemsBodyDto } from './dto/items.dto';
+import { ApiPaths } from '../../common/constants/api-paths';
 
 @Controller(ApiPaths.Cart.Root)
 export class CartController {

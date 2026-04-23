@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Order, OrderSchema } from 'src/schemas/order.schema';
 import { OrderService } from './order.service';
 import { CartModule } from '../cart/cart.module';
-import { Cart, CartSchema } from 'src/schemas/cart.schema';
 import { OrderController } from './order.controller';
 import { EmailModule } from '../email/email.module';
 import { ProductModule } from '../product/product.module';
-import { Product, ProductSchema } from 'src/schemas/product.schema';
+import { Order, OrderSchema } from '../../schemas/order.schema';
+import { Cart, CartSchema } from '../../schemas/cart.schema';
+import { Product, ProductSchema } from '../../schemas/product.schema';
 
 @Module({
   imports: [

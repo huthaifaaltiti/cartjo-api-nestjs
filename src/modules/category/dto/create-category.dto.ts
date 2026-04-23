@@ -1,7 +1,6 @@
 import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
-
-import { Locale } from 'src/types/Locale';
-import { validationConfig } from 'src/configs/validationConfig';
+import { validationConfig } from '../../../configs/validationConfig';
+import { Locale } from '../../../types/Locale';
 
 const { nameMinChars, nameMaxChars } = validationConfig.category;
 

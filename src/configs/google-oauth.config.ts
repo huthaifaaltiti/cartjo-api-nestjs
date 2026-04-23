@@ -1,4 +1,4 @@
-import { ApiPaths } from 'src/common/constants/api-paths';
+import { ApiPaths } from '../common/constants/api-paths';
 
 const normalize = (url?: string) => url?.replace(/\/$/, '');
 

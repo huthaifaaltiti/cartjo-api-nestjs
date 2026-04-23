@@ -8,9 +8,9 @@ import {
 } from 'class-validator';
 import { ShippingAddressDto } from './checkout.dto';
 import { Type } from 'class-transformer';
-import { Currency } from 'src/enums/currency.enum';
-import { Locale } from 'src/types/Locale';
-import { PaymentMethod } from 'src/enums/paymentMethod.enum';
+import { Currency } from '../../../enums/currency.enum';
+import { PaymentMethod } from '../../../enums/paymentMethod.enum';
+import { Locale } from '../../../types/Locale';
 
 export class CreateCashOrderDto {
   @IsNumber()

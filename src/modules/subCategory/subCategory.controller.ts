@@ -37,7 +37,7 @@ import {
   GetSubCategoryParamDto,
   GetSubCategoryQueryDto,
 } from './dto/get-subCategory.dto';
-import { ApiPaths } from 'src/common/constants/api-paths';
+import { ApiPaths } from '../../common/constants/api-paths';
 
 @Controller(ApiPaths.SubCategory.Root)
 export class SubCategoryController {

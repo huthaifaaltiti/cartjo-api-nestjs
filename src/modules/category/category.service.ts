@@ -9,24 +9,28 @@ import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
 import slugify from 'slugify';
 import { MediaService } from '../media/media.service';
-import {
-  BaseResponse,
-  DataListResponse,
-  DataResponse,
-} from 'src/types/service-response.type';
-import { Category, CategoryDocument } from 'src/schemas/category.schema';
-import { Locale } from 'src/types/Locale';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { DeleteCategoryDto } from './dto/delete-category.dto';
 import { UnDeleteCategoryBodyDto } from './dto/unDelete-category.dto';
-import { Modules } from 'src/enums/appModules.enum';
-import { validateUserRoleAccess } from 'src/common/utils/validateUserRoleAccess';
-import { getMessage } from 'src/common/utils/translator';
-import { MediaPreview } from 'src/schemas/common.schema';
 import { GetActiveOnesQueryDto } from './dto/get-active-ones.dto';
-import { MEDIA_CONFIG } from 'src/configs/media.config';
+import { AppConfigService } from '../appConfig/appConfig.service';
+import { HistoryService } from '../history/history.service';
 import { SubCategoryService } from '../subCategory/subCategory.service';
+import { Category, CategoryDocument } from '../../schemas/category.schema';
+import {
+  BaseResponse,
+  DataListResponse,
+  DataResponse,
+} from '../../types/service-response.type';
+import { validateUserRoleAccess } from '../../common/utils/validateUserRoleAccess';
+import { getMessage } from '../../common/utils/translator';
+import { MEDIA_CONFIG } from '../../configs/media.config';
+import { Modules } from '../../enums/appModules.enum';
+import { LogModule } from '../../enums/logModules.enum';
+import { LogAction } from '../../enums/logAction.enum';
+import { MediaPreview } from '../../schemas/common.schema';
+import { Locale } from '../../types/Locale';
 
 @Injectable()
 export class CategoryService {
@@ -34,6 +38,8 @@ export class CategoryService {
     @InjectModel(Category.name)
     private categoryModel: Model<CategoryDocument>,
     private mediaService: MediaService,
+    private appConfigService: AppConfigService,
+    private historyService: HistoryService,
     @Inject(forwardRef(() => SubCategoryService))
     private subCategoryService: SubCategoryService,
   ) {}
@@ -92,6 +98,15 @@ export class CategoryService {
     });
 
     await category.save();
+
+    // Log
+    await this.historyService.log(
+      LogModule.CATEGORY,
+      LogAction.CREATE,
+      requestingUser.userId,
+      null,
+      { categoryId: category._id, name: category.name },
+    );
 
     return {
       isSuccess: true,
@@ -213,6 +228,15 @@ export class CategoryService {
       { new: true },
     );
 
+    // Log
+    await this.historyService.log(
+      LogModule.CATEGORY,
+      LogAction.UPDATE,
+      requestingUser.userId,
+      null,
+      { categoryId: id, updatedFields: updateData },
+    );
+
     return {
       isSuccess: true,
       message: getMessage('categories_categoryUpdatedSuccessfully', lang),
@@ -229,6 +253,20 @@ export class CategoryService {
 
     validateUserRoleAccess(requestingUser, lang);
 
+    const activeCategoriesCount = await this.categoryModel.countDocuments({
+      isActive: true,
+      isDeleted: false,
+    });
+
+    if (
+      activeCategoriesCount <=
+      (this.appConfigService.config.minActiveCategories ?? 2)
+    ) {
+      throw new BadRequestException(
+        getMessage('categories_atLeastTwoCategoriesMustRemainActive', lang),
+      );
+    }
+
     const category = await this.categoryModel.findById(id);
 
     if (!category) {
@@ -244,6 +282,15 @@ export class CategoryService {
     category.unDeletedBy = null;
 
     await category.save();
+
+    // Log
+    await this.historyService.log(
+      LogModule.CATEGORY,
+      LogAction.DELETE,
+      requestingUser.userId,
+      null,
+      { categoryId: id, name: category.name },
+    );
 
     return {
       isSuccess: true,
@@ -276,6 +323,15 @@ export class CategoryService {
 
     await category.save();
 
+    // Log
+    await this.historyService.log(
+      LogModule.CATEGORY,
+      LogAction.UNDELETE,
+      requestingUser.userId,
+      null,
+      { categoryId: id, name: category.name },
+    );
+
     return {
       isSuccess: true,
       message: getMessage('categories_categoryUnDeletedSuccessfully', lang),
@@ -298,11 +354,28 @@ export class CategoryService {
       );
     }
 
+    if (!isActive) {
+      const activeCategoriesCount = await this.categoryModel.countDocuments({
+        isActive: true,
+        isDeleted: false,
+      });
+
+      if (
+        activeCategoriesCount <=
+        (this.appConfigService.config.minActiveCategories ?? 2)
+      ) {
+        throw new BadRequestException(
+          getMessage('categories_atLeastTwoCategoriesMustRemainActive', lang),
+        );
+      }
+    }
+
     if (isActive) {
       category.isDeleted = false;
       category.deletedAt = null;
     }
 
+    const prevStatus = category.isActive;
     category.isActive = isActive;
 
     await category.save();
@@ -311,6 +384,15 @@ export class CategoryService {
     if (!isActive && category.subCategories?.length) {
       await this.subCategoryService.deactivateByCategory(id, requestingUser);
     }
+
+    // Log
+    await this.historyService.log(
+      LogModule.CATEGORY,
+      isActive ? LogAction.ACTIVATE : LogAction.DEACTIVATE,
+      requestingUser.userId,
+      null,
+      { categoryId: id, prevStatus, newStatus: isActive },
+    );
 
     return {
       isSuccess: true,
@@ -364,19 +446,121 @@ export class CategoryService {
   async getActiveOnes(
     query: GetActiveOnesQueryDto,
   ): Promise<DataListResponse<Category>> {
-    const findQuery = {
-      isActive: true,
-      isDeleted: false,
-    };
+    const limitNum = Number(query.limit) || 10;
 
-    const categories = await this.categoryModel
-      .find(findQuery)
-      .populate('deletedBy', 'firstName lastName email _id')
-      .populate('unDeletedBy', 'firstName lastName email _id')
-      .populate('createdBy', 'firstName lastName email _id')
-      .populate('subCategories')
-      .limit(Number(query.limit))
-      .lean();
+    const categories = await this.categoryModel.aggregate([
+      // Only active, non-deleted categories that have subcategories
+      {
+        $match: {
+          isActive: true,
+          isDeleted: false,
+          subCategories: { $exists: true, $ne: [] },
+        },
+      },
+
+      // Lookup subcategories
+      {
+        $lookup: {
+          from: 'subCategories',
+          localField: 'subCategories',
+          foreignField: '_id',
+          as: 'subCategories',
+        },
+      },
+
+      // Filter subcategories array to only active & non-deleted ones
+      {
+        $addFields: {
+          subCategories: {
+            $filter: {
+              input: '$subCategories',
+              as: 'sub',
+              cond: {
+                $and: [
+                  { $eq: ['$$sub.isActive', true] },
+                  { $eq: ['$$sub.isDeleted', false] },
+                ],
+              },
+            },
+          },
+        },
+      },
+
+      // Only keep categories that still have at least one active subcategory
+      {
+        $match: {
+          'subCategories.0': { $exists: true },
+        },
+      },
+
+      // Lookup createdBy
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'createdBy',
+          foreignField: '_id',
+          pipeline: [{ $project: { firstName: 1, lastName: 1, email: 1 } }],
+          as: 'createdBy',
+        },
+      },
+      {
+        $addFields: {
+          createdBy: {
+            $cond: {
+              if: { $gt: [{ $size: '$createdBy' }, 0] },
+              then: { $arrayElemAt: ['$createdBy', 0] },
+              else: null,
+            },
+          },
+        },
+      },
+
+      // Lookup deletedBy
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'deletedBy',
+          foreignField: '_id',
+          pipeline: [{ $project: { firstName: 1, lastName: 1, email: 1 } }],
+          as: 'deletedBy',
+        },
+      },
+      {
+        $addFields: {
+          deletedBy: {
+            $cond: {
+              if: { $gt: [{ $size: '$deletedBy' }, 0] },
+              then: { $arrayElemAt: ['$deletedBy', 0] },
+              else: null,
+            },
+          },
+        },
+      },
+
+      // Lookup unDeletedBy
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'unDeletedBy',
+          foreignField: '_id',
+          pipeline: [{ $project: { firstName: 1, lastName: 1, email: 1 } }],
+          as: 'unDeletedBy',
+        },
+      },
+      {
+        $addFields: {
+          unDeletedBy: {
+            $cond: {
+              if: { $gt: [{ $size: '$unDeletedBy' }, 0] },
+              then: { $arrayElemAt: ['$unDeletedBy', 0] },
+              else: null,
+            },
+          },
+        },
+      },
+
+      { $limit: limitNum },
+    ]);
 
     if (categories.length === 0) {
       throw new NotFoundException(

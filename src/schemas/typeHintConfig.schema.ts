@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
-import { TranslatedText } from 'src/types/TranslatedText.type';
+import { TranslatedText } from '../types/TranslatedText.type';
 
 @Schema({ timestamps: true })
 export class TypeHintConfig {
@@ -18,6 +18,9 @@ export class TypeHintConfig {
 
   @Prop({ type: Date, default: null })
   endDate?: Date | undefined;
+
+  @Prop({ default: false })
+  isExpired: boolean;
 
   @Prop({ default: true })
   isActive: boolean;

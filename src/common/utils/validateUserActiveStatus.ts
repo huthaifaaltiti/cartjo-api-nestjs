@@ -1,7 +1,6 @@
 import { UnauthorizedException } from '@nestjs/common';
-
 import { getMessage } from './translator';
-import { Locale } from 'src/types/Locale';
+import { Locale } from '../../types/Locale';
 
 export const validateUserActiveStatus = (user: any, lang: Locale) => {
   if (!user || user.isDeleted || !user.isActive) {

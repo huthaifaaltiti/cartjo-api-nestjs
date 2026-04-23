@@ -5,8 +5,8 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { Currency } from 'src/enums/currency.enum';
-import { Locale } from 'src/types/Locale';
+import { Locale } from '../../../types/Locale';
+import { Currency } from '../../../enums/currency.enum';
 
 export class VerifyPaymentBodyDto {
   @IsString()

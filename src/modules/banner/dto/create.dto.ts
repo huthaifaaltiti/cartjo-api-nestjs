@@ -7,10 +7,9 @@ import {
   IsDateString,
   IsBoolean,
 } from 'class-validator';
-
-import { Locale } from 'src/types/Locale';
-import { validationConfig } from 'src/configs/validationConfig';
 import { Transform } from 'class-transformer';
+import { validationConfig } from '../../../configs/validationConfig';
+import { Locale } from '../../../types/Locale';
 
 const { titleMinChars, titleMaxChars } = validationConfig.banner;
 

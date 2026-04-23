@@ -3,10 +3,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { MongoClient, GridFSBucket, ObjectId } from 'mongodb';
 import { Readable } from 'stream';
-import { getMessage } from 'src/common/utils/translator';
-import { Locale } from 'src/types/Locale';
+import { getMessage } from '../../common/utils/translator';
+import { Locale } from '../../types/Locale';
 import { User, UserDocument } from '../../schemas/user.schema';
-// import { Media, MediaDocument } from 'src/schemas/media.schema';
 
 @Injectable()
 export class MediaService {

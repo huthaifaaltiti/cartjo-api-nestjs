@@ -4,14 +4,14 @@ import { EmailProcessor } from './processors/email.processor';
 import { BullModule } from '@nestjs/bull';
 import { EmailTemplateSeeder } from './seeders/email-template.seeder';
 import { MongooseModule } from '@nestjs/mongoose';
+import { EmailService } from './email.service';
+import { EmailLogService } from './EmailLogService.service';
+import { Queues } from '../../enums/queues.enum';
 import {
   EmailTemplate,
   EmailTemplateSchema,
-} from 'src/schemas/email-template.schema';
-import { EmailService } from './email.service';
-import { Queues } from 'src/enums/queues.enum';
-import { EmailLogService } from './EmailLogService.service';
-import { EmailLog, EmailLogSchema } from 'src/schemas/email-log.schema';
+} from '../../schemas/email-template.schema';
+import { EmailLog, EmailLogSchema } from '../../schemas/email-log.schema';
 
 @Module({
   imports: [

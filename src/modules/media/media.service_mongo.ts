@@ -3,12 +3,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { MongoClient, GridFSBucket, ObjectId } from 'mongodb';
 import { Readable } from 'stream';
-import { getMessage } from 'src/common/utils/translator';
-import { Locale } from 'src/types/Locale';
 import { User, UserDocument } from '../../schemas/user.schema';
-import { getAppHostName } from 'src/common/utils/getAppHostName';
-
-// MONGODB_MEDIA_URI=mongodb+srv://huthaefaaltete094:gxFc3HEy9hXoFOjj@cluster0.yuv8xh8.mongodb.net/cartjoMedia_dev?retryWrites=true&w=majority
+import { getAppHostName } from '../../common/utils/getAppHostName';
+import { Locale } from '../../types/Locale';
+import { getMessage } from '../../common/utils/translator';
 
 @Injectable()
 export class MediaService {

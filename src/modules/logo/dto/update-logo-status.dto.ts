@@ -5,7 +5,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { Locale } from 'src/types/Locale';
+import { Locale } from '../../../types/Locale';
 
 export class UpdateLogoStatusParamsDto {
   @IsMongoId({ message: 'Invalid Logo ID format' })

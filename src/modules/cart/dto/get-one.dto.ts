@@ -1,6 +1,6 @@
 import { Transform } from 'class-transformer';
 import { IsMongoId, IsNumber, IsOptional, IsString } from 'class-validator';
-import { Locale } from 'src/types/Locale';
+import { Locale } from '../../../types/Locale';
 
 export class GetQueryDto {
   @IsOptional()

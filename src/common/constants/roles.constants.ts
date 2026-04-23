@@ -1,4 +1,4 @@
-import { UserRole } from 'src/enums/user-role.enum';
+import { UserRole } from '../../enums/user-role.enum';
 
 export const ALLOWED_AUTHENTICATED_ROLES = [
   UserRole.OWNER,

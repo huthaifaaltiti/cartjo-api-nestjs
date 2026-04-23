@@ -5,10 +5,6 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
-import { getMessage } from 'src/common/utils/translator';
-import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
-import { Locale } from 'src/types/Locale';
-import { DataResponse } from 'src/types/service-response.type';
 import {
   SendWishListItemToCartBodyDto,
   WishListItemBodyDto,
@@ -17,10 +13,14 @@ import {
   SendAllWishListItemsBodyDto,
   WishListItemsBodyDto,
 } from './dto/wishlist-items.dto';
-import { Product, ProductDocument } from 'src/schemas/product.schema';
-import { Cart, CartDocument } from 'src/schemas/cart.schema';
 import { CartService } from '../cart/cart.service';
-import { WEEKLY_SCORE_WEIGHTS } from 'src/configs/weeklyScoreWeights.config';
+import { WishList, WishListDocument } from '../../schemas/wishList.schema';
+import { Product, ProductDocument } from '../../schemas/product.schema';
+import { Cart, CartDocument } from '../../schemas/cart.schema';
+import { Locale } from '../../types/Locale';
+import { getMessage } from '../../common/utils/translator';
+import { DataResponse } from '../../types/service-response.type';
+import { WEEKLY_SCORE_WEIGHTS } from '../../configs/weeklyScoreWeights.config';
 
 @Injectable()
 export class WishListService {

@@ -1,6 +1,6 @@
 import { IsMongoId, IsNotEmpty, IsOptional, IsString, IsEnum } from 'class-validator';
-import { OrderDeliveryStatus } from 'src/enums/orderDeliveryStatus.enum';
-import { Locale } from 'src/types/Locale';
+import { OrderDeliveryStatus } from '../../../enums/orderDeliveryStatus.enum';
+import { Locale } from '../../../types/Locale';
 
 export class ChangeDeliveryStatusBodyDto {
   @IsString()

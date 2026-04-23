@@ -12,18 +12,18 @@ import {
   DeleteObjectCommand,
 } from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
-import { Locale } from 'src/types/Locale';
-import { getMessage } from 'src/common/utils/translator';
 import { User, UserDocument } from '../../schemas/user.schema';
 import * as mime from 'mime-types';
-import { getClientIp } from 'src/common/utils/getClientIp';
-import { ApiPaths } from 'src/common/constants/api-paths';
-import { MediaActions } from 'src/enums/mediaActions.enum';
 import { ObjectId } from 'mongodb';
-import { MediaPreview } from 'src/schemas/common.schema';
-import { fileSizeValidator } from 'src/common/functions/validators/fileSizeValidator';
-import { fileTypeValidator } from 'src/common/functions/validators/fileTypeValidator';
-import { Modules } from 'src/enums/appModules.enum';
+import { Locale } from '../../types/Locale';
+import { getClientIp } from '../../common/utils/getClientIp';
+import { getMessage } from '../../common/utils/translator';
+import { MediaActions } from '../../enums/mediaActions.enum';
+import { ApiPaths } from '../../common/constants/api-paths';
+import { Modules } from '../../enums/appModules.enum';
+import { MediaPreview } from '../../schemas/common.schema';
+import { fileSizeValidator } from '../../common/functions/validators/fileSizeValidator';
+import { fileTypeValidator } from '../../common/functions/validators/fileTypeValidator';
 
 @Injectable()
 export class MediaService {

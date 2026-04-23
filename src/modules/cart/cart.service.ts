@@ -5,15 +5,15 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
-import { Locale } from 'src/types/Locale';
 import { ItemBodyDto } from './dto/item.dto';
-import { getMessage } from 'src/common/utils/translator';
-import { Product, ProductDocument } from 'src/schemas/product.schema';
-import { Cart, CartDocument } from 'src/schemas/cart.schema';
-import { DataResponse } from 'src/types/service-response.type';
 import { DeleteAllItemsBodyDto } from './dto/delete.dto';
-import { WishList, WishListDocument } from 'src/schemas/wishList.schema';
 import { WishlistItemsBodyDto } from './dto/items.dto';
+import { Cart, CartDocument } from '../../schemas/cart.schema';
+import { Product, ProductDocument } from '../../schemas/product.schema';
+import { WishList, WishListDocument } from '../../schemas/wishList.schema';
+import { Locale } from '../../types/Locale';
+import { getMessage } from '../../common/utils/translator';
+import { DataResponse } from '../../types/service-response.type';
 
 @Injectable()
 export class CartService {

@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
-import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
+import { PreferredLanguage } from '../enums/preferredLanguage.enum';
 
 export type UserContextDocument = UserContext & Document;
 

@@ -1,11 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
 import { hashSync, compareSync } from 'bcrypt';
-import { UserRole } from 'src/enums/user-role.enum';
-import { Gender } from 'src/enums/gender.enum';
-import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
-import { NATIONALITY_CODES } from 'src/common/constants/nationalities';
 import { MediaPreview } from './common.schema';
+import { VerificationChannelType } from '../enums/VerificationChannelType.enum';
+import { NATIONALITY_CODES } from '../common/constants/nationalities';
+import { UserRole } from '../enums/user-role.enum';
+import { Gender } from '../enums/gender.enum';
+import { PreferredLanguage } from '../enums/preferredLanguage.enum';
 
 export type UserDocument = User &
   Document & {
@@ -30,6 +31,21 @@ export class DefaultShippingAddress {
   building?: string;
   additionalInfo?: string;
   location?: { lat: number; lng: number; name: string };
+}
+
+export class VerificationChannel {
+  @Prop({
+    type: String,
+    enum: Object.values(VerificationChannelType),
+    required: true,
+  })
+  channel: VerificationChannelType;
+
+  @Prop({ default: Date.now })
+  verifiedAt: Date;
+
+  @Prop({ required: false })
+  externalId?: string;
 }
 
 @Schema({ collection: 'users', timestamps: true })
@@ -63,44 +79,37 @@ export class User extends Document {
 
   @Prop({
     type: String,
-    required: function () {
-      return this.authProvider === 'local';
-    },
   })
   countryCode?: string;
 
   @Prop({
     type: String,
-    required: false,
-    default: 'local',
-    enum: ['local', 'google'],
+    enum: Object.values(VerificationChannelType),
+    default: VerificationChannelType.EMAIL,
   })
-  authProvider: {
-    type: String;
-    enum: ['local', 'google'];
-    default: 'local';
-  };
+  authProvider: VerificationChannelType;
 
   @Prop({
     type: String,
     unique: true,
-    required: function () {
-      return this.authProvider === 'local';
-    },
   })
   phoneNumber?: string;
 
   @Prop({ default: false })
   isPhoneVerified: boolean;
 
+  @Prop({
+    type: [VerificationChannel],
+    _id: false,
+    default: [],
+  })
+  verificationChannels: VerificationChannel[];
+
   @Prop({ required: false })
   birthDate?: Date;
 
   @Prop({
     type: String,
-    required: function () {
-      return this.authProvider === 'local';
-    },
     set: (value: string) => (value ? hashSync(value, 12) : value),
   })
   password?: string;

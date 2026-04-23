@@ -8,11 +8,6 @@ import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { Model } from 'mongoose';
 import { MongoError } from 'mongodb';
-import { getMessage } from 'src/common/utils/translator';
-import { generateUsername } from 'src/common/utils/generators';
-import { RolePermissions } from 'src/common/constants/roles-permissions.constant';
-import { UserRole } from 'src/enums/user-role.enum';
-import { User, UserDocument } from 'src/schemas/user.schema';
 import {
   ForgotPasswordBodyDto,
   RegisterDto,
@@ -21,21 +16,32 @@ import {
   VerifyEmailQueryDto,
   VerifyResetPasswordCodeBodyDto,
 } from './dto/register.dto';
-import { Modules } from 'src/enums/appModules.enum';
 import { MediaService } from '../media/media.service';
 import { randomBytes } from 'crypto';
 import { EmailService } from '../email/email.service';
-import { EmailTemplates } from 'src/enums/emailTemplates.enum';
-import { PreferredLanguage } from 'src/enums/preferredLanguage.enum';
-import { BaseResponse } from 'src/types/service-response.type';
-import { getAppUrl } from 'src/common/utils/getAppUrl';
-import commonEmailTemplateData from 'src/common/utils/commonEmailTemplateData';
-import { MEDIA_CONFIG } from 'src/configs/media.config';
-import { MediaPreview } from 'src/schemas/common.schema';
 import { OAuth2Client } from 'google-auth-library';
 import { Response } from 'express';
 import { AuthJwtService } from '../auth-jwt/auth-jwt.service';
-import { buildGoogleOAuthConfig } from 'src/configs/google-oauth.config';
+import { User, UserDocument } from '../../schemas/user.schema';
+import { buildGoogleOAuthConfig } from '../../configs/google-oauth.config';
+import { MediaPreview } from '../../schemas/common.schema';
+import { MEDIA_CONFIG } from '../../configs/media.config';
+import { Modules } from '../../enums/appModules.enum';
+import { getMessage } from '../../common/utils/translator';
+import { UserRole } from '../../enums/user-role.enum';
+import { generateUsername } from '../../common/functions/generators/username.generator';
+import { RolePermissions } from '../../common/constants/roles-permissions.constant';
+import { VerificationChannelType } from '../../enums/VerificationChannelType.enum';
+import { EmailTemplates } from '../../enums/emailTemplates.enum';
+import { getAppUrl } from '../../common/utils/getAppUrl';
+import commonEmailTemplateData from '../../common/utils/commonEmailTemplateData';
+import { PreferredLanguage } from '../../enums/preferredLanguage.enum';
+import { BaseResponse } from '../../types/service-response.type';
+import {
+  isPhoneNumberLike,
+  normalizePhoneNumber,
+} from '../../common/utils/normalizePhoneNumber';
+import { COUNTRY_CONFIGS } from '../../configs/countryPhone.config';
 
 @Injectable()
 export class AuthService {
@@ -154,6 +160,8 @@ export class AuthService {
         permissions,
         profilePic: newProfilePic,
         preferredLang,
+        authProvider: VerificationChannelType.EMAIL,
+        verificationChannels: [],
       };
 
       const emailVerificationToken = randomBytes(32).toString('hex');
@@ -230,6 +238,16 @@ export class AuthService {
     user.isEmailVerified = true;
     user.emailVerificationToken = null;
     user.emailVerificationTokenExpires = null;
+
+    const hasEmailChannel = user.verificationChannels.some(
+      v => v.channel === VerificationChannelType.EMAIL,
+    );
+    if (!hasEmailChannel) {
+      user.verificationChannels.push({
+        channel: VerificationChannelType.EMAIL,
+        verifiedAt: new Date(),
+      });
+    }
 
     if (user.email && user.isEmailVerified) {
       const prefLang = user?.preferredLang || PreferredLanguage.ARABIC;
@@ -308,12 +326,29 @@ export class AuthService {
   async forgotPassword(dto: ForgotPasswordBodyDto): Promise<BaseResponse> {
     const { identifier, lang } = dto;
 
+    let phoneQuery = {};
+
+    if (isPhoneNumberLike(String(identifier), COUNTRY_CONFIGS.JO)) {
+      const normalized = normalizePhoneNumber(
+        String(identifier),
+        COUNTRY_CONFIGS.JO,
+      );
+
+      // The second approach is more resilient since it doesn't care whether countryCode is 962, 00962, or +962.
+      phoneQuery = {
+        phoneNumber: normalized,
+        // Match any countryCode format that ends with the country digits
+        $expr: {
+          $regexMatch: {
+            input: '$countryCode',
+            regex: `${COUNTRY_CONFIGS.JO.countryCode}$`,
+          },
+        },
+      };
+    }
+
     const user = await this.userModel.findOne({
-      $or: [
-        { email: identifier },
-        { phoneNumber: identifier },
-        { username: identifier },
-      ],
+      $or: [{ email: identifier }, phoneQuery, { username: identifier }],
     });
 
     if (!user) {
@@ -333,29 +368,57 @@ export class AuthService {
 
     await user.save();
 
-    if (user.email) {
-      this.emailService.sendTemplateEmail({
-        to: user.email,
-        templateName: EmailTemplates.RESET_PASSWORD_CODE,
-        templateData: {
-          firstName: user.firstName,
-          resetCode,
-          ...commonEmailTemplateData(),
-        },
-        prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
-      });
-    }
+    try {
+      if (user.email) {
+        await this.emailService.sendTemplateEmail({
+          to: user.email,
+          templateName: EmailTemplates.RESET_PASSWORD_CODE,
+          templateData: {
+            firstName: user.firstName,
+            resetCode,
+            ...commonEmailTemplateData(),
+          },
+          prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
+        });
+      }
 
-    return {
-      isSuccess: true,
-      message: getMessage('authentication_resetPasswordCodeSent', lang),
-    };
+      return {
+        isSuccess: true,
+        message: getMessage('authentication_resetPasswordCodeSent', lang),
+      };
+    } catch (err) {
+      console.error('Email failed:', err);
+
+      return {
+        isSuccess: false,
+        message: getMessage('authentication_failedToSendResetCode', lang),
+      };
+    }
   }
 
   async verifyResetPasswordCode(
     dto: VerifyResetPasswordCodeBodyDto,
   ): Promise<BaseResponse> {
     const { identifier, code, lang } = dto;
+
+    let phoneQuery = {};
+
+    if (isPhoneNumberLike(String(identifier), COUNTRY_CONFIGS.JO)) {
+      const normalized = normalizePhoneNumber(
+        String(identifier),
+        COUNTRY_CONFIGS.JO,
+      );
+
+      phoneQuery = {
+        phoneNumber: normalized,
+        $expr: {
+          $regexMatch: {
+            input: '$countryCode',
+            regex: `${COUNTRY_CONFIGS.JO.countryCode}$`,
+          },
+        },
+      };
+    }
 
     if (!code) {
       throw new BadRequestException(
@@ -364,11 +427,7 @@ export class AuthService {
     }
 
     const user = await this.userModel.findOne({
-      $or: [
-        { email: identifier },
-        { phoneNumber: identifier },
-        { username: identifier },
-      ],
+      $or: [{ email: identifier }, phoneQuery, { username: identifier }],
       resetCode: code,
     });
 
@@ -405,12 +464,27 @@ export class AuthService {
       );
     }
 
+    let phoneQuery = {};
+
+    if (isPhoneNumberLike(String(identifier), COUNTRY_CONFIGS.JO)) {
+      const normalized = normalizePhoneNumber(
+        String(identifier),
+        COUNTRY_CONFIGS.JO,
+      );
+
+      phoneQuery = {
+        phoneNumber: normalized,
+        $expr: {
+          $regexMatch: {
+            input: '$countryCode',
+            regex: `${COUNTRY_CONFIGS.JO.countryCode}$`,
+          },
+        },
+      };
+    }
+
     const user = await this.userModel.findOne({
-      $or: [
-        { email: identifier },
-        { phoneNumber: identifier },
-        { username: identifier },
-      ],
+      $or: [{ email: identifier }, phoneQuery, { username: identifier }],
       resetCode: code,
     });
 
@@ -439,16 +513,22 @@ export class AuthService {
 
     await user.save();
 
+    const prefLanguage: PreferredLanguage = Object.values(
+      PreferredLanguage,
+    ).includes(lang as PreferredLanguage)
+      ? (lang as PreferredLanguage)
+      : user?.preferredLang || PreferredLanguage.ARABIC;
+
     if (user.email) {
       this.emailService.sendTemplateEmail({
         to: user.email,
         templateName: EmailTemplates.PASSWORD_RESET_SUCCESS,
         templateData: {
           firstName: user.firstName,
-          loginUrl: `${getAppUrl()}/auth`,
+          loginUrl: `${getAppUrl()}/${prefLanguage}/auth`,
           ...commonEmailTemplateData(),
         },
-        prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
+        prefLang: prefLanguage,
       });
     }
 
@@ -522,9 +602,28 @@ export class AuthService {
             : PreferredLanguage.ENGLISH,
           termsAccepted: true,
           marketingEmails: false,
-          authProvider: 'google',
+          authProvider: VerificationChannelType.GOOGLE,
+          verificationChannels: [
+            {
+              channel: VerificationChannelType.GOOGLE,
+              verifiedAt: new Date(),
+              externalId: payload.sub, // The unique Google User ID
+            },
+          ],
           createdBy: process.env.DB_SYSTEM_OBJ_ID,
           profilePic: picture ? { url: picture } : undefined,
+        });
+
+        // Registration Email (Verified by Google)
+        this.emailService.sendTemplateEmail({
+          to: user.email,
+          templateName: EmailTemplates.EMAIL_IS_VERIFIED,
+          prefLang: user.preferredLang || PreferredLanguage.ARABIC,
+          templateData: {
+            firstName: user.firstName,
+            appURL: `${getAppUrl()}/${user.preferredLang || PreferredLanguage.ARABIC}`,
+            ...commonEmailTemplateData(),
+          },
         });
       }
 

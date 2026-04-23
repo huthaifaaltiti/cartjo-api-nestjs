@@ -5,9 +5,9 @@ import {
   Query,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiPaths } from 'src/common/constants/api-paths';
 import { NationalityService } from './nationality.service';
 import { GetStaticNationalitiesQueryDto } from './dto/get-all.dto';
+import { ApiPaths } from '../../common/constants/api-paths';
 
 @Controller(ApiPaths.Nationality.Root)
 export class NationalityController {

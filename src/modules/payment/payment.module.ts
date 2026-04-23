@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Cart, CartSchema } from 'src/schemas/cart.schema';
+import { Cart, CartSchema } from '../../schemas/cart.schema';
 import { PaymentController } from './payment.controller';
 import { PaymentService } from './payment.service';
 import { CartModule } from '../cart/cart.module';
-import { Order, OrderSchema } from 'src/schemas/order.schema';
+import { Order, OrderSchema } from '../../schemas/order.schema';
 import { OrderModule } from '../order/order.module';
 
 @Module({

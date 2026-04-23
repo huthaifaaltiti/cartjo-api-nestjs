@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { EmailSendingStatus } from 'src/enums/emailSendingStatus.enum';
-import { EmailLog, EmailLogDocument } from 'src/schemas/email-log.schema';
+import { EmailLog, EmailLogDocument } from '../../schemas/email-log.schema';
+import { EmailSendingStatus } from '../../enums/emailSendingStatus.enum';
 
 @Injectable()
 export class EmailLogService {

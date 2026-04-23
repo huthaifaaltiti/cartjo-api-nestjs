@@ -1,4 +1,4 @@
-import { RevalidationService } from 'src/modules/revalidation/revalidation.service';
+import { RevalidationService } from '../../modules/revalidation/revalidation.service';
 
 export async function revalidatePath(
   revalidationService: RevalidationService,
