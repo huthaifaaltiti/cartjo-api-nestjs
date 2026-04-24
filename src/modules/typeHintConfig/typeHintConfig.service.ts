@@ -467,6 +467,13 @@ export class TypeHintConfigService {
       }
     }
 
+    if (
+      dto.priority &&
+      Number(dto.priority) !== Number(typeHintConfig.priority)
+    ) {
+      typeHintConfig.priority = dto.priority;
+    }
+
     const newStartDate = dto.startDate
       ? new Date(dto.startDate)
       : typeHintConfig.startDate;
