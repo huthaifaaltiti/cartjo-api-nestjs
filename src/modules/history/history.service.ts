@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { LogModule } from '../../enums/logModules.enum';
-import { History, HistoryDocument } from '../../schemas/history.schema';
+import {
+  ActionActorType,
+  History,
+  HistoryDocument,
+} from '../../schemas/history.schema';
 import { LogAction } from '../../enums/logAction.enum';
 
 @Injectable()
@@ -22,6 +26,7 @@ export class HistoryService {
       module,
       action,
       user: userId,
+      actorType: userId ? ActionActorType.USER : ActionActorType.SYSTEM,
       reason,
       details,
     });

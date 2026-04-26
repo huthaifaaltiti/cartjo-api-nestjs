@@ -5,6 +5,11 @@ import { LogModule } from '../enums/logModules.enum';
 
 export type HistoryDocument = History & Document;
 
+export enum ActionActorType {
+  USER = 'user',
+  SYSTEM = 'system',
+}
+
 @Schema({ timestamps: true })
 export class History {
   @Prop({ type: String, enum: Object.values(LogAction), required: true })
@@ -13,8 +18,15 @@ export class History {
   @Prop({ type: String, enum: Object.values(LogModule), required: true })
   module: LogModule;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
-  user: mongoose.Types.ObjectId;
+  @Prop({
+    type: String,
+    enum: Object.values(ActionActorType),
+    default: ActionActorType.USER,
+  })
+  actorType: ActionActorType;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', default: null })
+  user: mongoose.Types.ObjectId | null;
 
   @Prop({ type: String, default: null })
   reason?: string;
