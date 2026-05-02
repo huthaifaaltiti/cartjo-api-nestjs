@@ -34,6 +34,7 @@ import { CRON_JOBS } from '../../configs/cron.config';
 import { LogModule } from '../../enums/logModules.enum';
 import { HistoryService } from '../history/history.service';
 import { LogAction } from '../../enums/logAction.enum';
+import { validateDocDates } from '../../common/functions/validators/validateDocDates.alidator';
 
 export class ShowcaseService {
   constructor(
@@ -77,11 +78,10 @@ export class ShowcaseService {
       );
 
       if (result.modifiedCount > 0) {
-        // Log
         await this.historyService.log(
           LogModule.SHOWCASE,
           LogAction.UPDATE,
-          null, // system
+          null,
           null,
           {
             action: 'CRON_DEACTIVATE_EXPIRED',
@@ -147,11 +147,10 @@ export class ShowcaseService {
           },
         );
 
-        // Log
         await this.historyService.log(
           LogModule.SHOWCASE,
           LogAction.UPDATE,
-          null, // system action
+          null,
           null,
           {
             action: 'CRON_DEACTIVATE_BY_INACTIVE_TYPE_HINT',
@@ -562,8 +561,8 @@ export class ShowcaseService {
         { 'title.en': dto.title_en },
         { 'description.ar': dto.description_ar },
         { 'description.en': dto.description_en },
+        { type: dto.type },
       ],
-      isDeleted: false,
     });
 
     if (existing) {
@@ -597,8 +596,16 @@ export class ShowcaseService {
       );
     }
 
+    if (typeHintConfig.isSystem) {
+      throw new BadRequestException(
+        getMessage('showcase_sysTypeHint', dto.lang),
+      );
+    }
+
     const start = dto.startDate ? new Date(dto.startDate) : new Date();
     const end = dto.endDate ? new Date(dto.endDate) : undefined;
+
+    validateDocDates(start, end, dto.lang);
 
     const showcase = await this.showcaseModel.create({
       title: { ar: dto.title_ar, en: dto.title_en },
@@ -763,11 +770,7 @@ export class ShowcaseService {
           : null
         : showcase.endDate;
 
-    if (newStartDate && newEndDate && newEndDate < newStartDate) {
-      throw new BadRequestException(
-        getMessage('showcase_endDateMustBeAfterStartDate', dto.lang),
-      );
-    }
+    validateDocDates(newStartDate, newEndDate, dto.lang, true);
 
     const nowExpired = this.computeIsExpired(newEndDate);
 
@@ -781,7 +784,6 @@ export class ShowcaseService {
     showcase.startDate = newStartDate;
     showcase.endDate = newEndDate;
 
-    showcase.updatedAt = new Date();
     showcase.updatedBy = requestingUser?.userId;
 
     await showcase.save();
