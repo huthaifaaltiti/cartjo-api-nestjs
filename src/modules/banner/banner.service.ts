@@ -29,6 +29,8 @@ import { Modules } from '../../enums/appModules.enum';
 import { LogModule } from '../../enums/logModules.enum';
 import { LogAction } from '../../enums/logAction.enum';
 import { MediaPreview } from '../../schemas/common.schema';
+import { validateDocDates } from '../../common/functions/validators/validateDocDates.alidator';
+import { LogTrigger } from '../../enums/logTrigger.enum';
 
 @Injectable()
 export class BannerService {
@@ -62,14 +64,43 @@ export class BannerService {
         },
       );
 
-      await this.activateDefaultBanner();
-
       if (result.modifiedCount > 0) {
+        await this.historyService.log(
+          LogModule.BANNER,
+          LogAction.UPDATE,
+          null, // system action
+          null,
+          {
+            trigger: LogTrigger.CRON,
+            meta: {
+              job: 'DEACTIVATE_EXPIRED_BANNERS',
+              affectedCount: result.modifiedCount,
+              matchedCount: result.matchedCount,
+            },
+          },
+        );
+
         console.log(
           `[CRON] Deactivated ${result.modifiedCount} expired banners`,
         );
       }
+
+      await this.activateDefaultBanner();
     } catch (error) {
+      await this.historyService.log(
+        LogModule.BANNER,
+        LogAction.UPDATE,
+        null,
+        null,
+        {
+          trigger: LogTrigger.CRON,
+          meta: {
+            job: 'DEACTIVATE_EXPIRED_BANNERS',
+            error: (error as Error)?.message,
+          },
+        },
+      );
+
       console.error('[CRON] Failed to deactivate expired banners:', error);
     }
   }
@@ -85,54 +116,87 @@ export class BannerService {
   private async activateDefaultBanner() {
     const now = new Date();
 
-    const existingDefault = await this.bannerModel.findOne({
-      isDefault: true,
-      isDeleted: false,
-      isActive: true,
-    });
+    try {
+      const existingDefault = await this.bannerModel.findOne({
+        isDefault: true,
+        isDeleted: false,
+        isActive: true,
+      });
 
-    if (existingDefault) return;
+      if (existingDefault) return;
 
-    // 2. Find eligible banners (NO endDate, valid timing)
-    const eligibleBanners = await this.bannerModel.find({
-      isDeleted: false,
-      isExpired: { $ne: true },
-      $and: [
+      // 2. Find eligible banners (NO endDate, valid timing)
+      const eligibleBanners = await this.bannerModel.find({
+        isDeleted: false,
+        isExpired: { $ne: true },
+        $and: [
+          {
+            $or: [{ endDate: { $exists: false } }, { endDate: null }],
+          },
+          {
+            $or: [
+              { startDate: { $lte: now } },
+              { startDate: { $exists: false } },
+            ],
+          },
+        ],
+      });
+
+      if (!eligibleBanners.length) {
+        console.warn('[FALLBACK] No eligible banners to set as default');
+        return;
+      }
+
+      const randomBanner =
+        eligibleBanners[Math.floor(Math.random() * eligibleBanners.length)];
+
+      await this.bannerModel.updateMany(
+        { isDefault: true },
+        { $set: { isDefault: false } },
+      );
+
+      await this.bannerModel.findByIdAndUpdate(randomBanner._id, {
+        isDefault: true,
+        isActive: true,
+        isExpired: false,
+        endDate: null,
+      });
+
+      // Log
+      await this.historyService.log(
+        LogModule.BANNER,
+        LogAction.UPDATE,
+        null, // system action
+        null,
         {
-          $or: [{ endDate: { $exists: false } }, { endDate: null }],
+          trigger: LogTrigger.CRON,
+          meta: {
+            job: 'ACTIVATE_RANDOM_DEFAULT',
+            selectedBannerId: randomBanner._id,
+          },
         },
-        {
-          $or: [
-            { startDate: { $lte: now } },
-            { startDate: { $exists: false } },
-          ],
-        },
-      ],
-    });
+      );
 
-    if (!eligibleBanners.length) {
-      console.warn('[FALLBACK] No eligible banners to set as default');
-      return;
+      console.log(
+        `[FALLBACK] Random default banner selected: ${randomBanner._id}`,
+      );
+    } catch (error) {
+      await this.historyService.log(
+        LogModule.BANNER,
+        LogAction.UPDATE,
+        null,
+        null,
+        {
+          trigger: LogTrigger.CRON,
+          meta: {
+            job: 'ACTIVATE_RANDOM_DEFAULT',
+            error: (error as Error)?.message,
+          },
+        },
+      );
+
+      console.error('[FALLBACK] Failed to activate default banner:', error);
     }
-
-    const randomBanner =
-      eligibleBanners[Math.floor(Math.random() * eligibleBanners.length)];
-
-    await this.bannerModel.updateMany(
-      { isDefault: true },
-      { $set: { isDefault: false } },
-    );
-
-    await this.bannerModel.findByIdAndUpdate(randomBanner._id, {
-      isDefault: true,
-      isActive: true,
-      isExpired: false,
-      endDate: null,
-    });
-
-    console.log(
-      `[FALLBACK] Random default banner selected: ${randomBanner._id}`,
-    );
   }
 
   async getAll(
@@ -310,6 +374,8 @@ export class BannerService {
     const start = startDate ? new Date(startDate) : new Date();
     const end = endDate ? new Date(endDate) : undefined;
 
+    validateDocDates(start, end, lang);
+
     const banner = await this.bannerModel.create({
       title: { ar: title_ar, en: title_en },
       withAction,
@@ -332,6 +398,10 @@ export class BannerService {
       {
         bannerId: banner._id,
         title: banner.title,
+        trigger: LogTrigger.USER,
+        changes: {
+          after: banner.toObject(),
+        },
       },
     );
 
@@ -356,11 +426,20 @@ export class BannerService {
 
     const bannerToUpdate = await this.bannerModel.findById(id);
 
+    console.log({ bannerToUpdate });
+
     if (!bannerToUpdate) {
       throw new NotFoundException(getMessage('banner_bannerNotFound', lang));
     }
 
-    if (!bannerToUpdate.isActive || bannerToUpdate.isDeleted) {
+    // Deleted
+    if (bannerToUpdate.isDeleted) {
+      throw new NotFoundException(
+        getMessage('banner_cannotUpdateInActiveOrDeleted', dto.lang),
+      );
+    }
+
+    if (!bannerToUpdate.isActive && !bannerToUpdate.isExpired) {
       throw new NotFoundException(
         getMessage('banner_cannotUpdateInActiveOrDeleted', lang),
       );
@@ -456,26 +535,30 @@ export class BannerService {
       bannerToUpdate.link = null;
     }
 
-    if (startDate) {
-      bannerToUpdate.startDate =
-        new Date(startDate) ?? bannerToUpdate?.startDate;
+    const newStartDate = startDate
+      ? new Date(startDate)
+      : bannerToUpdate.startDate;
+
+    const newEndDate =
+      endDate !== undefined
+        ? endDate
+          ? new Date(endDate)
+          : null
+        : bannerToUpdate.endDate;
+
+    validateDocDates(newStartDate, newEndDate, lang, true);
+
+    const nowExpired = this.computeIsExpired(newEndDate);
+
+    if (bannerToUpdate.isExpired && !nowExpired) {
+      bannerToUpdate.isExpired = false;
+      bannerToUpdate.isActive = true;
+    } else {
+      bannerToUpdate.isExpired = nowExpired;
     }
 
-    if (endDate !== undefined) {
-      bannerToUpdate.endDate = endDate ? new Date(endDate) : null;
-    }
-
-    if (startDate && endDate) {
-      if (new Date(endDate) < new Date(startDate)) {
-        throw new BadRequestException(
-          getMessage('banner_endDateMustBeAfterStartDate', dto.lang),
-        );
-      }
-    }
-
-    const end = bannerToUpdate.endDate;
-
-    bannerToUpdate.isExpired = this.computeIsExpired(end);
+    bannerToUpdate.startDate = newStartDate;
+    bannerToUpdate.endDate = newEndDate;
 
     const updateData: Partial<Banner> = {
       ...bannerToUpdate.toObject(),
@@ -504,8 +587,11 @@ export class BannerService {
       {
         bannerId: id,
         title: updatedBanner.title,
-        before,
-        after: updatedBanner.toObject(),
+        trigger: LogTrigger.USER,
+        changes: {
+          before,
+          after: updatedBanner.toObject(),
+        },
       },
     );
 
@@ -551,6 +637,8 @@ export class BannerService {
       throw new NotFoundException(getMessage('banner_bannerNotFound', lang));
     }
 
+    const before = banner.toObject();
+
     banner.isDeleted = true;
     banner.isActive = false;
     banner.deletedAt = new Date();
@@ -570,6 +658,14 @@ export class BannerService {
       {
         bannerId: id,
         title: banner.title,
+        trigger: LogTrigger.USER,
+        changes: {
+          before,
+          after: {
+            isDeleted: true,
+            isActive: false,
+          },
+        },
       },
     );
 
@@ -593,6 +689,8 @@ export class BannerService {
     if (!banner) {
       throw new NotFoundException(getMessage('banner_bannerNotFound', lang));
     }
+
+    const before = banner.toObject();
 
     if (id === this.defaultBannerId) {
       throw new ForbiddenException(
@@ -619,6 +717,14 @@ export class BannerService {
       {
         bannerId: id,
         title: banner.title,
+        trigger: LogTrigger.USER,
+        changes: {
+          before,
+          after: {
+            isDeleted: false,
+            isActive: banner.isActive,
+          },
+        },
       },
     );
 
@@ -641,6 +747,8 @@ export class BannerService {
     if (!banner) {
       throw new NotFoundException(getMessage('banner_bannerNotFound', lang));
     }
+
+    const before = banner.toObject();
 
     const now = new Date();
 
@@ -697,6 +805,14 @@ export class BannerService {
       {
         bannerId: id,
         title: banner.title,
+        trigger: LogTrigger.USER,
+        changes: {
+          before,
+          after: {
+            isActive: banner.isActive,
+            isExpired: banner.isExpired,
+          },
+        },
       },
     );
 
@@ -723,6 +839,8 @@ export class BannerService {
     if (!banner) {
       throw new NotFoundException(getMessage('banner_bannerNotFound', lang));
     }
+
+    const before = banner.toObject();
 
     if (banner.isDeleted) {
       throw new BadRequestException(
@@ -776,6 +894,15 @@ export class BannerService {
       {
         bannerId: id,
         title: banner.title,
+        trigger: LogTrigger.USER,
+        changes: {
+          before,
+          after: {
+            isDefault: true,
+            isActive: true,
+            endDate: null,
+          },
+        },
       },
     );
 

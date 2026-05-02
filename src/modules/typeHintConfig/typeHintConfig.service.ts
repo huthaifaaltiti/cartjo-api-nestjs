@@ -37,6 +37,7 @@ import { Product, ProductDocument } from '../../schemas/product.schema';
 import { HistoryService } from '../history/history.service';
 import { LogModule } from '../../enums/logModules.enum';
 import { LogAction } from '../../enums/logAction.enum';
+import { validateDocDates } from '../../common/functions/validators/validateDocDates.alidator';
 
 export class TypeHintConfigService {
   private SYSTEM_TYPE_KEYS = SYSTEM_TYPE_HINTS.map(hint => hint.key);
@@ -324,6 +325,8 @@ export class TypeHintConfigService {
     const start = startDate ? new Date(startDate) : new Date();
     const end = endDate ? new Date(endDate) : undefined;
 
+    validateDocDates(start, end, dto.lang);
+
     const typeHintData = {
       key,
       label: { ar: label_ar, en: label_en },
@@ -485,11 +488,7 @@ export class TypeHintConfigService {
           : null
         : typeHintConfig.endDate;
 
-    if (newStartDate && newEndDate && newEndDate < newStartDate) {
-      throw new BadRequestException(
-        getMessage('typeHintConfig_endDateMustBeAfterStartDate', dto.lang),
-      );
-    }
+    validateDocDates(newStartDate, newEndDate, dto.lang, true);
 
     if (isKeyChanged) typeHintConfig.key = keyFromDto;
 
