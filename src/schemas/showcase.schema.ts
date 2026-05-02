@@ -4,7 +4,7 @@ import { NameRef } from './common.schema';
 
 export type ShowCaseDocument = ShowCase & Document;
 
-@Schema()
+@Schema({ timestamps: true })
 export class ShowCase {
   @Prop({ required: true, type: Object })
   title: NameRef;
@@ -63,9 +63,6 @@ export class ShowCase {
 
   @Prop({ type: Date, default: null })
   unDeletedAt?: Date;
-
-  @Prop({ type: Date, default: null })
-  updatedAt?: Date;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', default: null })
   deletedBy?: mongoose.Types.ObjectId;
