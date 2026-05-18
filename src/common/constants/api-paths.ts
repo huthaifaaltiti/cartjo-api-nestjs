@@ -22,6 +22,8 @@ export const ApiPaths = {
   Authorization: {
     Root: 'api/v1/authorization',
     Login: 'login',
+    Refresh: 'refresh',
+    Logout: 'logout',
   },
   Banner: {
     Root: '/api/v1/banner',
