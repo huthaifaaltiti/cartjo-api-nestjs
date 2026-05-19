@@ -43,6 +43,7 @@
   "authorization_InvalidCredentials": "Invalid Credentials",
   "authorization_accountLocked": "Account locked. Try again in {remaining} minutes",
   "authorization_noAccess": "Access denied",
+  "authorization_logout": "Logout successfully",
   "media_mediaUploadedSuccessfully": "Media uploaded successfully",
   "media_mediaUploadFailed": "Media failed to upload",
   "media_noMediaFound": "No media found",

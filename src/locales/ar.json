@@ -32,9 +32,7 @@
   "authentication_invalidOrExpiredRefreshToken": "رمز التحديث غير صالح أو منتهي الصلاحية",
   "authentication_invalidRefreshToken": "رمز التحديث غير صالح",
   "authentication_reusedRefreshToken": "تم الكشف عن إعادة استخدام رمز التحديث،",
-
   "authentication_expiredRefreshToken": "انتهى رمز التحديث،",
-
   "authentication_noUserExists": "لم يعد المستخدم موجودًا،",
   "users_userAlreadyExists": "المستخدم موجود بالفعل",
   "users_errWhileCreatingUser": "حدث خطأ غير متوقع أثناء إنشاء المستخدم",
@@ -45,6 +43,7 @@
   "authorization_InvalidCredentials": "بيانات الاعتماد غير صحيحة",
   "authorization_accountLocked": "تم قفل الحساب. حاول مرة أخرى خلال {remaining} دقيقة",
   "authorization_noAccess": "تم رفض الوصول",
+  "authorization_logout": "تم تسجيل الخروج بنجاح",
   "media_mediaUploadedSuccessfully": "تم رفع الوسائط بنجاح",
   "media_mediaUploadFailed": "فشل في رفع الوسائط",
   "media_noMediaFound": "لم يتم العثور على وسائط",

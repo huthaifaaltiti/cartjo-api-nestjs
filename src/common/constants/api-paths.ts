@@ -24,6 +24,7 @@ export const ApiPaths = {
     Login: 'login',
     Refresh: 'refresh',
     Logout: 'logout',
+    LogoutAll: 'logout-all',
   },
   Banner: {
     Root: '/api/v1/banner',

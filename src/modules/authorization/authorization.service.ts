@@ -22,6 +22,8 @@ import { validateUserActiveStatus } from '../../common/utils/validateUserActiveS
 import { getMessage } from '../../common/utils/translator';
 import { AuthResponseDto } from '../../types/auth-response.type';
 import { Locale } from '../../enums/locale.enum';
+import { LogoutDto } from './dto/logout.dto';
+import { BaseResponse } from '../../types/service-response.type';
 
 const maxLoginAttempts = Number(process.env.MAX_LOGIN_ATTEMPTS) ?? 5;
 const lockDurationMinutes = Number(process.env.LOCK_DURATION_MINUTES) ?? 15;
@@ -236,17 +238,26 @@ export class AuthorizationService {
   }
 
   // LOGOUT — revoke single refresh token
-  async logout(refreshToken: string): Promise<void> {
-    const tokenHash = this.authJwtService.hashToken(refreshToken);
+  async logout(body: LogoutDto): Promise<BaseResponse> {
+    const tokenHash = this.authJwtService.hashToken(body.refreshToken);
 
     await this.refreshTokenModel.findOneAndUpdate(
       { tokenHash },
       { revoked: true, revokedAt: new Date() },
     );
+
+    return {
+      isSuccess: true,
+      message: getMessage('authorization_logout', body.lang ?? 'en'),
+    };
   }
 
   // LOGOUT ALL — revoke all sessions for a user
-  async logoutAll(userId: string): Promise<void> {
+  async logoutAll(userId: string): Promise<{ isSuccess: Boolean }> {
     await this.revokeAllUserTokens(userId);
+
+    return {
+      isSuccess: true,
+    };
   }
 }

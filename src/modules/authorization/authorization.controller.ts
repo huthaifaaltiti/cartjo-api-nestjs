@@ -4,6 +4,7 @@ import { AuthorizationService } from './authorization.service';
 import { LoginDto } from './dto/login.dto';
 import { ApiPaths } from '../../common/constants/api-paths';
 import { LoginRateLimitGuard } from '../../common/guards/login-rate-limit.guard';
+import { LogoutDto } from './dto/logout.dto';
 
 @Controller(ApiPaths.Authorization.Root)
 export class AuthorizationController {
@@ -37,7 +38,12 @@ export class AuthorizationController {
   }
 
   @Post(ApiPaths.Authorization.Logout)
-  async logout(@Body() body: { refreshToken: string }) {
-    return this.authService.logout(body.refreshToken);
+  async logout(@Body() body: LogoutDto) {
+    return this.authService.logout(body);
+  }
+
+  @Post(ApiPaths.Authorization.LogoutAll)
+  async logoutAll(@Req() req: any) {
+    return this.authService.logoutAll(req.user.sub);
   }
 }
