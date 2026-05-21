@@ -23,7 +23,7 @@ import { getMessage } from '../../common/utils/translator';
 import { AuthResponseDto } from '../../types/auth-response.type';
 import { Locale } from '../../enums/locale.enum';
 import { LogoutDto } from './dto/logout.dto';
-import { BaseResponse } from '../../types/service-response.type';
+import { BaseResponse, DataResponse } from '../../types/service-response.type';
 
 const maxLoginAttempts = Number(process.env.MAX_LOGIN_ATTEMPTS) ?? 5;
 const lockDurationMinutes = Number(process.env.LOCK_DURATION_MINUTES) ?? 15;
@@ -109,7 +109,7 @@ export class AuthorizationService {
   async login(
     body: LoginDto,
     meta?: { ipAddress?: string; userAgent?: string },
-  ): Promise<AuthResponseDto> {
+  ): Promise<DataResponse<AuthResponseDto>> {
     const { identifier, password, rememberMe, lang } = body;
 
     const normalizedIdentifier = isPhoneNumberLike(
@@ -176,7 +176,13 @@ export class AuthorizationService {
       lastLogin: new Date(),
     });
 
-    return this.generateAuthResponse(user, rememberMe, meta);
+    const authResponse = await this.generateAuthResponse(user, rememberMe, meta);
+
+    return {
+      isSuccess: true,
+      message: getMessage('authorization_successLogin', body.lang ?? 'en'),
+      data: authResponse
+    };
   }
 
   async refreshToken(
@@ -248,7 +254,7 @@ export class AuthorizationService {
 
     return {
       isSuccess: true,
-      message: getMessage('authorization_logout', body.lang ?? 'en'),
+      message: getMessage('authorization_successLogout', body.lang ?? 'en'),
     };
   }
 
