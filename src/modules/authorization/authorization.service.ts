@@ -102,6 +102,8 @@ export class AuthorizationService {
         firstName: user.firstName,
         lastName: user.lastName,
         profilePic: user.profilePic,
+        nationality: user.nationality,
+        gender: user?.gender
       },
     };
   }
