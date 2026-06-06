@@ -1,3 +1,6 @@
+import { Gender } from '../enums/gender.enum';
+import { MediaPreview } from '../schemas/common.schema';
+
 export class AuthResponseDto {
   accessToken: string;
   refreshToken: string;
@@ -8,6 +11,8 @@ export class AuthResponseDto {
     role: string;
     firstName?: string;
     lastName?: string;
-    profilePic?: any;
+    profilePic?: MediaPreview;
+    nationality?: string;
+    gender?: Gender;
   };
 }
