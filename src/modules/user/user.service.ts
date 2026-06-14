@@ -801,4 +801,21 @@ export class UserService {
       ),
     };
   }
+
+  async getMe(requestingUser: any, lang: Locale = 'en') {
+    const user = await this.userModel
+      .findById(requestingUser.userId)
+      .select('-password -passwordMetadata')
+      .lean();
+
+    if (!user) {
+      throw new NotFoundException(getMessage('user_userNotFound', lang));
+    }
+
+    return {
+      isSuccess: true,
+      message: getMessage('user_userRetrievedSuccessfully', lang),
+      data: user,
+    };
+  }
 }
