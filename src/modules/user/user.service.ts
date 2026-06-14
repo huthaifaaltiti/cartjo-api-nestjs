@@ -447,13 +447,18 @@ export class UserService {
 
       const user = await this.userModel.create({ ...newUserData });
 
-      const token = this.authJwtService.generateToken(user, false);
+      // const token = this.authJwtService.generateToken(user, false);
+
+      // ✅ signAccessToken replaces the old generateToken
+      // Admin creation is an admin action — no refresh token needed here.
+      // If the created admin needs to log in, they go through the normal login flow.
+      const accessToken = this.authJwtService.signAccessToken(user, false);
 
       return {
         isSuccess: true,
         message: getMessage('users_adminUserCreatedSuccessfully', lang),
         user,
-        token,
+        token: accessToken,
       };
     } catch (err) {
       if (err instanceof MongoError && err.code === 11000) {
@@ -794,6 +799,23 @@ export class UserService {
         'users_defaultShippingAddressChangedSuccessfully',
         lang,
       ),
+    };
+  }
+
+  async getMe(requestingUser: any, lang: Locale = 'en') {
+    const user = await this.userModel
+      .findById(requestingUser.userId)
+      .select('-password -passwordMetadata')
+      .lean();
+
+    if (!user) {
+      throw new NotFoundException(getMessage('user_userNotFound', lang));
+    }
+
+    return {
+      isSuccess: true,
+      message: getMessage('user_userRetrievedSuccessfully', lang),
+      data: user,
     };
   }
 }

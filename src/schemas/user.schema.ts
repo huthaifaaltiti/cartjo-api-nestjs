@@ -121,6 +121,11 @@ export class User extends Document {
   passwordChangeAttempts?: number;
 
   @Prop({
+    type: Boolean,
+  })
+  isLocked: false;
+
+  @Prop({
     type: Date,
     required: false,
     default: null,
@@ -220,6 +225,9 @@ export class User extends Document {
 
   @Prop()
   lastLogin?: Date;
+
+  @Prop({ type: Number, default: 0 })
+  loginAttempts: number;
 
   @Prop({ type: [String], default: [] })
   permissions: string[];

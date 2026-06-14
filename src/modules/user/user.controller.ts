@@ -37,6 +37,7 @@ import {
 } from './dto/update.dto';
 import { ApiPaths } from '../../common/constants/api-paths';
 import { ALLOWED_AUTHENTICATED_ROLES } from '../../common/constants/roles.constants';
+import { GetMeQueryDto } from './dto/get-me.dto';
 
 @Controller(ApiPaths.User.Root)
 export class UserController {
@@ -65,6 +66,12 @@ export class UserController {
     const { lang } = query;
 
     return this.userService.getUsersStats(lang);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get(ApiPaths.User.Me)
+  async getMe(@Request() req: any, @Query() query: GetMeQueryDto) {
+    return this.userService.getMe(req.user, query.lang);
   }
 
   @UseGuards(AuthGuard('jwt'))
