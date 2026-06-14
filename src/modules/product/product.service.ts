@@ -172,6 +172,11 @@ export class ProductService {
     const query: any = {};
     const sort: any = { _id: -1 };
 
+    if (!isAdminView) {
+      query.isActive = true;
+      query.isDeleted = false;
+    }
+
     if (lastId) {
       query._id = { $lt: new Types.ObjectId(lastId) };
     }
@@ -290,8 +295,6 @@ export class ProductService {
       sort.weeklyViewCount = -1;
       delete sort._id;
     }
-
-    console.log({ query });
 
     const products = await this.productModel
       .find(query)
@@ -1698,12 +1701,9 @@ export class ProductService {
    * Called when a variant is deactivated or deleted.
    */
   private async removeVariantFromCarts(variantId: string): Promise<void> {
-    console.log('removeVariantFromCarts');
     const affectedCarts = await this.cartModel.find({
       'items.variantId': variantId,
     });
-
-    console.log({ affectedCarts });
 
     if (!affectedCarts.length) return;
 
@@ -1714,7 +1714,6 @@ export class ProductService {
         0,
       );
 
-      console.log({ cart });
       await cart.save();
     }
   }
