@@ -22,6 +22,9 @@ export const ApiPaths = {
   Authorization: {
     Root: 'api/v1/authorization',
     Login: 'login',
+    Refresh: 'refresh',
+    Logout: 'logout',
+    LogoutAll: 'logout-all',
   },
   Banner: {
     Root: '/api/v1/banner',
@@ -146,6 +149,7 @@ export const ApiPaths = {
     UnDelete: 'un-delete/:id',
     UpdateStatus: 'status/:id',
     UpdateDefaultAddress: 'update-default-shipping-address',
+    Me: 'me',
   },
   Wishlist: {
     Root: '/api/v1/wish-list',
