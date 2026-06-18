@@ -636,16 +636,19 @@ export class AuthService {
       }
 
       // ✅ Issue accessToken + refreshToken (replaces single generateToken call)
-      const { accessToken, refreshToken } = await this.generateAuthResponse(
-        user,
-        false,
-      );
+      const {
+        accessToken,
+        refreshToken,
+        user: userQuery,
+      } = await this.generateAuthResponse(user, false);
+
+      const serializedUser = encodeURIComponent(JSON.stringify(userQuery));
 
       // Pass both tokens to the frontend via query params
       // The Next.js /auth/callback page should immediately POST them
       // to /api/auth/google-callback to store in HttpOnly cookies
       return res.redirect(
-        `${clientUrl}/auth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}&provider=google`,
+        `${clientUrl}/auth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}&user=${serializedUser}&provider=google`,
       );
     } catch (error) {
       console.error('Google Auth Error:', error);
