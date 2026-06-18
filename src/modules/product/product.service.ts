@@ -172,6 +172,11 @@ export class ProductService {
     const query: any = {};
     const sort: any = { _id: -1 };
 
+    if (!isAdminView) {
+      query.isActive = true;
+      query.isDeleted = false;
+    }
+
     if (lastId) {
       query._id = { $lt: new Types.ObjectId(lastId) };
     }
@@ -231,18 +236,22 @@ export class ProductService {
     }
 
     // Dynamic filters
-    if (priceFrom || priceTo) {
-      query.price = {};
+    if (priceFrom !== undefined || priceTo !== undefined) {
+      query['variants.price'] = {};
 
-      if (priceFrom) query.price.$gte = Number(priceFrom);
-      if (priceTo) query.price.$lte = Number(priceTo);
+      if (priceFrom !== undefined)
+        query['variants.price'].$gte = Number(priceFrom);
+
+      if (priceTo !== undefined) query['variants.price'].$lte = Number(priceTo);
     }
 
-    if (ratingFrom || ratingTo) {
-      query.ratings = {};
+    if (ratingFrom !== undefined || ratingTo !== undefined) {
+      query.ratingsAverage = {};
 
-      if (ratingFrom) query.ratings.$gte = Number(ratingFrom);
-      if (ratingTo) query.ratings.$lte = Number(ratingTo);
+      if (ratingFrom !== undefined)
+        query.ratingsAverage.$gte = Number(ratingFrom);
+
+      if (ratingTo !== undefined) query.ratingsAverage.$lte = Number(ratingTo);
     }
 
     if (beforeNumOfDays) {
@@ -854,6 +863,13 @@ export class ProductService {
     return Number(finalPrice.toFixed(3));
   }
 
+  // TO_DO: This is a temporary fix to handle measurement units in product names (e.g., "2.2 kg" -> "2-2kg") for better slug generation. See: https://chatgpt.com/c/6a22d350-b66c-8326-99c9-8de284691c54
+  private normalizeMeasurements(slug: string): string {
+    return slug
+      .replace(/(\d)\.(\d)/g, '$1-$2') // 2.2 -> 2-2 (safe)
+      .replace(/\s*/g, '');
+  }
+
   async createProduct(
     req: any,
     dto: CreateProductDto,
@@ -892,7 +908,7 @@ export class ProductService {
     }
 
     // Slug uniqueness
-    const slug = slugify(name_en, { lower: true });
+    const slug = slugify(this.normalizeMeasurements(name_en), { lower: true });
     const newArDescriptions = variants.map(v => v.description_ar);
     const newEnDescriptions = variants.map(v => v.description_en);
 
@@ -1685,12 +1701,9 @@ export class ProductService {
    * Called when a variant is deactivated or deleted.
    */
   private async removeVariantFromCarts(variantId: string): Promise<void> {
-    console.log('removeVariantFromCarts');
     const affectedCarts = await this.cartModel.find({
       'items.variantId': variantId,
     });
-
-    console.log({ affectedCarts });
 
     if (!affectedCarts.length) return;
 
@@ -1701,7 +1714,6 @@ export class ProductService {
         0,
       );
 
-      console.log({ cart });
       await cart.save();
     }
   }

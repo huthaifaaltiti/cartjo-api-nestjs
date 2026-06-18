@@ -42,14 +42,19 @@ import {
   normalizePhoneNumber,
 } from '../../common/utils/normalizePhoneNumber';
 import { COUNTRY_CONFIGS } from '../../configs/countryPhone.config';
+import { AuthResponseDto } from '../../types/auth-response.type';
+import { AuthorizationService } from '../authorization/authorization.service';
 
 @Injectable()
 export class AuthService {
   private googleClient: OAuth2Client;
 
   constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(User.name)
+    private userModel: Model<UserDocument>,
+
     private authJwtService: AuthJwtService,
+    private authorizationService: AuthorizationService,
     private mediaService: MediaService,
     private emailService: EmailService,
   ) {
@@ -66,11 +71,35 @@ export class AuthService {
     this.googleClient = new OAuth2Client(clientId, clientSecret, redirectUri);
   }
 
+  private async generateAuthResponse(
+    user: UserDocument,
+    rememberMe = false,
+    meta?: { ipAddress?: string; userAgent?: string },
+  ): Promise<AuthResponseDto> {
+    const accessToken = this.authJwtService.signAccessToken(user, rememberMe);
+    const { raw: refreshToken } =
+      await this.authorizationService.createRefreshToken(user, meta);
+
+    return {
+      accessToken,
+      refreshToken,
+      user: {
+        id: (user._id as object).toString(),
+        email: user.email,
+        username: user.username,
+        role: user.role,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profilePic: user.profilePic,
+      },
+    };
+  }
+
   async register(
     req: any,
     dto: RegisterDto,
     profilePic: Express.Multer.File,
-  ): Promise<{ isSuccess: boolean; msg: string; user: User; token: string }> {
+  ): Promise<{ isSuccess: boolean; message: string } & AuthResponseDto> {
     const {
       termsAccepted,
       lang,
@@ -106,10 +135,7 @@ export class AuthService {
     if (!termsAccepted) {
       throw new BadRequestException(
         getMessage('authentication_termsAndConditionsRequired', lang),
-        {
-          cause: new Error(),
-          description: 'Validation error',
-        },
+        { cause: new Error(), description: 'Validation error' },
       );
     }
 
@@ -117,23 +143,18 @@ export class AuthService {
     const existingUserWithPhoneNumber = await this.userModel.findOne({
       phoneNumber,
     });
+
     if (existingUserWithEmail) {
       throw new BadRequestException(
         getMessage('authentication_emailAlreadyInUse', lang),
-        {
-          cause: new Error(),
-          description: 'Validation error',
-        },
+        { cause: new Error(), description: 'Validation error' },
       );
     }
 
     if (existingUserWithPhoneNumber) {
       throw new BadRequestException(
         getMessage('authentication_phoneNumberAlreadyInUse', lang),
-        {
-          cause: new Error(),
-          description: 'Validation error',
-        },
+        { cause: new Error(), description: 'Validation error' },
       );
     }
 
@@ -145,7 +166,16 @@ export class AuthService {
         (await generateUsername(firstName, lastName, this.userModel)) ||
         `${firstName}.${lastName}_${Date.now()}`;
 
-      const newUserData = {
+      const emailVerificationToken = randomBytes(32).toString('hex');
+      const emailVerificationTokenExpires = new Date(
+        Date.now() +
+          Number(process.env.EMAIL_VERIFICATION_EXPIRY_TIME || 48) *
+            60 *
+            60 *
+            1000,
+      );
+
+      const user = await this.userModel.create({
         firstName,
         lastName,
         email,
@@ -162,23 +192,11 @@ export class AuthService {
         preferredLang,
         authProvider: VerificationChannelType.EMAIL,
         verificationChannels: [],
-      };
-
-      const emailVerificationToken = randomBytes(32).toString('hex');
-      const emailVerificationTokenExpires = new Date(
-        Date.now() +
-          Number(process.env.EMAIL_VERIFICATION_EXPIRY_TIME || 48) *
-            60 *
-            60 *
-            1000,
-      );
-
-      const user = await this.userModel.create({
-        ...newUserData,
         emailVerificationToken,
         emailVerificationTokenExpires,
       });
 
+      // Send verification email (fire and forget — don't block response)
       if (user.email) {
         this.emailService.sendTemplateEmail({
           to: user.email,
@@ -192,16 +210,16 @@ export class AuthService {
         });
       }
 
-      const token = this.authJwtService.generateToken(user, false);
+      const authResponse = await this.generateAuthResponse(user, false);
 
       return {
         isSuccess: true,
-        msg: getMessage('users_userCreatedSuccessfully', lang),
-        user,
-        token,
+        message: getMessage('users_userCreatedSuccessfully', lang),
+        ...authResponse,
       };
     } catch (err) {
-      console.log({ err });
+      console.error({ err });
+
       if (err instanceof MongoError && err.code === 11000) {
         throw new BadRequestException(
           getMessage('users_userAlreadyExists', lang),
@@ -249,9 +267,10 @@ export class AuthService {
       });
     }
 
+    await user.save();
+
     if (user.email && user.isEmailVerified) {
       const prefLang = user?.preferredLang || PreferredLanguage.ARABIC;
-
       this.emailService.sendTemplateEmail({
         to: user.email,
         templateName: EmailTemplates.EMAIL_IS_VERIFIED,
@@ -263,8 +282,6 @@ export class AuthService {
         },
       });
     }
-
-    await user.save();
 
     return {
       isSuccess: true,
@@ -333,11 +350,8 @@ export class AuthService {
         String(identifier),
         COUNTRY_CONFIGS.JO,
       );
-
-      // The second approach is more resilient since it doesn't care whether countryCode is 962, 00962, or +962.
       phoneQuery = {
         phoneNumber: normalized,
-        // Match any countryCode format that ends with the country digits
         $expr: {
           $regexMatch: {
             input: '$countryCode',
@@ -358,13 +372,11 @@ export class AuthService {
     }
 
     const resetCode = crypto.randomInt(100000, 999999).toString();
-
     user.resetCode = resetCode;
-    const passwordResetCodeExpiringTime = new Date(
+    user.resetCodeExpires = new Date(
       Date.now() +
         Number(process.env.PASSWORD_RESET_CODE_EXPIRY_TIME || 15) * 60 * 1000,
-    ); // 15 min
-    user.resetCodeExpires = passwordResetCodeExpiringTime;
+    );
 
     await user.save();
 
@@ -388,7 +400,6 @@ export class AuthService {
       };
     } catch (err) {
       console.error('Email failed:', err);
-
       return {
         isSuccess: false,
         message: getMessage('authentication_failedToSendResetCode', lang),
@@ -401,6 +412,12 @@ export class AuthService {
   ): Promise<BaseResponse> {
     const { identifier, code, lang } = dto;
 
+    if (!code) {
+      throw new BadRequestException(
+        getMessage('authentication_notValidCode', lang),
+      );
+    }
+
     let phoneQuery = {};
 
     if (isPhoneNumberLike(String(identifier), COUNTRY_CONFIGS.JO)) {
@@ -408,7 +425,6 @@ export class AuthService {
         String(identifier),
         COUNTRY_CONFIGS.JO,
       );
-
       phoneQuery = {
         phoneNumber: normalized,
         $expr: {
@@ -418,12 +434,6 @@ export class AuthService {
           },
         },
       };
-    }
-
-    if (!code) {
-      throw new BadRequestException(
-        getMessage('authentication_notValidCode', lang),
-      );
     }
 
     const user = await this.userModel.findOne({
@@ -471,7 +481,6 @@ export class AuthService {
         String(identifier),
         COUNTRY_CONFIGS.JO,
       );
-
       phoneQuery = {
         phoneNumber: normalized,
         $expr: {
@@ -552,7 +561,6 @@ export class AuthService {
     const { code } = req.query;
     const clientUrl = getAppUrl();
 
-    // 1. Validate Code
     if (!code) {
       return res.redirect(
         `${clientUrl}/auth/callback?authError=GOOGLE_NO_CODE`,
@@ -560,11 +568,11 @@ export class AuthService {
     }
 
     try {
-      // 2. Exchange code for tokens
+      // Exchange code for Google tokens
       const { tokens } = await this.googleClient.getToken(code as string);
       this.googleClient.setCredentials(tokens);
 
-      // 3. Verify the Google ID Token
+      // Verify the Google ID token
       const ticket = await this.googleClient.verifyIdToken({
         idToken: tokens.id_token!,
         audience: buildGoogleOAuthConfig(process.env).clientId,
@@ -579,7 +587,7 @@ export class AuthService {
 
       const { email, given_name, family_name, picture, locale } = payload;
 
-      // 4. Find or Create User
+      // Find or create user
       let user = await this.userModel.findOne({ email });
 
       if (!user) {
@@ -607,14 +615,14 @@ export class AuthService {
             {
               channel: VerificationChannelType.GOOGLE,
               verifiedAt: new Date(),
-              externalId: payload.sub, // The unique Google User ID
+              externalId: payload.sub,
             },
           ],
           createdBy: process.env.DB_SYSTEM_OBJ_ID,
           profilePic: picture ? { url: picture } : undefined,
         });
 
-        // Registration Email (Verified by Google)
+        // Welcome email for new Google users
         this.emailService.sendTemplateEmail({
           to: user.email,
           templateName: EmailTemplates.EMAIL_IS_VERIFIED,
@@ -627,12 +635,17 @@ export class AuthService {
         });
       }
 
-      // 5. Generate JWT
-      const token = this.authJwtService.generateToken(user, false);
+      // ✅ Issue accessToken + refreshToken (replaces single generateToken call)
+      const { accessToken, refreshToken } = await this.generateAuthResponse(
+        user,
+        false,
+      );
 
-      // 6. Final Redirect to Frontend with Token
+      // Pass both tokens to the frontend via query params
+      // The Next.js /auth/callback page should immediately POST them
+      // to /api/auth/google-callback to store in HttpOnly cookies
       return res.redirect(
-        `${clientUrl}/auth/callback?authToken=${token}&provider=google`,
+        `${clientUrl}/auth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}&provider=google`,
       );
     } catch (error) {
       console.error('Google Auth Error:', error);
