@@ -1626,24 +1626,23 @@ export class ProductService {
       }
     }
 
-    // Handle Deleted Images
-    if (
-      (deletedImages &&
-        Array.isArray(deletedImages) &&
-        deletedImages.length > 0) ||
-      (imagesFiles && deletedImages.length > 0)
-    ) {
-      for (const urlToDelete of deletedImages) {
-        const itemToDelete = variant.images.find(i => i.url === urlToDelete);
-        const index = variant.images.indexOf(itemToDelete);
+    if (deletedImages?.length > 0 || imagesFiles?.length > 0) {
+      // delete old images
+      if (deletedImages?.length) {
+        for (const urlToDelete of deletedImages) {
+          const itemToDelete = variant.images.find(i => i.url === urlToDelete);
 
-        if (index > -1) {
+          if (!itemToDelete) continue;
+
+          const index = variant.images.indexOf(itemToDelete);
+
           await this.mediaService.deleteByUrl(urlToDelete);
+
           variant.images.splice(index, 1);
         }
       }
 
-      // Upload additional images if provided
+      // upload new images
       if (imagesFiles?.length) {
         const uploadedImages = await Promise.all(
           imagesFiles.map(file =>
@@ -1660,7 +1659,7 @@ export class ProductService {
           ),
         );
 
-        variant.images = [...variant.images, ...uploadedImages];
+        variant.images.push(...uploadedImages);
       }
     }
 
