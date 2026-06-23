@@ -44,6 +44,7 @@ import {
 import { COUNTRY_CONFIGS } from '../../configs/countryPhone.config';
 import { AuthResponseDto } from '../../types/auth-response.type';
 import { AuthorizationService } from '../authorization/authorization.service';
+import { RolePermissionService } from '../role-permission/role-permission.service';
 
 @Injectable()
 export class AuthService {
@@ -57,6 +58,7 @@ export class AuthService {
     private authorizationService: AuthorizationService,
     private mediaService: MediaService,
     private emailService: EmailService,
+    private rolePermissionService: RolePermissionService,
   ) {
     const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
@@ -160,7 +162,8 @@ export class AuthService {
 
     try {
       const defaultRole = UserRole.USER;
-      const permissions = RolePermissions[defaultRole];
+      const permissions =
+        await this.rolePermissionService.getPermissionsByRole(defaultRole);
 
       const username =
         (await generateUsername(firstName, lastName, this.userModel)) ||

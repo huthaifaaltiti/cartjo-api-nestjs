@@ -10,6 +10,7 @@ import { join } from 'path';
 import { TypeHintsSeeder } from './database/seeders/type-hints.seeder';
 import { ShowcaseSeeder } from './database/seeders/showcases.seeder';
 import { runSeeders } from './database/seeders/run-seeders.seeder';
+import { RolePermissionsSeeder } from './database/seeders/role-permissions.seeder';
 
 async function server() {
   const isDev = process.env.NODE_ENV !== AppEnvironments.PRODUCTION;
@@ -46,7 +47,12 @@ async function server() {
 
   // Run seeders
   if (process.env.RUN_SEEDS === 'true') {
-    const seeders = [EmailTemplateSeeder, TypeHintsSeeder, ShowcaseSeeder];
+    const seeders = [
+      EmailTemplateSeeder,
+      TypeHintsSeeder,
+      ShowcaseSeeder,
+      RolePermissionsSeeder,
+    ];
     await runSeeders(app, seeders);
   }
 

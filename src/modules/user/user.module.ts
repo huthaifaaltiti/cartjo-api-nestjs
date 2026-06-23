@@ -6,12 +6,14 @@ import { MediaModule } from '../media/media.module';
 import { EmailModule } from '../email/email.module';
 import { AuthJwtModule } from '../auth-jwt/auth-jwt.module';
 import { User, UserSchema } from '../../schemas/user.schema';
+import { RolePermissionModule } from '../role-permission/role-permission.module';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MediaModule,
     AuthJwtModule,
     EmailModule,
+    RolePermissionModule
   ],
   providers: [UserService],
   controllers: [UserController],

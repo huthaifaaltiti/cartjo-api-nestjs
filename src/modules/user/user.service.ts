@@ -12,7 +12,6 @@ import { compareSync } from 'bcrypt';
 import { CreateAdminBodyDto } from './dto/create-admin.dto';
 import { MediaService } from '../media/media.service';
 import { UpdateDefaultAddressDto, UpdateUserDto } from './dto/update.dto';
-import { AuthJwtService } from '../auth-jwt/auth-jwt.service';
 import { User, UserDocument } from '../../schemas/user.schema';
 import { EmailService } from '../email/email.service';
 import { UserRole } from '../../enums/user-role.enum';
@@ -25,22 +24,22 @@ import { checkUserRole } from '../../common/utils/checkUserRole';
 import { MediaPreview } from '../../schemas/common.schema';
 import { MEDIA_CONFIG } from '../../configs/media.config';
 import { Modules } from '../../enums/appModules.enum';
-import { RolePermissions } from '../../common/constants/roles-permissions.constant';
 import { getClientIp } from '../../common/utils/getClientIp';
 import { EmailTemplates } from '../../enums/emailTemplates.enum';
 import commonEmailTemplateData from '../../common/utils/commonEmailTemplateData';
 import { PreferredLanguage } from '../../enums/preferredLanguage.enum';
 import { BaseResponse } from '../../types/service-response.type';
 import { generateUsername } from '../../common/functions/generators/username.generator';
+import { RolePermissionService } from '../role-permission/role-permission.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(User.name)
     private userModel: Model<UserDocument>,
-    private authJwtService: AuthJwtService,
     private mediaService: MediaService,
     private emailService: EmailService,
+    private rolePermissionService: RolePermissionService,
   ) {}
 
   async getUsers(params: {
@@ -371,7 +370,6 @@ export class UserService {
     if (profilePic && Object.keys(profilePic).length > 0) {
       const result = await this.mediaService.mediaProcessor({
         file: profilePic,
-        // user: { ...req?.user, userId: process.env.DB_SYSTEM_OBJ_ID },
         user: req?.user,
         reqMsg: 'user_shouldHasImage',
         maxSize: MEDIA_CONFIG.USER.PROFILE_IMAGE.MAX_SIZE,
@@ -423,7 +421,8 @@ export class UserService {
 
     try {
       const defaultRole = UserRole.ADMINISTRATOR;
-      const permissions = RolePermissions[defaultRole];
+      const permissions =
+        await this.rolePermissionService.getPermissionsByRole(defaultRole);
 
       const username =
         (await generateUsername(firstName, lastName, this.userModel)) ||
@@ -447,18 +446,10 @@ export class UserService {
 
       const user = await this.userModel.create({ ...newUserData });
 
-      // const token = this.authJwtService.generateToken(user, false);
-
-      // ✅ signAccessToken replaces the old generateToken
-      // Admin creation is an admin action — no refresh token needed here.
-      // If the created admin needs to log in, they go through the normal login flow.
-      const accessToken = this.authJwtService.signAccessToken(user, false);
-
       return {
         isSuccess: true,
         message: getMessage('users_adminUserCreatedSuccessfully', lang),
         user,
-        token: accessToken,
       };
     } catch (err) {
       if (err instanceof MongoError && err.code === 11000) {

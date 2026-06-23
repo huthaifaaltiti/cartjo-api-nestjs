@@ -1,31 +1,117 @@
 import { Permission } from '../../enums/permission.enum';
 import { UserRole } from '../../enums/user-role.enum';
 
+const ADMIN_PERMISSIONS: Permission[] = [
+  Permission.DASHBOARD_ACCESS,
+
+  // Users
+  Permission.USERS_READ,
+  Permission.USERS_CREATE,
+  Permission.USERS_UPDATE,
+  Permission.USERS_DELETE,
+  Permission.USERS_ACTIVATE,
+  Permission.USERS_DEACTIVATE,
+
+  // Categories
+  Permission.CATEGORIES_READ,
+  Permission.CATEGORIES_CREATE,
+  Permission.CATEGORIES_UPDATE,
+  Permission.CATEGORIES_DELETE,
+  Permission.CATEGORIES_ACTIVATE,
+  Permission.CATEGORIES_DEACTIVATE,
+
+  // Sub Categories
+  Permission.SUB_CATEGORIES_READ,
+  Permission.SUB_CATEGORIES_CREATE,
+  Permission.SUB_CATEGORIES_UPDATE,
+  Permission.SUB_CATEGORIES_DELETE,
+  Permission.SUB_CATEGORIES_ACTIVATE,
+  Permission.SUB_CATEGORIES_DEACTIVATE,
+
+  // Products
+  Permission.PRODUCTS_READ,
+  Permission.PRODUCTS_CREATE,
+  Permission.PRODUCTS_UPDATE,
+  Permission.PRODUCTS_DELETE,
+  Permission.PRODUCTS_ACTIVATE,
+  Permission.PRODUCTS_DEACTIVATE,
+
+  // Logos
+  Permission.LOGOS_READ,
+  Permission.LOGOS_CREATE,
+  Permission.LOGOS_UPDATE,
+  Permission.LOGOS_DELETE,
+  Permission.LOGOS_ACTIVATE,
+  Permission.LOGOS_DEACTIVATE,
+
+  // Banners
+  Permission.BANNERS_READ,
+  Permission.BANNERS_CREATE,
+  Permission.BANNERS_UPDATE,
+  Permission.BANNERS_DELETE,
+  Permission.BANNERS_ACTIVATE,
+  Permission.BANNERS_DEACTIVATE,
+
+  // Type Hints
+  Permission.TYPE_HINT_CONFIGS_READ,
+  Permission.TYPE_HINT_CONFIGS_CREATE,
+  Permission.TYPE_HINT_CONFIGS_UPDATE,
+  Permission.TYPE_HINT_CONFIGS_DELETE,
+  Permission.TYPE_HINT_CONFIGS_ACTIVATE,
+  Permission.TYPE_HINT_CONFIGS_DEACTIVATE,
+
+  // Showcases
+  Permission.SHOWCASES_READ,
+  Permission.SHOWCASES_CREATE,
+  Permission.SHOWCASES_UPDATE,
+  Permission.SHOWCASES_DELETE,
+  Permission.SHOWCASES_ACTIVATE,
+  Permission.SHOWCASES_DEACTIVATE,
+
+  // Orders
+  Permission.ORDERS_READ,
+  Permission.ORDERS_UPDATE,
+  Permission.ORDERS_CANCEL,
+  Permission.ORDERS_REFUND,
+
+  // Reviews
+  Permission.REVIEWS_READ,
+  Permission.REVIEWS_UPDATE,
+  Permission.REVIEWS_DELETE,
+
+  // Profile
+  Permission.PROFILE_READ,
+  Permission.PROFILE_UPDATE,
+];
+
+const USER_PERMISSIONS: Permission[] = [
+  // Orders
+  Permission.ORDERS_CREATE_OWN,
+  Permission.ORDERS_READ_OWN,
+
+  // Reviews
+  Permission.REVIEWS_CREATE,
+  Permission.REVIEWS_READ_OWN,
+  Permission.REVIEWS_UPDATE_OWN,
+  Permission.REVIEWS_DELETE_OWN,
+
+  // Profile
+  Permission.PROFILE_READ,
+  Permission.PROFILE_UPDATE,
+
+  // Wishlist
+  Permission.WISHLIST_READ,
+  Permission.WISHLIST_UPDATE,
+
+  // Cart
+  Permission.CART_READ,
+  Permission.CART_UPDATE,
+];
+
 export const RolePermissions: Record<UserRole, Permission[]> = {
-  [UserRole.OWNER]: [
-    Permission.VIEW_DASHBOARD,
-    Permission.MANAGE_PRODUCTS,
-    Permission.VIEW_PRODUCTS,
-    Permission.MANAGE_ORDERS,
-    Permission.VIEW_ORDERS,
-    Permission.MANAGE_USERS,
-    Permission.VIEW_USERS,
-    Permission.MANAGE_SETTINGS,
-    Permission.MANAGE_DISCOUNTS,
-  ],
-  [UserRole.ADMINISTRATOR]: [
-    Permission.VIEW_DASHBOARD,
-    Permission.MANAGE_PRODUCTS,
-    Permission.VIEW_PRODUCTS,
-    Permission.MANAGE_ORDERS,
-    Permission.VIEW_ORDERS,
-    Permission.VIEW_USERS,
-    Permission.MANAGE_DISCOUNTS,
-  ],
-  [UserRole.USER]: [
-    Permission.VIEW_PRODUCTS,
-    Permission.PLACE_ORDER,
-    Permission.VIEW_OWN_ORDERS,
-    Permission.WRITE_REVIEWS,
-  ],
+  [UserRole.OWNER]: ADMIN_PERMISSIONS,
+
+  [UserRole.ADMINISTRATOR]: ADMIN_PERMISSIONS,
+
+  [UserRole.USER]: USER_PERMISSIONS,
 };
