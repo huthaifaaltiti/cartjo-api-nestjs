@@ -29,7 +29,7 @@ import { OrderModule } from './modules/order/order.module';
 import { UserContextModule } from './modules/userContext/userContext.module';
 import { AuthJwtModule } from './modules/auth-jwt/auth-jwt.module';
 import { AppConfigModule } from './modules/appConfig/appConfig.module';
-import { RolePermissionModule } from './modules/role-permission/role-permission.module';
+import { PermissionModule } from './modules/permission/permission.module';
 
 @Module({
   imports: [
@@ -66,7 +66,7 @@ import { RolePermissionModule } from './modules/role-permission/role-permission.
     OrderModule,
     UserContextModule,
     AppConfigModule,
-    RolePermissionModule,
+    PermissionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

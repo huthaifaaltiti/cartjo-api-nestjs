@@ -4,8 +4,9 @@ import {
   RolePermission,
   RolePermissionSchema,
 } from '../../schemas/role-permission.schema';
-import { RolePermissionService } from './role-permission.service';
+import { PermissionService } from './permission.service';
 import { RolePermissionsSeeder } from '../../database/seeders/role-permissions.seeder';
+import { PermissionController } from './permission.controller';
 
 @Module({
   imports: [
@@ -13,8 +14,8 @@ import { RolePermissionsSeeder } from '../../database/seeders/role-permissions.s
       { name: RolePermission.name, schema: RolePermissionSchema },
     ]),
   ],
-  providers: [RolePermissionService, RolePermissionsSeeder],
-  controllers: [],
-  exports: [RolePermissionService],
+  providers: [PermissionService, RolePermissionsSeeder],
+  controllers: [PermissionController],
+  exports: [PermissionService],
 })
-export class RolePermissionModule {}
+export class PermissionModule {}

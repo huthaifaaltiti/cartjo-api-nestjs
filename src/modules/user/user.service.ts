@@ -30,7 +30,7 @@ import commonEmailTemplateData from '../../common/utils/commonEmailTemplateData'
 import { PreferredLanguage } from '../../enums/preferredLanguage.enum';
 import { BaseResponse } from '../../types/service-response.type';
 import { generateUsername } from '../../common/functions/generators/username.generator';
-import { RolePermissionService } from '../role-permission/role-permission.service';
+import { PermissionService } from '../permission/permission.service';
 
 @Injectable()
 export class UserService {
@@ -39,7 +39,7 @@ export class UserService {
     private userModel: Model<UserDocument>,
     private mediaService: MediaService,
     private emailService: EmailService,
-    private rolePermissionService: RolePermissionService,
+    private permissionService: PermissionService,
   ) {}
 
   async getUsers(params: {
@@ -422,7 +422,7 @@ export class UserService {
     try {
       const defaultRole = UserRole.ADMINISTRATOR;
       const permissions =
-        await this.rolePermissionService.getPermissionsByRole(defaultRole);
+        await this.permissionService.getPermissionsByRole(defaultRole);
 
       const username =
         (await generateUsername(firstName, lastName, this.userModel)) ||

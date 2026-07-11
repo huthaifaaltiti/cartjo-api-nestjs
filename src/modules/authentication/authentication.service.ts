@@ -44,7 +44,7 @@ import {
 import { COUNTRY_CONFIGS } from '../../configs/countryPhone.config';
 import { AuthResponseDto } from '../../types/auth-response.type';
 import { AuthorizationService } from '../authorization/authorization.service';
-import { RolePermissionService } from '../role-permission/role-permission.service';
+import { PermissionService } from '../permission/permission.service';
 
 @Injectable()
 export class AuthService {
@@ -58,7 +58,7 @@ export class AuthService {
     private authorizationService: AuthorizationService,
     private mediaService: MediaService,
     private emailService: EmailService,
-    private rolePermissionService: RolePermissionService,
+    private rolePermissionService: PermissionService,
   ) {
     const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET;

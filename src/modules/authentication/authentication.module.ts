@@ -15,7 +15,7 @@ import {
   RefreshTokenSchema,
 } from '../../schemas/refresh-token.schema';
 import { AuthorizationModule } from '../authorization/authorization.module';
-import { RolePermissionModule } from '../role-permission/role-permission.module';
+import { PermissionModule } from '../permission/permission.module';
 
 @Module({
   imports: [
@@ -31,7 +31,7 @@ import { RolePermissionModule } from '../role-permission/role-permission.module'
     MediaModule,
     EmailModule,
     AuthorizationModule,
-    RolePermissionModule
+    PermissionModule
   ],
   controllers: [AuthController],
   providers: [AuthService, AuthJwtService],

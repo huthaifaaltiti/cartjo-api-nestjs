@@ -8,9 +8,12 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { RolePermissions } from '../../common/constants/roles-permissions.constant';
+import { GetRolesPermissionsQueryDto } from './dto/get-roles-permissions.dto';
+import { DataResponse } from '../../types/service-response.type';
+import { getMessage } from '../../common/utils/translator';
 
 @Injectable()
-export class RolePermissionService implements OnModuleInit {
+export class PermissionService implements OnModuleInit {
   private cache = new Map<UserRole, Permission[]>();
 
   constructor(
@@ -41,13 +44,39 @@ export class RolePermissionService implements OnModuleInit {
     return RolePermissions[role] || [];
   }
 
-  async updateRole(role: UserRole, permissions: Permission[]) {
-    await this.rolePermissionModel.updateOne(
-      { role },
-      { $set: { permissions } },
-      { upsert: true },
+  async getRolesPermissions(
+    dto: GetRolesPermissionsQueryDto,
+  ): Promise<DataResponse<RolePermission[]>> {
+    const { lang } = dto;
+
+    const roles = Object.values(UserRole);
+
+    const result: RolePermission[] = await Promise.all(
+      roles.map(async role => ({
+        role,
+        permissions: await this.getPermissionsByRole(role),
+      })),
     );
 
-    await this.loadCache();
+    return {
+      isSuccess: true,
+      message: getMessage(
+        'rolePermission_rolesPermissionsRetrievedSuccessfully',
+        lang,
+      ),
+      data: result,
+    };
+  }
+
+  getFullPermissionsObject(
+    dto: GetRolesPermissionsQueryDto,
+  ): DataResponse<typeof Permission> {
+    const { lang } = dto;
+
+    return {
+      isSuccess: true,
+      message: getMessage('permission_permissionsRetrievedSuccessfully', lang),
+      data: Permission,
+    };
   }
 }

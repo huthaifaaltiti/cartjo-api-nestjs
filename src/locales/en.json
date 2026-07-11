@@ -316,5 +316,7 @@
   "order_invalidDeliveryStatusTransition": "Invalid Delivery Status Transition",
   "order_deliveryStatusUpdatedSuccessfully": "Delivery Status Updated Successfully",
   "order_ordersReturnsRetrieved": "Orders Returns Retrieved Successfully",
-  "userContext_contextRetrieved": "User's context data retrieved successfully"
+  "userContext_contextRetrieved": "User's context data retrieved successfully",
+  "permission_rolesPermissionsRetrievedSuccessfully": "Roles permissions data retrieved successfully",
+  "permission_permissionsRetrievedSuccessfully": "Permissions data retrieved successfully"
 }
