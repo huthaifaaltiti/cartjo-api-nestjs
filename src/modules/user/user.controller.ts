@@ -150,7 +150,8 @@ export class UserController {
     return this.userService.createAdminUser(body, req, profilePic);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.USERS_UPDATE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Put(ApiPaths.User.UpdateAdmin)
   @UseInterceptors(FileInterceptor('profilePic'))
   async updateAdminUser(

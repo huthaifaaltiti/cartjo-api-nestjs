@@ -581,6 +581,12 @@ export class UserService {
       };
     }
 
+    checkRequiredPermissions(
+      req?.user?.permissions,
+      [Permission.USERS_UPDATE],
+      lang,
+    );
+
     const user = await this.userModel.findById(userId);
 
     const oldData = {
