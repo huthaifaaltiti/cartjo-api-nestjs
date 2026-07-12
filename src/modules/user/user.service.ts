@@ -31,6 +31,8 @@ import { PreferredLanguage } from '../../enums/preferredLanguage.enum';
 import { BaseResponse } from '../../types/service-response.type';
 import { generateUsername } from '../../common/functions/generators/username.generator';
 import { PermissionService } from '../permission/permission.service';
+import { Permission } from '../../enums/permission.enum';
+import { checkRequiredPermissions } from '../../common/utils/permission-check.utils';
 
 @Injectable()
 export class UserService {
@@ -302,6 +304,12 @@ export class UserService {
     message: string;
   }> {
     validateUserRoleAccess(requestingUser, lang);
+
+    const requiredPermission = isActive
+      ? Permission.USERS_ACTIVATE
+      : Permission.USERS_DEACTIVATE;
+
+    checkRequiredPermissions(requestingUser?.permissions, [requiredPermission], lang);
 
     const user = await this.userModel.findById(id);
 

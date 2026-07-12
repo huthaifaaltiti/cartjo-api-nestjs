@@ -38,6 +38,9 @@ import {
 import { ApiPaths } from '../../common/constants/api-paths';
 import { ALLOWED_AUTHENTICATED_ROLES } from '../../common/constants/roles.constants';
 import { GetMeQueryDto } from './dto/get-me.dto';
+import { RequirePermissions } from '../../common/decorators/permissions.decorator';
+import { Permission } from '../../enums/permission.enum';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
 
 @Controller(ApiPaths.User.Root)
 export class UserController {
@@ -118,7 +121,8 @@ export class UserController {
     return this.userService.softUnDeleteUser(id, lang, user);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.USERS_ACTIVATE, Permission.USERS_DEACTIVATE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Put(ApiPaths.User.UpdateStatus)
   async updateUserStatus(
     @Param() param: UpdateUserStatusParamsDto,
