@@ -234,6 +234,12 @@ export class UserService {
   }> {
     validateUserRoleAccess(requestingUser, lang);
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.USERS_DELETE],
+      lang,
+    );
+
     const user = await this.userModel.findById(id);
 
     validateSameUsersRoleLevel(user?.role, requestingUser?.role, lang);
@@ -309,7 +315,11 @@ export class UserService {
       ? Permission.USERS_ACTIVATE
       : Permission.USERS_DEACTIVATE;
 
-    checkRequiredPermissions(requestingUser?.permissions, [requiredPermission], lang);
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [requiredPermission],
+      lang,
+    );
 
     const user = await this.userModel.findById(id);
 

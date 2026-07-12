@@ -93,7 +93,8 @@ export class UserController {
       : this.userService.getUserData(id, user, lang);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.USERS_DELETE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Delete(ApiPaths.User.Delete)
   async deleteUser(
     @Request() req: any,
