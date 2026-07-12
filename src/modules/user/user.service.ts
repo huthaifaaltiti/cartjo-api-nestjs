@@ -279,6 +279,12 @@ export class UserService {
   }> {
     validateUserRoleAccess(requestingUser, lang);
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.USERS_RESTORE],
+      lang,
+    );
+
     const user = await this.userModel.findById(id);
 
     validateSameUsersRoleLevel(user?.role, requestingUser?.role, lang);

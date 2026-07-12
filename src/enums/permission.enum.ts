@@ -4,6 +4,7 @@ export enum Permission {
   USERS_CREATE = 'users.create',
   USERS_UPDATE = 'users.update',
   USERS_DELETE = 'users.delete',
+  USERS_RESTORE = 'users.restore',
   USERS_ACTIVATE = 'users.activate',
   USERS_DEACTIVATE = 'users.deactivate',
 

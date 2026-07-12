@@ -9,6 +9,7 @@ const ADMIN_PERMISSIONS: Permission[] = [
   Permission.USERS_CREATE,
   Permission.USERS_UPDATE,
   Permission.USERS_DELETE,
+  Permission.USERS_RESTORE,
   Permission.USERS_ACTIVATE,
   Permission.USERS_DEACTIVATE,
 

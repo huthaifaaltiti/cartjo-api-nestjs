@@ -108,7 +108,8 @@ export class UserController {
     return this.userService.softDeleteUser(id, lang, user);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.USERS_RESTORE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Delete(ApiPaths.User.UnDelete)
   async unDeleteUser(
     @Request() req: any,
