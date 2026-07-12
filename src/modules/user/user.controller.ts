@@ -138,7 +138,8 @@ export class UserController {
     return this.userService.updateUserStatus(id, isActive, lang, user);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.USERS_CREATE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Post(ApiPaths.User.CreateAdmin)
   @UseInterceptors(FileInterceptor('profilePic'))
   async createAdminUser(

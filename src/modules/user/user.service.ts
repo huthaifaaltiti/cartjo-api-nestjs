@@ -433,6 +433,12 @@ export class UserService {
       };
     }
 
+    checkRequiredPermissions(
+      req?.user?.permissions,
+      [Permission.USERS_CREATE],
+      lang,
+    );
+
     let profilePicData: MediaPreview | undefined = undefined;
 
     if (profilePic && Object.keys(profilePic).length > 0) {
