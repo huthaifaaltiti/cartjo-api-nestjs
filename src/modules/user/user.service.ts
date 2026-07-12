@@ -33,6 +33,9 @@ import { generateUsername } from '../../common/functions/generators/username.gen
 import { PermissionService } from '../permission/permission.service';
 import { Permission } from '../../enums/permission.enum';
 import { checkRequiredPermissions } from '../../common/utils/permission-check.utils';
+import { HistoryService } from '../history/history.service';
+import { LogModule } from '../../enums/logModules.enum';
+import { LogAction } from '../../enums/logAction.enum';
 
 @Injectable()
 export class UserService {
@@ -42,6 +45,7 @@ export class UserService {
     private mediaService: MediaService,
     private emailService: EmailService,
     private permissionService: PermissionService,
+    private historyService: HistoryService,
   ) {}
 
   async getUsers(params: {
@@ -263,6 +267,19 @@ export class UserService {
 
     await user.save();
 
+    await this.historyService.log(
+      LogModule.USER,
+      LogAction.DELETE,
+      requestingUser.userId,
+      undefined,
+      {
+        targetUserId: user._id,
+        targetUserEmail: user.email,
+        targetUserName: `${user.firstName} ${user.lastName}`,
+        role: user.role,
+      },
+    );
+
     return {
       isSuccess: true,
       message: getMessage('user_userDeletedSuccessfully', lang),
@@ -299,6 +316,19 @@ export class UserService {
     user.deletedBy = null;
 
     await user.save();
+
+    await this.historyService.log(
+      LogModule.USER,
+      LogAction.RESTORE,
+      requestingUser.userId,
+      undefined,
+      {
+        targetUserId: user._id,
+        targetUserEmail: user.email,
+        targetUserName: `${user.firstName} ${user.lastName}`,
+        role: user.role,
+      },
+    );
 
     return {
       isSuccess: true,
@@ -343,6 +373,20 @@ export class UserService {
     user.isActive = isActive;
 
     await user.save();
+
+    await this.historyService.log(
+      LogModule.USER,
+      isActive ? LogAction.ACTIVATE : LogAction.DEACTIVATE,
+      requestingUser.userId,
+      undefined,
+      {
+        targetUserId: user._id,
+        targetUserEmail: user.email,
+        targetUserName: `${user.firstName} ${user.lastName}`,
+        role: user.role,
+        isActive,
+      },
+    );
 
     return {
       isSuccess: true,
@@ -470,6 +514,20 @@ export class UserService {
 
       const user = await this.userModel.create({ ...newUserData });
 
+      await this.historyService.log(
+        LogModule.USER,
+        LogAction.CREATE,
+        req.user.userId,
+        undefined,
+        {
+          targetUserId: user._id,
+          targetUserEmail: user.email,
+          targetUserName: `${user.firstName} ${user.lastName}`,
+          role: user.role,
+          createdAs: UserRole.ADMINISTRATOR,
+        },
+      );
+
       return {
         isSuccess: true,
         message: getMessage('users_adminUserCreatedSuccessfully', lang),
@@ -518,6 +576,13 @@ export class UserService {
     }
 
     const user = await this.userModel.findById(userId);
+
+    const oldData = {
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+    };
 
     validateSameUsersRoleLevel(user?.role, req?.user?.role, lang);
 
@@ -580,6 +645,25 @@ export class UserService {
       user.marketingEmails = Boolean(marketingEmails);
 
     await user.save();
+
+    await this.historyService.log(
+      LogModule.USER,
+      LogAction.UPDATE,
+      req.user.userId,
+      undefined,
+      {
+        targetUserId: user._id,
+        targetUserEmail: user.email,
+        targetUserName: `${user.firstName} ${user.lastName}`,
+        before: oldData,
+        after: {
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          phoneNumber: user.phoneNumber,
+        },
+      },
+    );
 
     return {
       isSuccess: true,
@@ -777,6 +861,20 @@ export class UserService {
 
     await user.save();
 
+    await this.historyService.log(
+      LogModule.USER,
+      LogAction.UPDATE,
+      req.user.userId,
+      undefined,
+      {
+        targetUserId: user._id,
+        profileUpdated: true,
+        changedPassword: !!newPassword,
+        changedEmail: email && email !== user.email,
+        changedPhone: phoneNumber && phoneNumber !== user.phoneNumber,
+      },
+    );
+
     return {
       isSuccess: true,
       message: getMessage('users_userUpdatedSuccessfully', lang),
@@ -802,10 +900,31 @@ export class UserService {
       };
     }
 
-    await this.userModel.findByIdAndUpdate(
-      requestingUser?.userId,
-      { defaultShippingAddress: shippingAddress },
-      { new: true },
+    const user = await this.userModel.findById(requestingUser?.userId);
+
+    if (!user) {
+      throw new NotFoundException(getMessage('user_userNotFound', lang));
+    }
+
+    const oldAddress = user.defaultShippingAddress;
+
+    user.defaultShippingAddress = shippingAddress;
+
+    await user.save();
+
+    await this.historyService.log(
+      LogModule.USER,
+      LogAction.UPDATE,
+      requestingUser.userId,
+      undefined,
+      {
+        targetUserId: user._id,
+        targetUserEmail: user.email,
+        targetUserName: `${user.firstName} ${user.lastName}`,
+        field: 'defaultShippingAddress',
+        before: oldAddress,
+        after: shippingAddress,
+      },
     );
 
     return {
