@@ -26,12 +26,16 @@ import {
   UpdateStatusParamsDto,
 } from './dto/update-active-status.dto';
 import { ApiPaths } from '../../common/constants/api-paths';
+import { RequirePermissions } from '../../common/decorators/permissions.decorator';
+import { Permission } from '../../enums/permission.enum';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
 
 @Controller(ApiPaths.Banner.Root)
 export class BannerController {
   constructor(private readonly bannerService: BannerService) {}
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.BANNERS_READ)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.Banner.GetAll)
   async getAll(@Query() query: GetBannersQueryDto, @Request() req: any) {
     const { lang, limit, lastId, search, startDate, endDate } = query;
@@ -54,18 +58,22 @@ export class BannerController {
     return this.bannerService.getActiveOnes(lang);
   }
 
+  @RequirePermissions(Permission.BANNERS_READ)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.Banner.GetOne)
   async getOne(
     @Param() param: GetBannerParamDto,
     @Query() query: GetBannerQueryDto,
+    @Request() req: any,
   ) {
     const { id } = param;
     const { lang } = query;
 
-    return this.bannerService.getOne(id, lang);
+    return this.bannerService.getOne(id, req, lang);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.BANNERS_CREATE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Post(ApiPaths.Banner.Create)
   @UseInterceptors(
     FileFieldsInterceptor([
@@ -88,7 +96,8 @@ export class BannerController {
     return this.bannerService.create(req, body, image_ar, image_en);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.BANNERS_UPDATE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Put(ApiPaths.Banner.Update)
   @UseInterceptors(
     FileFieldsInterceptor([
@@ -112,7 +121,8 @@ export class BannerController {
     return this.bannerService.update(req, body, param.id, image_ar, image_en);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.BANNERS_DELETE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Delete(ApiPaths.Banner.Delete)
   async delete(
     @Request() req: any,
@@ -125,7 +135,8 @@ export class BannerController {
     return this.bannerService.delete(user, body, id);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.BANNERS_RESTORE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Delete(ApiPaths.Banner.UnDelete)
   async unDelete(
     @Request() req: any,
@@ -138,7 +149,11 @@ export class BannerController {
     return this.bannerService.unDelete(user, body, id);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(
+    Permission.BANNERS_DEACTIVATE,
+    Permission.BANNERS_ACTIVATE,
+  )
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Put(ApiPaths.Banner.UpdateStatus)
   async updateStatus(
     @Param() param: UpdateStatusParamsDto,
@@ -152,7 +167,8 @@ export class BannerController {
     return this.bannerService.updateStatus(id, isActive, lang, user);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.BANNERS_UPDATE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Put(ApiPaths.Banner.SetDefault)
   async setDefault(
     @Param() param: UpdateStatusParamsDto,

@@ -45,6 +45,7 @@ export enum Permission {
   BANNERS_CREATE = 'banners.create',
   BANNERS_UPDATE = 'banners.update',
   BANNERS_DELETE = 'banners.delete',
+  BANNERS_RESTORE = 'banners.restore',
   BANNERS_ACTIVATE = 'banners.activate',
   BANNERS_DEACTIVATE = 'banners.deactivate',
 
