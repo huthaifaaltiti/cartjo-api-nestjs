@@ -36,6 +36,7 @@ import { checkRequiredPermissions } from '../../common/utils/permission-check.ut
 import { HistoryService } from '../history/history.service';
 import { LogModule } from '../../enums/logModules.enum';
 import { LogAction } from '../../enums/logAction.enum';
+import { Locale as LocaleEnum } from '../../enums/locale.enum';
 
 @Injectable()
 export class UserService {
@@ -48,22 +49,25 @@ export class UserService {
     private historyService: HistoryService,
   ) {}
 
-  async getUsers(params: {
-    lang?: 'en' | 'ar';
-    limit?: string;
-    lastId?: string; // the _id of the last fetched user
-    search?: string;
-    isActive?: boolean;
-    isDeleted?: boolean;
-    canManage?: boolean;
-  }): Promise<{
+  async getUsers(
+    requestingUser: any,
+    params: {
+      lang?: Locale;
+      limit?: string;
+      lastId?: string;
+      search?: string;
+      isActive?: boolean;
+      isDeleted?: boolean;
+      canManage?: boolean;
+    },
+  ): Promise<{
     isSuccess: boolean;
     message: string;
     usersNum: number;
     users: User[];
   }> {
     const {
-      lang = 'en',
+      lang = LocaleEnum.EN,
       limit = 10,
       lastId,
       search,
@@ -71,6 +75,12 @@ export class UserService {
       isDeleted,
       canManage,
     } = params;
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.USERS_READ],
+      lang,
+    );
 
     const query: any = {};
 

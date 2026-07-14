@@ -46,13 +46,15 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.USERS_READ)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.User.GetAll)
-  async getUsers(@Query() query: GetAllUsersQueryDto) {
+  async getUsers(@Request() req: any, @Query() query: GetAllUsersQueryDto) {
     const { lang, limit, lastId, search, isActive, isDeleted, canManage } =
       query;
+    const { user } = req;
 
-    return this.userService.getUsers({
+    return this.userService.getUsers(user, {
       lang,
       limit,
       lastId,
@@ -63,7 +65,8 @@ export class UserController {
     });
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.USERS_READ)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.User.GetStats)
   async getStats(@Query() query: GetUsersStatsQueryDto) {
     const { lang } = query;
@@ -77,7 +80,8 @@ export class UserController {
     return this.userService.getMe(req.user, query.lang);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.USERS_READ)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.User.GetOne)
   async getUser(
     @Request() req: any,
