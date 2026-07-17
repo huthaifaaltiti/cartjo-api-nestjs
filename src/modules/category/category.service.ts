@@ -31,6 +31,8 @@ import { LogModule } from '../../enums/logModules.enum';
 import { LogAction } from '../../enums/logAction.enum';
 import { MediaPreview } from '../../schemas/common.schema';
 import { Locale } from '../../types/Locale';
+import { checkRequiredPermissions } from '../../common/utils/permission-check.utils';
+import { Permission } from '../../enums/permission.enum';
 
 @Injectable()
 export class CategoryService {
@@ -54,6 +56,12 @@ export class CategoryService {
     const { lang, name_ar, name_en } = dto;
 
     validateUserRoleAccess(requestingUser, lang);
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.CATEGORIES_CREATE],
+      lang,
+    );
 
     const slug = name_en ? slugify(name_en, { lower: true }) : undefined;
 
@@ -126,6 +134,12 @@ export class CategoryService {
     const { lang, name_ar, name_en } = dto;
 
     validateUserRoleAccess(requestingUser, lang);
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.CATEGORIES_UPDATE],
+      lang,
+    );
 
     const categoryToUpdate = await this.categoryModel.findById(id);
 
@@ -253,6 +267,12 @@ export class CategoryService {
 
     validateUserRoleAccess(requestingUser, lang);
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.CATEGORIES_DELETE],
+      lang,
+    );
+
     const activeCategoriesCount = await this.categoryModel.countDocuments({
       isActive: true,
       isDeleted: false,
@@ -307,6 +327,12 @@ export class CategoryService {
 
     validateUserRoleAccess(requestingUser, lang);
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.CATEGORIES_RESTORE],
+      lang,
+    );
+
     const category = await this.categoryModel.findById(id);
 
     if (!category) {
@@ -345,6 +371,12 @@ export class CategoryService {
     requestingUser: any,
   ): Promise<BaseResponse> {
     validateUserRoleAccess(requestingUser, lang);
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.CATEGORIES_ACTIVATE, Permission.CATEGORIES_DEACTIVATE],
+      lang,
+    );
 
     const category = await this.categoryModel.findById(id);
 
@@ -405,13 +437,23 @@ export class CategoryService {
     };
   }
 
-  async getAll(params: {
-    lang?: Locale;
-    limit?: string;
-    lastId?: string;
-    search?: string;
-  }): Promise<DataListResponse<Category>> {
+  async getAll(
+    user: any,
+    params: {
+      lang?: Locale;
+      limit?: string;
+      lastId?: string;
+      search?: string;
+    },
+  ): Promise<DataListResponse<Category>> {
     const { lang = 'en', limit = 10, lastId, search } = params;
+    validateUserRoleAccess(user, lang);
+
+    checkRequiredPermissions(
+      user?.permissions,
+      [Permission.CATEGORIES_READ],
+      lang,
+    );
 
     const query: any = {};
 
@@ -579,7 +621,19 @@ export class CategoryService {
     };
   }
 
-  async getOne(id: string, lang?: Locale): Promise<DataResponse<Category>> {
+  async getOne(
+    user: any,
+    id: string,
+    lang?: Locale,
+  ): Promise<DataResponse<Category>> {
+    validateUserRoleAccess(user, lang);
+
+    checkRequiredPermissions(
+      user?.permissions,
+      [Permission.CATEGORIES_READ],
+      lang,
+    );
+
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException(
         getMessage('categories_invalidCategoryId', lang),

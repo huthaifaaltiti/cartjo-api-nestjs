@@ -39,12 +39,16 @@ import {
 import { CategoryService } from './category.service';
 import { GetActiveOnesQueryDto } from './dto/get-active-ones.dto';
 import { ApiPaths } from '../../common/constants/api-paths';
+import { Permission } from '../../enums/permission.enum';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../common/decorators/permissions.decorator';
 
 @Controller(ApiPaths.Category.Root)
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.CATEGORIES_CREATE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Post(ApiPaths.Category.Create)
   @UseInterceptors(
     FileFieldsInterceptor([
@@ -68,7 +72,8 @@ export class CategoryController {
     return this.categoryService.create(user, body, image_ar, image_en, req);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.CATEGORIES_UPDATE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Put(ApiPaths.Category.Update)
   @UseInterceptors(
     FileFieldsInterceptor([
@@ -94,7 +99,8 @@ export class CategoryController {
     return this.categoryService.update(user, body, image_ar, image_en, id, req);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.CATEGORIES_DELETE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Delete(ApiPaths.Category.Delete)
   async delete(
     @Request() req: any,
@@ -107,7 +113,8 @@ export class CategoryController {
     return this.categoryService.delete(user, body, id);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.CATEGORIES_RESTORE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Delete(ApiPaths.Category.UnDelete)
   async unDeleteCategory(
     @Request() req: any,
@@ -120,7 +127,11 @@ export class CategoryController {
     return this.categoryService.unDelete(user, body, id);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(
+    Permission.CATEGORIES_ACTIVATE,
+    Permission.CATEGORIES_DEACTIVATE,
+  )
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Put(ApiPaths.Category.UpdateStatus)
   async updateCategoryStatus(
     @Param() param: UpdateCategoryStatusParamsDto,
@@ -134,12 +145,14 @@ export class CategoryController {
     return this.categoryService.updateStatus(id, isActive, lang, user);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.CATEGORIES_READ)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.Category.GetAll)
-  async getCategories(@Query() query: GetCategoriesQueryDto) {
+  async getCategories( @Request() req: any,@Query() query: GetCategoriesQueryDto) {
     const { lang, limit, lastId, search } = query;
+     const { user } = req;
 
-    return this.categoryService.getAll({
+    return this.categoryService.getAll(user,{
       lang,
       limit,
       lastId,
@@ -152,14 +165,18 @@ export class CategoryController {
     return this.categoryService.getActiveOnes(query);
   }
 
+  @RequirePermissions(Permission.CATEGORIES_READ)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.Category.GetOne)
   async getCategory(
+    @Request() req: any,
     @Param() param: GetCategoryParamDto,
     @Query() query: GetCategoryQueryDto,
   ) {
     const { id } = param;
     const { lang } = query;
+     const { user } = req;
 
-    return this.categoryService.getOne(id, lang);
+    return this.categoryService.getOne(user, id, lang);
   }
 }

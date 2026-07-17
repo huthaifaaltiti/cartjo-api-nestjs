@@ -18,6 +18,7 @@ const ADMIN_PERMISSIONS: Permission[] = [
   Permission.CATEGORIES_CREATE,
   Permission.CATEGORIES_UPDATE,
   Permission.CATEGORIES_DELETE,
+  Permission.CATEGORIES_RESTORE,
   Permission.CATEGORIES_ACTIVATE,
   Permission.CATEGORIES_DEACTIVATE,
 

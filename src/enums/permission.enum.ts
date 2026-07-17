@@ -13,6 +13,7 @@ export enum Permission {
   CATEGORIES_CREATE = 'categories.create',
   CATEGORIES_UPDATE = 'categories.update',
   CATEGORIES_DELETE = 'categories.delete',
+  CATEGORIES_RESTORE = 'categories.restore',
   CATEGORIES_ACTIVATE = 'categories.activate',
   CATEGORIES_DEACTIVATE = 'categories.deactivate',
 
