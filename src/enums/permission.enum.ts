@@ -22,6 +22,7 @@ export enum Permission {
   SUB_CATEGORIES_CREATE = 'sub_categories.create',
   SUB_CATEGORIES_UPDATE = 'sub_categories.update',
   SUB_CATEGORIES_DELETE = 'sub_categories.delete',
+  SUB_CATEGORIES_RESTORE = 'sub_categories.restore',
   SUB_CATEGORIES_ACTIVATE = 'sub_categories.activate',
   SUB_CATEGORIES_DEACTIVATE = 'sub_categories.deactivate',
 

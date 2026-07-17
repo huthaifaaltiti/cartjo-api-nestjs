@@ -38,12 +38,16 @@ import {
   GetSubCategoryQueryDto,
 } from './dto/get-subCategory.dto';
 import { ApiPaths } from '../../common/constants/api-paths';
+import { RequirePermissions } from '../../common/decorators/permissions.decorator';
+import { Permission } from '../../enums/permission.enum';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
 
 @Controller(ApiPaths.SubCategory.Root)
 export class SubCategoryController {
   constructor(private readonly subCategoryService: SubCategoryService) {}
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.SUB_CATEGORIES_CREATE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'image_ar', maxCount: 1 },
@@ -66,7 +70,8 @@ export class SubCategoryController {
     return this.subCategoryService.create(req, body, image_ar, image_en);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.SUB_CATEGORIES_UPDATE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Put(ApiPaths.SubCategory.Update)
   @UseInterceptors(
     FileFieldsInterceptor([
@@ -91,7 +96,8 @@ export class SubCategoryController {
     return this.subCategoryService.update(req, body, image_ar, image_en, id);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.SUB_CATEGORIES_DELETE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Delete(ApiPaths.SubCategory.Delete)
   async delete(
     @Request() req: any,
@@ -104,7 +110,8 @@ export class SubCategoryController {
     return this.subCategoryService.delete(user, body, id);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.SUB_CATEGORIES_RESTORE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Delete(ApiPaths.SubCategory.UnDelete)
   async unDelete(
     @Request() req: any,
@@ -117,7 +124,11 @@ export class SubCategoryController {
     return this.subCategoryService.unDelete(user, body, id);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(
+    Permission.SUB_CATEGORIES_ACTIVATE,
+    Permission.SUB_CATEGORIES_DEACTIVATE,
+  )
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Put(ApiPaths.SubCategory.UpdateStatus)
   async updateStatus(
     @Param() param: UpdateSubCategoryStatusParamsDto,
@@ -131,11 +142,14 @@ export class SubCategoryController {
     return this.subCategoryService.updateStatus(id, isActive, lang, user);
   }
 
+  @RequirePermissions(Permission.SUB_CATEGORIES_READ)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.SubCategory.GetAll)
-  async getAll(@Query() query: GetSubCategoriesQueryDto) {
+  async getAll(@Request() req: any, @Query() query: GetSubCategoriesQueryDto) {
     const { lang, limit, lastId, search, catId } = query;
+    const { user } = req;
 
-    return this.subCategoryService.getAll({
+    return this.subCategoryService.getAll(user, {
       lang,
       limit,
       lastId,
@@ -144,14 +158,18 @@ export class SubCategoryController {
     });
   }
 
+  @RequirePermissions(Permission.SUB_CATEGORIES_READ)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.SubCategory.GetOne)
   async getOne(
+    @Request() req: any,
     @Param() param: GetSubCategoryParamDto,
     @Query() query: GetSubCategoryQueryDto,
   ) {
     const { id } = param;
     const { lang } = query;
+    const { user } = req;
 
-    return this.subCategoryService.getOne(id, lang);
+    return this.subCategoryService.getOne(user, id, lang);
   }
 }

@@ -33,6 +33,8 @@ import { LogModule } from '../../enums/logModules.enum';
 import { LogAction } from '../../enums/logAction.enum';
 import { MediaPreview } from '../../schemas/common.schema';
 import { Locale } from '../../types/Locale';
+import { checkRequiredPermissions } from '../../common/utils/permission-check.utils';
+import { Permission } from '../../enums/permission.enum';
 
 @Injectable()
 export class SubCategoryService {
@@ -57,6 +59,12 @@ export class SubCategoryService {
     const { lang, name_ar, name_en, categoryId } = dto;
 
     validateUserRoleAccess(req?.user, lang);
+
+    checkRequiredPermissions(
+      req?.user?.permissions,
+      [Permission.SUB_CATEGORIES_CREATE],
+      lang,
+    );
 
     const slug = name_en ? slugify(name_en, { lower: true }) : undefined;
 
@@ -148,6 +156,12 @@ export class SubCategoryService {
     const { lang, name_ar, name_en, categoryId } = dto;
 
     validateUserRoleAccess(req?.user, lang);
+
+    checkRequiredPermissions(
+      req?.user?.permissions,
+      [Permission.SUB_CATEGORIES_UPDATE],
+      lang,
+    );
 
     const subCategoryToUpdate = await this.subCategoryModel.findById(id);
 
@@ -287,6 +301,12 @@ export class SubCategoryService {
 
     validateUserRoleAccess(requestingUser, lang);
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.SUB_CATEGORIES_DELETE],
+      lang,
+    );
+
     const subCategory = await this.subCategoryModel.findById(id);
 
     if (!subCategory) {
@@ -332,6 +352,12 @@ export class SubCategoryService {
     const { lang } = body;
 
     validateUserRoleAccess(requestingUser, lang);
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.SUB_CATEGORIES_RESTORE],
+      lang,
+    );
 
     const subCategory = await this.subCategoryModel.findById(id);
 
@@ -380,6 +406,15 @@ export class SubCategoryService {
     requestingUser: any,
   ): Promise<BaseResponse> {
     validateUserRoleAccess(requestingUser, lang);
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [
+        Permission.SUB_CATEGORIES_ACTIVATE,
+        Permission.SUB_CATEGORIES_DEACTIVATE,
+      ],
+      lang,
+    );
 
     const subCategory = await this.subCategoryModel.findById(id);
 
@@ -444,14 +479,25 @@ export class SubCategoryService {
     };
   }
 
-  async getAll(params: {
-    lang?: Locale;
-    limit?: string;
-    lastId?: string;
-    search?: string;
-    catId?: string;
-  }): Promise<DataListResponse<SubCategory>> {
+  async getAll(
+    user: any,
+    params: {
+      lang?: Locale;
+      limit?: string;
+      lastId?: string;
+      search?: string;
+      catId?: string;
+    },
+  ): Promise<DataListResponse<SubCategory>> {
     const { lang = 'en', limit = 10, lastId, search, catId } = params;
+
+    validateUserRoleAccess(user, lang);
+
+    checkRequiredPermissions(
+      user?.permissions,
+      [Permission.SUB_CATEGORIES_READ],
+      lang,
+    );
 
     const query: any = {};
 
@@ -488,7 +534,19 @@ export class SubCategoryService {
     };
   }
 
-  async getOne(id: string, lang?: Locale): Promise<DataResponse<SubCategory>> {
+  async getOne(
+    user: any,
+    id: string,
+    lang?: Locale,
+  ): Promise<DataResponse<SubCategory>> {
+    validateUserRoleAccess(user, lang);
+
+    checkRequiredPermissions(
+      user?.permissions,
+      [Permission.SUB_CATEGORIES_READ],
+      lang,
+    );
+
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException(
         getMessage('subCategories_invalidSubCategoryId', lang),
