@@ -36,6 +36,7 @@ const ADMIN_PERMISSIONS: Permission[] = [
   Permission.PRODUCTS_CREATE,
   Permission.PRODUCTS_UPDATE,
   Permission.PRODUCTS_DELETE,
+  Permission.PRODUCTS_RESTORE,
   Permission.PRODUCTS_ACTIVATE,
   Permission.PRODUCTS_DEACTIVATE,
 

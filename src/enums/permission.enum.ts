@@ -31,6 +31,7 @@ export enum Permission {
   PRODUCTS_CREATE = 'products.create',
   PRODUCTS_UPDATE = 'products.update',
   PRODUCTS_DELETE = 'products.delete',
+  PRODUCTS_RESTORE = 'products.restore',
   PRODUCTS_ACTIVATE = 'products.activate',
   PRODUCTS_DEACTIVATE = 'products.deactivate',
 
