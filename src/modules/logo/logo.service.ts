@@ -26,6 +26,8 @@ import { MEDIA_CONFIG } from '../../configs/media.config';
 import { Modules } from '../../enums/appModules.enum';
 import { LogModule } from '../../enums/logModules.enum';
 import { LogAction } from '../../enums/logAction.enum';
+import { checkRequiredPermissions } from '../../common/utils/permission-check.utils';
+import { Permission } from '../../enums/permission.enum';
 
 @Injectable()
 export class LogoService {
@@ -89,6 +91,12 @@ export class LogoService {
 
     validateUserRoleAccess(requestingUser, lang);
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.LOGOS_READ],
+      lang,
+    );
+
     const query: any = {};
 
     if (lastId) {
@@ -118,7 +126,19 @@ export class LogoService {
     };
   }
 
-  async getOne(id: string, lang?: Locale): Promise<DataResponse<Logo>> {
+  async getOne(
+    requestingUser: any,
+    id: string,
+    lang?: Locale,
+  ): Promise<DataResponse<Logo>> {
+    validateUserRoleAccess(requestingUser, lang);
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.LOGOS_READ],
+      lang,
+    );
+
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException(getMessage('logo_invalidLogoId', lang));
     }
@@ -168,6 +188,12 @@ export class LogoService {
     const { lang, name, altText } = dto;
 
     validateUserRoleAccess(req?.user, lang);
+
+    checkRequiredPermissions(
+      req?.user?.permissions,
+      [Permission.LOGOS_CREATE],
+      lang,
+    );
 
     const existingLogo = await this.logoModel.findOne({
       $or: [{ name }, { altText }],
@@ -242,6 +268,12 @@ export class LogoService {
     const { lang, name, altText } = dto;
 
     validateUserRoleAccess(req?.user, lang);
+
+    checkRequiredPermissions(
+      req?.user?.permissions,
+      [Permission.LOGOS_UPDATE],
+      lang,
+    );
 
     const logoToUpdate = await this.logoModel.findById(id);
     if (!logoToUpdate) {
@@ -326,6 +358,12 @@ export class LogoService {
 
     validateUserRoleAccess(requestingUser, lang);
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.LOGOS_DELETE],
+      lang,
+    );
+
     if (id === this.defaultLogoId) {
       throw new BadRequestException(
         getMessage('logo_cannotDeleteDefaultLogo', lang),
@@ -388,6 +426,12 @@ export class LogoService {
 
     validateUserRoleAccess(requestingUser, lang);
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.LOGOS_RESTORE],
+      lang,
+    );
+
     const logo = await this.logoModel.findById(id);
 
     if (!logo) {
@@ -435,6 +479,12 @@ export class LogoService {
     requestingUser: any,
   ): Promise<BaseResponse> {
     validateUserRoleAccess(requestingUser, lang);
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.LOGOS_ACTIVATE, Permission.LOGOS_DEACTIVATE],
+      lang,
+    );
 
     const logo = await this.logoModel.findById(id);
 

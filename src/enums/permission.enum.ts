@@ -40,6 +40,7 @@ export enum Permission {
   LOGOS_CREATE = 'logos.create',
   LOGOS_UPDATE = 'logos.update',
   LOGOS_DELETE = 'logos.delete',
+  LOGOS_RESTORE = 'logos.restore',
   LOGOS_ACTIVATE = 'logos.activate',
   LOGOS_DEACTIVATE = 'logos.deactivate',
 

@@ -29,12 +29,16 @@ import {
 import { GetLogoParamDto, GetLogoQueryDto } from './dto/get-logo.dto';
 import { GetLogosQueryDto } from './dto/get-logos-query.dto';
 import { ApiPaths } from '../../common/constants/api-paths';
+import { RequirePermissions } from '../../common/decorators/permissions.decorator';
+import { Permission } from '../../enums/permission.enum';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
 
 @Controller(ApiPaths.Logo.Root)
 export class LogoController {
   constructor(private readonly logoService: LogoService) {}
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.LOGOS_READ)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.Logo.GetAll)
   async getLogos(@Query() query: GetLogosQueryDto, @Request() req: any) {
     const { lang, limit, lastId, search } = query;
@@ -54,18 +58,23 @@ export class LogoController {
     return this.logoService.getActiveLogo(lang);
   }
 
+  @RequirePermissions(Permission.LOGOS_READ)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.Logo.GetOne)
   async getLogo(
+    @Request() req: any,
     @Param() param: GetLogoParamDto,
     @Query() query: GetLogoQueryDto,
   ) {
     const { id } = param;
     const { lang } = query;
+    const { user } = req;
 
-    return this.logoService.getOne(id, lang);
+    return this.logoService.getOne(user, id, lang);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.LOGOS_CREATE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Post(ApiPaths.Logo.Create)
   @UseInterceptors(FileInterceptor('image'))
   async createLogo(
@@ -76,7 +85,8 @@ export class LogoController {
     return this.logoService.create(req, body, image);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.LOGOS_UPDATE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Put(ApiPaths.Logo.Update)
   @UseInterceptors(FileInterceptor('image'))
   async update(
@@ -90,7 +100,8 @@ export class LogoController {
     return this.logoService.update(req, body, image, id);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.LOGOS_DELETE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Delete(ApiPaths.Logo.Delete)
   async delete(
     @Request() req: any,
@@ -103,7 +114,8 @@ export class LogoController {
     return this.logoService.delete(user, body, id);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.LOGOS_RESTORE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Delete(ApiPaths.Logo.UnDelete)
   async unDeleteLogo(
     @Request() req: any,
@@ -116,7 +128,8 @@ export class LogoController {
     return this.logoService.unDelete(user, body, id);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.LOGOS_ACTIVATE, Permission.LOGOS_DEACTIVATE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Put(ApiPaths.Logo.UpdateStatus)
   async updateLogoStatus(
     @Param() param: UpdateLogoStatusParamsDto,

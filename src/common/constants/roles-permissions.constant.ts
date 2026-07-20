@@ -45,6 +45,7 @@ const ADMIN_PERMISSIONS: Permission[] = [
   Permission.LOGOS_CREATE,
   Permission.LOGOS_UPDATE,
   Permission.LOGOS_DELETE,
+  Permission.LOGOS_RESTORE,
   Permission.LOGOS_ACTIVATE,
   Permission.LOGOS_DEACTIVATE,
 
