@@ -36,12 +36,16 @@ import {
   GetMyOrderReturnsParamDto,
   GetMyOrderReturnsQueryDto,
 } from './dto/getMyOrderReturns.dto';
+import { Permission } from '../../enums/permission.enum';
+import { RequirePermissions } from '../../common/decorators/permissions.decorator';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
 
 @Controller(ApiPaths.Order.Root)
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.ORDERS_CHANGE_PAYMENT_STATUS)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Post(ApiPaths.Order.ChangePaymentStatus)
   async changePaidStatus(
     @Body() dto: ChangePaymentStatusBodyDto,
@@ -52,7 +56,8 @@ export class OrderController {
     return this.orderService.changePaidStatus(user, dto);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.ORDERS_CHANGE_DELIVERY_STATUS)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Post(ApiPaths.Order.ChangeDeliveryStatus)
   async changeDeliveryStatus(
     @Body() dto: ChangeDeliveryStatusBodyDto,
@@ -63,7 +68,8 @@ export class OrderController {
     return this.orderService.changeDeliveryStatus(user, dto);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.ORDERS_DELETE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Post(ApiPaths.Order.Delete)
   async deleteOrder(
     @Request() req: any,
@@ -73,7 +79,8 @@ export class OrderController {
     return this.orderService.softDeleteOrder(req.user, body, param);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.ORDERS_RESTORE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Post(ApiPaths.Order.UnDelete)
   async restoreOrder(
     @Request() req: any,
@@ -83,7 +90,8 @@ export class OrderController {
     return this.orderService.restoreOrder(req.user, body, param);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.ORDERS_CREATE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Post(ApiPaths.Order.Create)
   async createOrder(@Request() req: any, @Body() body: CreateOrderBodyDto) {
     const { user } = req;
@@ -93,7 +101,8 @@ export class OrderController {
     return this.orderService.createOrderAndClearCart(user, cart, body);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.ORDERS_READ)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.Order.GetAll)
   async getOrders(@Request() req: any, @Query() query: GetOrdersQueryDto) {
     const { user } = req;
@@ -101,7 +110,8 @@ export class OrderController {
     return this.orderService.getAll(user, query);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.ORDERS_READ_OWN)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.Order.MyOrders)
   async getMyOrders(
     @Request() req: any,
@@ -113,7 +123,8 @@ export class OrderController {
     return this.orderService.getMyOrders(user, query, param);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.ORDERS_READ_OWN)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.Order.MyReturns)
   async getMyOrderReturns(
     @Request() req: any,
@@ -125,7 +136,8 @@ export class OrderController {
     return this.orderService.getMyOrderReturns(user, query, param);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.ORDERS_READ_OWN)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.Order.MyOrder)
   async getMyOrder(
     @Request() req: any,
@@ -136,7 +148,8 @@ export class OrderController {
     return this.orderService.getMyOrder(user, query, param);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.ORDERS_READ, Permission.ORDERS_EXPORT)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.Order.Export)
   async exportOrders(
     @Request() req: any,
@@ -147,7 +160,8 @@ export class OrderController {
     return this.orderService.exportOrders(user, query, res);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.ORDERS_READ)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.Order.GetOne)
   async getOrder(
     @Request() req: any,

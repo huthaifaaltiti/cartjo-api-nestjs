@@ -32,7 +32,12 @@ import {
   GetMyOrderReturnsParamDto,
   GetMyOrderReturnsQueryDto,
 } from './dto/getMyOrderReturns.dto';
-import { Order, OrderCartItem, OrderDocument, OrderItemSnapshot } from '../../schemas/order.schema';
+import {
+  Order,
+  OrderCartItem,
+  OrderDocument,
+  OrderItemSnapshot,
+} from '../../schemas/order.schema';
 import { Cart, CartDocument } from '../../schemas/cart.schema';
 import { Product, ProductDocument } from '../../schemas/product.schema';
 import { WEEKLY_SCORE_WEIGHTS } from '../../configs/weeklyScoreWeights.config';
@@ -43,7 +48,10 @@ import { PreferredLanguage } from '../../enums/preferredLanguage.enum';
 import { getAppUrl } from '../../common/utils/getAppUrl';
 import getCurrencyLabel from '../../common/utils/getCurrencyLabel';
 import commonEmailTemplateData from '../../common/utils/commonEmailTemplateData';
-import { DataListResponse, DataResponse } from '../../types/service-response.type';
+import {
+  DataListResponse,
+  DataResponse,
+} from '../../types/service-response.type';
 import { checkUserRole } from '../../common/utils/checkUserRole';
 import { UserRole } from '../../enums/user-role.enum';
 import { getMessage } from '../../common/utils/translator';
@@ -55,6 +63,8 @@ import getPaymentMethodLabel from '../../common/utils/getPaymentMethodLabel';
 import { validateUserRoleAccess } from '../../common/utils/validateUserRoleAccess';
 import { validateSameUserAccess } from '../../common/utils/validateSameUserAccess';
 import { ExportFormat } from '../../enums/ExportFormat.enum';
+import { checkRequiredPermissions } from '../../common/utils/permission-check.utils';
+import { Permission } from '../../enums/permission.enum';
 
 @Injectable()
 export class OrderService {
@@ -186,6 +196,12 @@ export class OrderService {
     ) {
       throw new BadRequestException(getMessage('orders_cantCreateOrder', lang));
     }
+
+    checkRequiredPermissions(
+      user?.permissions,
+      [Permission.ORDERS_CREATE_OWN],
+      lang,
+    );
 
     const finalTransactionId =
       paymentMethod === PaymentMethod.CASH
@@ -352,6 +368,12 @@ export class OrderService {
 
     validateUserRoleAccess(requestingUser, lang);
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.ORDERS_CHANGE_DELIVERY_STATUS],
+      lang,
+    );
+
     const order = await this.orderModel.findById(orderId);
 
     if (!order || order.isDeleted) {
@@ -461,6 +483,12 @@ export class OrderService {
 
     validateUserRoleAccess(requestingUser, lang);
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.ORDERS_CHANGE_PAYMENT_STATUS],
+      lang,
+    );
+
     const isStatusPaid = status === PaymentStatus.PAID;
 
     const order = await this.orderModel.findById(orderId);
@@ -514,6 +542,12 @@ export class OrderService {
 
     validateUserRoleAccess(requestingUser, lang);
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.ORDERS_DELETE],
+      lang,
+    );
+
     const order = await this.orderModel.findById(id);
 
     if (!order) {
@@ -552,6 +586,12 @@ export class OrderService {
     const { id } = param;
 
     validateUserRoleAccess(requestingUser, lang);
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.ORDERS_RESTORE],
+      lang,
+    );
 
     const order = await this.orderModel.findById(id);
 
@@ -609,6 +649,12 @@ export class OrderService {
       lang,
     );
     // validateUserRoleAccess(requestingUser, lang, 'user');
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.ORDERS_READ_OWN],
+      lang,
+    );
 
     const dbQuery: any = { isDeleted: false, userId: uid };
 
@@ -734,6 +780,12 @@ if (search) {
     );
     // validateUserRoleAccess(requestingUser, lang, 'user');
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.ORDERS_READ_OWN],
+      lang,
+    );
+
     const dbQuery: any = {
       isDeleted: false,
       userId: uid,
@@ -857,6 +909,12 @@ if (search) {
     );
     // validateUserRoleAccess(requestingUser, lang, 'user');
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.ORDERS_READ_OWN],
+      lang,
+    );
+
     if (!Types.ObjectId.isValid(oid)) {
       throw new NotFoundException(getMessage('order_invalidId', lang));
     }
@@ -927,6 +985,12 @@ It will not appear in the API response, which is why your response no longer con
     } = params;
 
     validateUserRoleAccess(requestingUser, lang);
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.ORDERS_READ],
+      lang,
+    );
 
     const query: any = { isDeleted: false };
 
@@ -1017,6 +1081,12 @@ It will not appear in the API response, which is why your response no longer con
 
     validateUserRoleAccess(user, lang);
 
+    checkRequiredPermissions(
+      req?.user?.permissions,
+      [Permission.ORDERS_READ],
+      lang,
+    );
+
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException(getMessage('order_invalidId', lang));
     }
@@ -1054,6 +1124,12 @@ It will not appear in the API response, which is why your response no longer con
     const { format, startDate, endDate, lang } = query;
 
     validateUserRoleAccess(requestingUser, lang);
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.ORDERS_READ, Permission.ORDERS_EXPORT],
+      lang,
+    );
 
     const queryFilter: any = { isDeleted: false };
 

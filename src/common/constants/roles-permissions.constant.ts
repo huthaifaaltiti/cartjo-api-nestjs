@@ -81,6 +81,10 @@ const ADMIN_PERMISSIONS: Permission[] = [
   Permission.ORDERS_UPDATE,
   Permission.ORDERS_CANCEL,
   Permission.ORDERS_REFUND,
+  Permission.ORDERS_DELETE,
+  Permission.ORDERS_RESTORE,
+  Permission.ORDERS_CHANGE_DELIVERY_STATUS,
+  Permission.ORDERS_CHANGE_PAYMENT_STATUS,
 
   // Reviews
   Permission.REVIEWS_READ,

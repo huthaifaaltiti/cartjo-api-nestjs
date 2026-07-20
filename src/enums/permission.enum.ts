@@ -75,8 +75,13 @@ export enum Permission {
   ORDERS_READ = 'orders.read',
   ORDERS_CREATE = 'orders.create',
   ORDERS_UPDATE = 'orders.update',
+  ORDERS_DELETE = 'orders.delete',
+  ORDERS_RESTORE = 'orders.restore',
   ORDERS_CANCEL = 'orders.cancel',
   ORDERS_REFUND = 'orders.refund',
+  ORDERS_EXPORT = 'orders.export',
+  ORDERS_CHANGE_PAYMENT_STATUS = 'orders.change_payment_status',
+  ORDERS_CHANGE_DELIVERY_STATUS = 'orders.change_delivery_status',
 
   // Customer Orders
   ORDERS_READ_OWN = 'orders.read_own',
