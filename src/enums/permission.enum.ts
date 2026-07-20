@@ -67,6 +67,7 @@ export enum Permission {
   SHOWCASES_CREATE = 'showcases.create',
   SHOWCASES_UPDATE = 'showcases.update',
   SHOWCASES_DELETE = 'showcases.delete',
+  SHOWCASES_RESTORE = 'showcases.restore',
   SHOWCASES_ACTIVATE = 'showcases.activate',
   SHOWCASES_DEACTIVATE = 'showcases.deactivate',
 

@@ -148,11 +148,14 @@ export class CategoryController {
   @RequirePermissions(Permission.CATEGORIES_READ)
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.Category.GetAll)
-  async getCategories( @Request() req: any,@Query() query: GetCategoriesQueryDto) {
+  async getCategories(
+    @Request() req: any,
+    @Query() query: GetCategoriesQueryDto,
+  ) {
     const { lang, limit, lastId, search } = query;
-     const { user } = req;
+    const { user } = req;
 
-    return this.categoryService.getAll(user,{
+    return this.categoryService.getAll(user, {
       lang,
       limit,
       lastId,
@@ -175,7 +178,7 @@ export class CategoryController {
   ) {
     const { id } = param;
     const { lang } = query;
-     const { user } = req;
+    const { user } = req;
 
     return this.categoryService.getOne(user, id, lang);
   }

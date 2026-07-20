@@ -72,6 +72,7 @@ const ADMIN_PERMISSIONS: Permission[] = [
   Permission.SHOWCASES_CREATE,
   Permission.SHOWCASES_UPDATE,
   Permission.SHOWCASES_DELETE,
+  Permission.SHOWCASES_RESTORE,
   Permission.SHOWCASES_ACTIVATE,
   Permission.SHOWCASES_DEACTIVATE,
 

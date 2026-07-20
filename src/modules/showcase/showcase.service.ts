@@ -35,6 +35,8 @@ import { LogModule } from '../../enums/logModules.enum';
 import { HistoryService } from '../history/history.service';
 import { LogAction } from '../../enums/logAction.enum';
 import { validateDocDates } from '../../common/functions/validators/validateDocDates.alidator';
+import { checkRequiredPermissions } from '../../common/utils/permission-check.utils';
+import { Permission } from '../../enums/permission.enum';
 
 export class ShowcaseService {
   constructor(
@@ -189,6 +191,12 @@ export class ShowcaseService {
     },
   ): Promise<DataListResponse<ShowCase>> {
     validateUserRoleAccess(requestingUser, params.lang);
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.SHOWCASES_READ],
+      params.lang,
+    );
 
     const {
       lang = 'en',
@@ -503,6 +511,12 @@ export class ShowcaseService {
 
     validateUserRoleAccess(requestingUser, lang);
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.SHOWCASES_READ],
+      lang,
+    );
+
     const showcase = await this.showcaseModel
       .findById(id)
       .populate('deletedBy', 'firstName lastName email _id')
@@ -540,6 +554,12 @@ export class ShowcaseService {
     dto: CreateDto,
   ): Promise<DataResponse<ShowCase>> {
     validateUserRoleAccess(requestingUser, dto.lang);
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.SHOWCASES_CREATE],
+      dto.lang,
+    );
 
     // prevent create showcase without products from same type
     const foundProducts = await this.productModel.findOne({
@@ -649,6 +669,12 @@ export class ShowcaseService {
     dto: UpdateDto,
   ): Promise<DataResponse<ShowCase>> {
     validateUserRoleAccess(requestingUser, dto.lang);
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.SHOWCASES_UPDATE],
+      dto.lang,
+    );
 
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException(
@@ -818,6 +844,12 @@ export class ShowcaseService {
 
     validateUserRoleAccess(requestingUser, lang);
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.SHOWCASES_DELETE],
+      lang,
+    );
+
     const showcase = await this.showcaseModel.findById(id);
 
     const typeHintConfig = await this.typeHintConfigModel.findOne({
@@ -872,6 +904,12 @@ export class ShowcaseService {
 
     validateUserRoleAccess(requestingUser, lang);
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.SHOWCASES_RESTORE],
+      lang,
+    );
+
     const showcase = await this.showcaseModel.findById(id);
 
     if (!showcase) {
@@ -924,6 +962,12 @@ export class ShowcaseService {
     requestingUser: any,
   ): Promise<BaseResponse> {
     validateUserRoleAccess(requestingUser, lang);
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.SHOWCASES_ACTIVATE, Permission.LOGOS_DEACTIVATE],
+      lang,
+    );
 
     const showcase = await this.showcaseModel.findById(id);
 
