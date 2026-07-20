@@ -58,6 +58,7 @@ export enum Permission {
   TYPE_HINT_CONFIGS_CREATE = 'type_hint_configs.create',
   TYPE_HINT_CONFIGS_UPDATE = 'type_hint_configs.update',
   TYPE_HINT_CONFIGS_DELETE = 'type_hint_configs.delete',
+  TYPE_HINT_CONFIGS_RESTORE = 'type_hint_configs.restore',
   TYPE_HINT_CONFIGS_ACTIVATE = 'type_hint_configs.activate',
   TYPE_HINT_CONFIGS_DEACTIVATE = 'type_hint_configs.deactivate',
 

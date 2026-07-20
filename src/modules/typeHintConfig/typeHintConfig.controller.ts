@@ -25,23 +25,29 @@ import {
 } from './dto/update-active-status.dto';
 import { GetListQueryDto } from './dto/get-list.dto';
 import { ApiPaths } from '../../common/constants/api-paths';
+import { Permission } from '../../enums/permission.enum';
+import { RequirePermissions } from '../../common/decorators/permissions.decorator';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
 @Controller(ApiPaths.TypeHintConfig.Root)
 export class TypeHintConfigController {
   constructor(private readonly typeHintConfigService: TypeHintConfigService) {}
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.TYPE_HINT_CONFIGS_READ)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.TypeHintConfig.GetAll)
   async getAll(@Query() query: GetAllQueryDto, @Request() req: any) {
     return this.typeHintConfigService.getAll(req?.user, query);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.TYPE_HINT_CONFIGS_READ)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.TypeHintConfig.GetList)
   async getList(@Query() query: GetListQueryDto, @Request() req: any) {
     return this.typeHintConfigService.getList(req?.user, query);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.TYPE_HINT_CONFIGS_READ)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.TypeHintConfig.GetActiveOnes)
   async getActiveOnes(
     @Query() query: GetActiveOnesQueryDto,
@@ -52,19 +58,22 @@ export class TypeHintConfigController {
     return this.typeHintConfigService.getActiveOnes(req?.user, lang);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.TYPE_HINT_CONFIGS_READ)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.TypeHintConfig.GetOne)
-  async getOne(@Param() param: GetOneParamDto, @Query() query: GetOneQueryDto) {
-    return this.typeHintConfigService.getOne(param?.id, query?.lang);
+  async getOne(@Param() param: GetOneParamDto, @Query() query: GetOneQueryDto, @Request() req: any) {
+    return this.typeHintConfigService.getOne(req?.user, param?.id, query?.lang);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.TYPE_HINT_CONFIGS_CREATE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Post(ApiPaths.TypeHintConfig.Create)
   async create(@Request() req: any, @Body() dto: CreateDto) {
     return this.typeHintConfigService.create(req?.user, dto);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.TYPE_HINT_CONFIGS_UPDATE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Put(ApiPaths.TypeHintConfig.Update)
   async update(
     @Request() req: any,
@@ -74,7 +83,8 @@ export class TypeHintConfigController {
     return this.typeHintConfigService.update(req?.user, body, param?.id);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.TYPE_HINT_CONFIGS_DELETE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Delete(ApiPaths.TypeHintConfig.Delete)
   async delete(
     @Request() req: any,
@@ -84,7 +94,8 @@ export class TypeHintConfigController {
     return this.typeHintConfigService.delete(req?.user, dto, param?.id);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.TYPE_HINT_CONFIGS_RESTORE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Delete(ApiPaths.TypeHintConfig.UnDelete)
   async unDelete(
     @Request() req: any,
@@ -94,7 +105,11 @@ export class TypeHintConfigController {
     return this.typeHintConfigService.unDelete(req?.user, dto, param?.id);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(
+    Permission.TYPE_HINT_CONFIGS_ACTIVATE,
+    Permission.TYPE_HINT_CONFIGS_DEACTIVATE,
+  )
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Put(ApiPaths.TypeHintConfig.UpdateStatus)
   async updateStatus(
     @Param() param: UpdateStatusParamsDto,

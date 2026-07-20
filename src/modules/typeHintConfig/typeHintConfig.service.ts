@@ -38,6 +38,8 @@ import { HistoryService } from '../history/history.service';
 import { LogModule } from '../../enums/logModules.enum';
 import { LogAction } from '../../enums/logAction.enum';
 import { validateDocDates } from '../../common/functions/validators/validateDocDates.alidator';
+import { checkRequiredPermissions } from '../../common/utils/permission-check.utils';
+import { Permission } from '../../enums/permission.enum';
 
 export class TypeHintConfigService {
   private SYSTEM_TYPE_KEYS = SYSTEM_TYPE_HINTS.map(hint => hint.key);
@@ -140,6 +142,12 @@ export class TypeHintConfigService {
 
     validateUserRoleAccess(reqUser, lang);
 
+    checkRequiredPermissions(
+      reqUser?.permissions,
+      [Permission.TYPE_HINT_CONFIGS_READ],
+      lang,
+    );
+
     const query: any = {};
 
     // Pagination
@@ -192,6 +200,14 @@ export class TypeHintConfigService {
     reqUser: any,
     dto: GetListQueryDto,
   ): Promise<DataListResponse<string>> {
+    validateUserRoleAccess(reqUser, dto.lang);
+
+    checkRequiredPermissions(
+      reqUser?.permissions,
+      [Permission.TYPE_HINT_CONFIGS_READ],
+      dto.lang,
+    );
+
     const typeHintConfigs = await this.getActiveOnes(reqUser, dto.lang);
     const typeHintConfigsKeysList = typeHintConfigs?.data?.map(
       typeHintConfig => typeHintConfig?.key,
@@ -213,6 +229,12 @@ export class TypeHintConfigService {
     lang?: Locale,
   ): Promise<DataListResponse<TypeHintConfigDocument>> {
     validateUserRoleAccess(reqUser, lang);
+
+    checkRequiredPermissions(
+      reqUser?.permissions,
+      [Permission.TYPE_HINT_CONFIGS_READ],
+      lang,
+    );
 
     const now = new Date();
 
@@ -252,9 +274,18 @@ export class TypeHintConfigService {
   }
 
   async getOne(
+    requestingUser: any,
     id: string,
     lang?: Locale,
   ): Promise<DataResponse<TypeHintConfig>> {
+    validateUserRoleAccess(requestingUser, lang);
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.TYPE_HINT_CONFIGS_READ],
+      lang,
+    );
+
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException(
         getMessage('typeHintConfig_invalidBannerId', lang),
@@ -291,6 +322,12 @@ export class TypeHintConfigService {
     const { label_ar, label_en, priority, startDate, endDate, lang } = dto;
 
     validateUserRoleAccess(reqUser, lang);
+
+    checkRequiredPermissions(
+      reqUser?.permissions,
+      [Permission.TYPE_HINT_CONFIGS_CREATE],
+      lang,
+    );
 
     const key: string = label_en
       ? slugify(label_en, { lower: true })
@@ -368,7 +405,13 @@ export class TypeHintConfigService {
     dto: UpdateDto,
     id: mongoose.Types.ObjectId,
   ): Promise<DataResponse<TypeHintConfig>> {
-    validateUserRoleAccess(reqUser, dto.lang);
+    validateUserRoleAccess(reqUser, dto?.lang);
+
+    checkRequiredPermissions(
+      reqUser?.permissions,
+      [Permission.TYPE_HINT_CONFIGS_UPDATE],
+      dto?.lang,
+    );
 
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException(
@@ -548,6 +591,12 @@ export class TypeHintConfigService {
   ): Promise<BaseResponse> {
     validateUserRoleAccess(requestingUser, dto.lang);
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.TYPE_HINT_CONFIGS_DELETE],
+      dto.lang,
+    );
+
     const typeHintConfig = await this.typeHintConfigModel.findById(id);
 
     if (!typeHintConfig) {
@@ -604,6 +653,12 @@ export class TypeHintConfigService {
 
     validateUserRoleAccess(requestingUser, lang);
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.TYPE_HINT_CONFIGS_RESTORE],
+      lang,
+    );
+
     const typeHintConfig = await this.typeHintConfigModel.findById(id);
 
     if (!typeHintConfig) {
@@ -654,6 +709,15 @@ export class TypeHintConfigService {
     requestingUser: any,
   ): Promise<BaseResponse> {
     validateUserRoleAccess(requestingUser, dto.lang);
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [
+        Permission.TYPE_HINT_CONFIGS_ACTIVATE,
+        Permission.TYPE_HINT_CONFIGS_DEACTIVATE,
+      ],
+      dto.lang,
+    );
 
     const typeHintConfig = await this.typeHintConfigModel.findById(id);
 
