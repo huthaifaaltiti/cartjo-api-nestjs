@@ -41,12 +41,16 @@ import {
   UnDeleteProductBodyDto,
   UnDeleteProductParamsDto,
 } from './dto/unDelete-product.dto';
+import { RequirePermissions } from '../../common/decorators/permissions.decorator';
+import { Permission } from '../../enums/permission.enum';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
 
 @Controller(ApiPaths.Product.Root)
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.PRODUCTS_CREATE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @UseInterceptors(AnyFilesInterceptor())
   @Post(ApiPaths.Product.Create)
   async create(
@@ -83,7 +87,8 @@ export class ProductController {
     );
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.PRODUCTS_UPDATE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @UseInterceptors(AnyFilesInterceptor())
   @Put(ApiPaths.Product.Update)
   async update(
@@ -99,7 +104,8 @@ export class ProductController {
     return this.productService.updateProduct(id, req, body, mainImage);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.PRODUCTS_CREATE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @UseInterceptors(AnyFilesInterceptor())
   @Post(ApiPaths.Product.CreateVariant)
   async createVariant(
@@ -108,7 +114,6 @@ export class ProductController {
     @Request() req: any,
     @Param() param: CreateProductVariantParamsDto,
   ) {
-    console.log('inside create variant');
     const variantMainImage = files?.find(
       file => file.fieldname === 'mainImage',
     );
@@ -123,7 +128,8 @@ export class ProductController {
     );
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.PRODUCTS_UPDATE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @UseInterceptors(AnyFilesInterceptor())
   @Put(ApiPaths.Product.UpdateVariant)
   async updateVariant(
@@ -198,7 +204,11 @@ export class ProductController {
     return this.productService.getOneProduct(id, lang, userId);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(
+    Permission.PRODUCTS_DEACTIVATE,
+    Permission.PRODUCTS_ACTIVATE,
+  )
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Put(ApiPaths.Product.UpdateStatus)
   async updateStatus(
     @Param() param: UpdateProductStatusParamsDto,
@@ -212,7 +222,8 @@ export class ProductController {
     return this.productService.updateStatus(id, isActive, lang, user);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.PRODUCTS_DELETE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Delete(ApiPaths.Product.Delete)
   async deleteProduct(
     @Request() req: any,
@@ -225,7 +236,8 @@ export class ProductController {
     return this.productService.deleteProduct(user, body, id);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.PRODUCTS_RESTORE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Delete(ApiPaths.Product.UnDelete)
   async unDeleteProduct(
     @Request() req: any,
@@ -238,7 +250,11 @@ export class ProductController {
     return this.productService.unDeleteProduct(user, body, id);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(
+    Permission.PRODUCTS_DEACTIVATE,
+    Permission.PRODUCTS_ACTIVATE,
+  )
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Put(ApiPaths.Product.UpdateVariantStatus)
   async updateVariantStatus(
     @Param() param: UpdateProductVariantParamsDto,
@@ -248,7 +264,8 @@ export class ProductController {
     return this.productService.updateVariantStatus(body, param, req?.user);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.PRODUCTS_DELETE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Delete(ApiPaths.Product.DeleteVariant)
   async deleteVariant(
     @Param() param: UpdateProductVariantParamsDto,
@@ -258,7 +275,8 @@ export class ProductController {
     return this.productService.deleteVariant(param, body, req?.user);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.PRODUCTS_RESTORE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Delete(ApiPaths.Product.UnDeleteVariant)
   async unDeleteVariant(
     @Param() param: UpdateProductVariantParamsDto,

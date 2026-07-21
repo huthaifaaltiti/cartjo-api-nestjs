@@ -12,7 +12,6 @@ import { compareSync } from 'bcrypt';
 import { CreateAdminBodyDto } from './dto/create-admin.dto';
 import { MediaService } from '../media/media.service';
 import { UpdateDefaultAddressDto, UpdateUserDto } from './dto/update.dto';
-import { AuthJwtService } from '../auth-jwt/auth-jwt.service';
 import { User, UserDocument } from '../../schemas/user.schema';
 import { EmailService } from '../email/email.service';
 import { UserRole } from '../../enums/user-role.enum';
@@ -25,40 +24,50 @@ import { checkUserRole } from '../../common/utils/checkUserRole';
 import { MediaPreview } from '../../schemas/common.schema';
 import { MEDIA_CONFIG } from '../../configs/media.config';
 import { Modules } from '../../enums/appModules.enum';
-import { RolePermissions } from '../../common/constants/roles-permissions.constant';
 import { getClientIp } from '../../common/utils/getClientIp';
 import { EmailTemplates } from '../../enums/emailTemplates.enum';
 import commonEmailTemplateData from '../../common/utils/commonEmailTemplateData';
 import { PreferredLanguage } from '../../enums/preferredLanguage.enum';
 import { BaseResponse } from '../../types/service-response.type';
 import { generateUsername } from '../../common/functions/generators/username.generator';
+import { PermissionService } from '../permission/permission.service';
+import { Permission } from '../../enums/permission.enum';
+import { checkRequiredPermissions } from '../../common/utils/permission-check.utils';
+import { HistoryService } from '../history/history.service';
+import { LogModule } from '../../enums/logModules.enum';
+import { LogAction } from '../../enums/logAction.enum';
+import { Locale as LocaleEnum } from '../../enums/locale.enum';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(User.name)
     private userModel: Model<UserDocument>,
-    private authJwtService: AuthJwtService,
     private mediaService: MediaService,
     private emailService: EmailService,
+    private permissionService: PermissionService,
+    private historyService: HistoryService,
   ) {}
 
-  async getUsers(params: {
-    lang?: 'en' | 'ar';
-    limit?: string;
-    lastId?: string; // the _id of the last fetched user
-    search?: string;
-    isActive?: boolean;
-    isDeleted?: boolean;
-    canManage?: boolean;
-  }): Promise<{
+  async getUsers(
+    requestingUser: any,
+    params: {
+      lang?: Locale;
+      limit?: string;
+      lastId?: string;
+      search?: string;
+      isActive?: boolean;
+      isDeleted?: boolean;
+      canManage?: boolean;
+    },
+  ): Promise<{
     isSuccess: boolean;
     message: string;
     usersNum: number;
     users: User[];
   }> {
     const {
-      lang = 'en',
+      lang = LocaleEnum.EN,
       limit = 10,
       lastId,
       search,
@@ -66,6 +75,12 @@ export class UserService {
       isDeleted,
       canManage,
     } = params;
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.USERS_READ],
+      lang,
+    );
 
     const query: any = {};
 
@@ -233,6 +248,12 @@ export class UserService {
   }> {
     validateUserRoleAccess(requestingUser, lang);
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.USERS_DELETE],
+      lang,
+    );
+
     const user = await this.userModel.findById(id);
 
     validateSameUsersRoleLevel(user?.role, requestingUser?.role, lang);
@@ -256,6 +277,19 @@ export class UserService {
 
     await user.save();
 
+    await this.historyService.log(
+      LogModule.USER,
+      LogAction.DELETE,
+      requestingUser.userId,
+      undefined,
+      {
+        targetUserId: user._id,
+        targetUserEmail: user.email,
+        targetUserName: `${user.firstName} ${user.lastName}`,
+        role: user.role,
+      },
+    );
+
     return {
       isSuccess: true,
       message: getMessage('user_userDeletedSuccessfully', lang),
@@ -272,6 +306,12 @@ export class UserService {
   }> {
     validateUserRoleAccess(requestingUser, lang);
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.USERS_RESTORE],
+      lang,
+    );
+
     const user = await this.userModel.findById(id);
 
     validateSameUsersRoleLevel(user?.role, requestingUser?.role, lang);
@@ -286,6 +326,19 @@ export class UserService {
     user.deletedBy = null;
 
     await user.save();
+
+    await this.historyService.log(
+      LogModule.USER,
+      LogAction.RESTORE,
+      requestingUser.userId,
+      undefined,
+      {
+        targetUserId: user._id,
+        targetUserEmail: user.email,
+        targetUserName: `${user.firstName} ${user.lastName}`,
+        role: user.role,
+      },
+    );
 
     return {
       isSuccess: true,
@@ -304,6 +357,16 @@ export class UserService {
   }> {
     validateUserRoleAccess(requestingUser, lang);
 
+    const requiredPermission = isActive
+      ? Permission.USERS_ACTIVATE
+      : Permission.USERS_DEACTIVATE;
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [requiredPermission],
+      lang,
+    );
+
     const user = await this.userModel.findById(id);
 
     validateSameUsersRoleLevel(user?.role, requestingUser?.role, lang);
@@ -320,6 +383,20 @@ export class UserService {
     user.isActive = isActive;
 
     await user.save();
+
+    await this.historyService.log(
+      LogModule.USER,
+      isActive ? LogAction.ACTIVATE : LogAction.DEACTIVATE,
+      requestingUser.userId,
+      undefined,
+      {
+        targetUserId: user._id,
+        targetUserEmail: user.email,
+        targetUserName: `${user.firstName} ${user.lastName}`,
+        role: user.role,
+        isActive,
+      },
+    );
 
     return {
       isSuccess: true,
@@ -366,12 +443,17 @@ export class UserService {
       };
     }
 
+    checkRequiredPermissions(
+      req?.user?.permissions,
+      [Permission.USERS_CREATE],
+      lang,
+    );
+
     let profilePicData: MediaPreview | undefined = undefined;
 
     if (profilePic && Object.keys(profilePic).length > 0) {
       const result = await this.mediaService.mediaProcessor({
         file: profilePic,
-        // user: { ...req?.user, userId: process.env.DB_SYSTEM_OBJ_ID },
         user: req?.user,
         reqMsg: 'user_shouldHasImage',
         maxSize: MEDIA_CONFIG.USER.PROFILE_IMAGE.MAX_SIZE,
@@ -423,7 +505,8 @@ export class UserService {
 
     try {
       const defaultRole = UserRole.ADMINISTRATOR;
-      const permissions = RolePermissions[defaultRole];
+      const permissions =
+        await this.permissionService.getPermissionsByRole(defaultRole);
 
       const username =
         (await generateUsername(firstName, lastName, this.userModel)) ||
@@ -447,18 +530,24 @@ export class UserService {
 
       const user = await this.userModel.create({ ...newUserData });
 
-      // const token = this.authJwtService.generateToken(user, false);
-
-      // ✅ signAccessToken replaces the old generateToken
-      // Admin creation is an admin action — no refresh token needed here.
-      // If the created admin needs to log in, they go through the normal login flow.
-      const accessToken = this.authJwtService.signAccessToken(user, false);
+      await this.historyService.log(
+        LogModule.USER,
+        LogAction.CREATE,
+        req.user.userId,
+        undefined,
+        {
+          targetUserId: user._id,
+          targetUserEmail: user.email,
+          targetUserName: `${user.firstName} ${user.lastName}`,
+          role: user.role,
+          createdAs: UserRole.ADMINISTRATOR,
+        },
+      );
 
       return {
         isSuccess: true,
         message: getMessage('users_adminUserCreatedSuccessfully', lang),
         user,
-        token: accessToken,
       };
     } catch (err) {
       if (err instanceof MongoError && err.code === 11000) {
@@ -502,7 +591,20 @@ export class UserService {
       };
     }
 
+    checkRequiredPermissions(
+      req?.user?.permissions,
+      [Permission.USERS_UPDATE],
+      lang,
+    );
+
     const user = await this.userModel.findById(userId);
+
+    const oldData = {
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+    };
 
     validateSameUsersRoleLevel(user?.role, req?.user?.role, lang);
 
@@ -565,6 +667,25 @@ export class UserService {
       user.marketingEmails = Boolean(marketingEmails);
 
     await user.save();
+
+    await this.historyService.log(
+      LogModule.USER,
+      LogAction.UPDATE,
+      req.user.userId,
+      undefined,
+      {
+        targetUserId: user._id,
+        targetUserEmail: user.email,
+        targetUserName: `${user.firstName} ${user.lastName}`,
+        before: oldData,
+        after: {
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          phoneNumber: user.phoneNumber,
+        },
+      },
+    );
 
     return {
       isSuccess: true,
@@ -762,6 +883,20 @@ export class UserService {
 
     await user.save();
 
+    await this.historyService.log(
+      LogModule.USER,
+      LogAction.UPDATE,
+      req.user.userId,
+      undefined,
+      {
+        targetUserId: user._id,
+        profileUpdated: true,
+        changedPassword: !!newPassword,
+        changedEmail: email && email !== user.email,
+        changedPhone: phoneNumber && phoneNumber !== user.phoneNumber,
+      },
+    );
+
     return {
       isSuccess: true,
       message: getMessage('users_userUpdatedSuccessfully', lang),
@@ -787,10 +922,31 @@ export class UserService {
       };
     }
 
-    await this.userModel.findByIdAndUpdate(
-      requestingUser?.userId,
-      { defaultShippingAddress: shippingAddress },
-      { new: true },
+    const user = await this.userModel.findById(requestingUser?.userId);
+
+    if (!user) {
+      throw new NotFoundException(getMessage('user_userNotFound', lang));
+    }
+
+    const oldAddress = user.defaultShippingAddress;
+
+    user.defaultShippingAddress = shippingAddress;
+
+    await user.save();
+
+    await this.historyService.log(
+      LogModule.USER,
+      LogAction.UPDATE,
+      requestingUser.userId,
+      undefined,
+      {
+        targetUserId: user._id,
+        targetUserEmail: user.email,
+        targetUserName: `${user.firstName} ${user.lastName}`,
+        field: 'defaultShippingAddress',
+        before: oldAddress,
+        after: shippingAddress,
+      },
     );
 
     return {

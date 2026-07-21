@@ -38,18 +38,23 @@ import {
 import { ApiPaths } from '../../common/constants/api-paths';
 import { ALLOWED_AUTHENTICATED_ROLES } from '../../common/constants/roles.constants';
 import { GetMeQueryDto } from './dto/get-me.dto';
+import { RequirePermissions } from '../../common/decorators/permissions.decorator';
+import { Permission } from '../../enums/permission.enum';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
 
 @Controller(ApiPaths.User.Root)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.USERS_READ)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.User.GetAll)
-  async getUsers(@Query() query: GetAllUsersQueryDto) {
+  async getUsers(@Request() req: any, @Query() query: GetAllUsersQueryDto) {
     const { lang, limit, lastId, search, isActive, isDeleted, canManage } =
       query;
+    const { user } = req;
 
-    return this.userService.getUsers({
+    return this.userService.getUsers(user, {
       lang,
       limit,
       lastId,
@@ -60,7 +65,8 @@ export class UserController {
     });
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.USERS_READ)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.User.GetStats)
   async getStats(@Query() query: GetUsersStatsQueryDto) {
     const { lang } = query;
@@ -74,7 +80,8 @@ export class UserController {
     return this.userService.getMe(req.user, query.lang);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.USERS_READ)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.User.GetOne)
   async getUser(
     @Request() req: any,
@@ -90,7 +97,8 @@ export class UserController {
       : this.userService.getUserData(id, user, lang);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.USERS_DELETE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Delete(ApiPaths.User.Delete)
   async deleteUser(
     @Request() req: any,
@@ -104,7 +112,8 @@ export class UserController {
     return this.userService.softDeleteUser(id, lang, user);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.USERS_RESTORE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Delete(ApiPaths.User.UnDelete)
   async unDeleteUser(
     @Request() req: any,
@@ -118,7 +127,8 @@ export class UserController {
     return this.userService.softUnDeleteUser(id, lang, user);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.USERS_ACTIVATE, Permission.USERS_DEACTIVATE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Put(ApiPaths.User.UpdateStatus)
   async updateUserStatus(
     @Param() param: UpdateUserStatusParamsDto,
@@ -132,7 +142,8 @@ export class UserController {
     return this.userService.updateUserStatus(id, isActive, lang, user);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.USERS_CREATE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Post(ApiPaths.User.CreateAdmin)
   @UseInterceptors(FileInterceptor('profilePic'))
   async createAdminUser(
@@ -143,7 +154,8 @@ export class UserController {
     return this.userService.createAdminUser(body, req, profilePic);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.USERS_UPDATE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Put(ApiPaths.User.UpdateAdmin)
   @UseInterceptors(FileInterceptor('profilePic'))
   async updateAdminUser(

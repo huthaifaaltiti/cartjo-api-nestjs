@@ -308,5 +308,8 @@
   "order_invalidDeliveryStatusTransition": "انتقال غير صالح لحالة التوصيل",
   "order_deliveryStatusUpdatedSuccessfully": "تم تحديث حالة التوصيل بنجاح",
   "order_ordersReturnsRetrieved": "تم استرداد المرتجعات بنجاح",
-  "userContext_contextRetrieved": "تم استرداد بيانات سياق المستخدم بنجاح"
+  "userContext_contextRetrieved": "تم استرداد بيانات سياق المستخدم بنجاح",
+  "permission_rolesPermissionsRetrievedSuccessfully": "تم استرجاع بيانات صلاحيات الأدوار بنجاح",
+  "permission_permissionsRetrievedSuccessfully": "تم استرجاع بيانات الصلاحيات بنجاح",
+  "permission_insufficientPermissions": "صلاحيات غير كافية"
 }

@@ -58,6 +58,8 @@ import { ViewMode } from '../../enums/viewMode.enum';
 import { HistoryService } from '../history/history.service';
 import { LogModule } from '../../enums/logModules.enum';
 import { LogAction } from '../../enums/logAction.enum';
+import { checkRequiredPermissions } from '../../common/utils/permission-check.utils';
+import { Permission } from '../../enums/permission.enum';
 
 @Injectable()
 export class ProductService {
@@ -892,6 +894,12 @@ export class ProductService {
 
     validateUserRoleAccess(req?.user, lang);
 
+    checkRequiredPermissions(
+      req?.user?.permissions,
+      [Permission.PRODUCTS_CREATE],
+      lang,
+    );
+
     // TypeHints check
     const rawTypeHints: string[] = Array.isArray(typeHints)
       ? typeHints
@@ -1152,6 +1160,12 @@ export class ProductService {
 
     validateUserRoleAccess(req?.user, lang);
 
+    checkRequiredPermissions(
+      req?.user?.permissions,
+      [Permission.PRODUCTS_UPDATE],
+      lang,
+    );
+
     // Product check
     const product = await this.productModel.findById(id);
     if (!product) {
@@ -1369,6 +1383,12 @@ export class ProductService {
 
     validateUserRoleAccess(req?.user, lang);
 
+    checkRequiredPermissions(
+      req?.user?.permissions,
+      [Permission.PRODUCTS_CREATE],
+      lang,
+    );
+
     const product = await this.productModel.findById(productId);
     if (!product) {
       throw new BadRequestException(
@@ -1522,6 +1542,12 @@ export class ProductService {
     } = body;
 
     validateUserRoleAccess(req?.user, lang);
+
+    checkRequiredPermissions(
+      req?.user?.permissions,
+      [Permission.PRODUCTS_UPDATE],
+      lang,
+    );
 
     const product = await this.productModel.findById(productId);
     if (!product) {
@@ -1756,6 +1782,12 @@ export class ProductService {
   ): Promise<BaseResponse> {
     validateUserRoleAccess(requestingUser, lang);
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.PRODUCTS_DEACTIVATE, Permission.PRODUCTS_ACTIVATE],
+      lang,
+    );
+
     const product = await this.productModel.findById(id);
 
     if (!product) {
@@ -1847,6 +1879,12 @@ export class ProductService {
     const { id, vid } = param;
 
     validateUserRoleAccess(requestingUser, lang);
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.PRODUCTS_DEACTIVATE, Permission.PRODUCTS_ACTIVATE],
+      lang,
+    );
 
     const product = await this.productModel.findById(id);
 
@@ -1968,6 +2006,12 @@ export class ProductService {
 
     validateUserRoleAccess(requestingUser, lang);
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.PRODUCTS_DELETE],
+      lang,
+    );
+
     const product = await this.productModel.findById(id);
 
     if (!product) {
@@ -2023,6 +2067,12 @@ export class ProductService {
     const { lang } = body;
 
     validateUserRoleAccess(requestingUser, lang);
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.PRODUCTS_DELETE],
+      lang,
+    );
 
     const product = await this.productModel.findById(id);
     if (!product) {
@@ -2101,6 +2151,12 @@ export class ProductService {
 
     validateUserRoleAccess(requestingUser, lang);
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.PRODUCTS_RESTORE],
+      lang,
+    );
+
     const product = await this.productModel.findById(id);
 
     if (!product) {
@@ -2146,6 +2202,12 @@ export class ProductService {
     const { lang } = body;
 
     validateUserRoleAccess(requestingUser, lang);
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.PRODUCTS_RESTORE],
+      lang,
+    );
 
     const product = await this.productModel.findById(id);
     if (!product) {

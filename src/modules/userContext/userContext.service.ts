@@ -11,6 +11,8 @@ import {
 import { User, UserDocument } from '../../schemas/user.schema';
 import { getMessage } from '../../common/utils/translator';
 import { DataResponse } from '../../types/service-response.type';
+import { checkRequiredPermissions } from '../../common/utils/permission-check.utils';
+import { Permission } from '../../enums/permission.enum';
 
 @Injectable()
 export class UserContextService {
@@ -30,6 +32,12 @@ export class UserContextService {
     user: any;
     query: GetUserContextQuery;
   }): Promise<DataResponse<any>> {
+    checkRequiredPermissions(
+      user?.permissions,
+      [Permission.USERS_READ, Permission.PROFILE_READ],
+      query.lang,
+    );
+
     const userId = new Types.ObjectId(user?.userId);
 
     let userContext = await this.userContextModel.findOne({ userId });

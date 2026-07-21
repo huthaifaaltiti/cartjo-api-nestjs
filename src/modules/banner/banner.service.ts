@@ -31,6 +31,8 @@ import { LogAction } from '../../enums/logAction.enum';
 import { MediaPreview } from '../../schemas/common.schema';
 import { validateDocDates } from '../../common/functions/validators/validateDocDates.alidator';
 import { LogTrigger } from '../../enums/logTrigger.enum';
+import { checkRequiredPermissions } from '../../common/utils/permission-check.utils';
+import { Permission } from '../../enums/permission.enum';
 
 @Injectable()
 export class BannerService {
@@ -221,6 +223,12 @@ export class BannerService {
 
     validateUserRoleAccess(requestingUser, lang);
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.BANNERS_READ],
+      lang,
+    );
+
     const query: any = {};
 
     // Pagination
@@ -269,7 +277,19 @@ export class BannerService {
     };
   }
 
-  async getOne(id: string, lang?: Locale): Promise<DataResponse<Banner>> {
+  async getOne(
+    id: string,
+    requestingUser: any,
+    lang?: Locale,
+  ): Promise<DataResponse<Banner>> {
+    validateUserRoleAccess(requestingUser, lang);
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.BANNERS_READ],
+      lang,
+    );
+
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException(getMessage('banner_invalidBannerId', lang));
     }
@@ -338,6 +358,12 @@ export class BannerService {
       dto;
 
     validateUserRoleAccess(req?.user, lang);
+
+    checkRequiredPermissions(
+      req?.user?.permissions,
+      [Permission.BANNERS_CREATE],
+      lang,
+    );
 
     const existing = await this.bannerModel.findOne({
       $or: [{ 'title.ar': title_ar }, { 'title.en': title_en }],
@@ -424,9 +450,13 @@ export class BannerService {
 
     validateUserRoleAccess(req?.user, lang);
 
-    const bannerToUpdate = await this.bannerModel.findById(id);
+    checkRequiredPermissions(
+      req?.user?.permissions,
+      [Permission.BANNERS_UPDATE],
+      lang,
+    );
 
-    console.log({ bannerToUpdate });
+    const bannerToUpdate = await this.bannerModel.findById(id);
 
     if (!bannerToUpdate) {
       throw new NotFoundException(getMessage('banner_bannerNotFound', lang));
@@ -611,6 +641,12 @@ export class BannerService {
 
     validateUserRoleAccess(requestingUser, lang);
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.BANNERS_DELETE],
+      lang,
+    );
+
     if (id === this.defaultBannerId) {
       throw new ForbiddenException(
         getMessage('banner_cannotDeleteDefaultBanner', lang),
@@ -684,6 +720,12 @@ export class BannerService {
 
     validateUserRoleAccess(requestingUser, lang);
 
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.BANNERS_RESTORE],
+      lang,
+    );
+
     const banner = await this.bannerModel.findById(id);
 
     if (!banner) {
@@ -741,6 +783,12 @@ export class BannerService {
     requestingUser: any,
   ): Promise<BaseResponse> {
     validateUserRoleAccess(requestingUser, lang);
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [isActive ? Permission.BANNERS_DEACTIVATE : Permission.BANNERS_ACTIVATE],
+      lang,
+    );
 
     const banner = await this.bannerModel.findById(id);
 
@@ -833,6 +881,12 @@ export class BannerService {
     requestingUser: any,
   ): Promise<BaseResponse> {
     validateUserRoleAccess(requestingUser, lang);
+
+    checkRequiredPermissions(
+      requestingUser?.permissions,
+      [Permission.BANNERS_UPDATE],
+      lang,
+    );
 
     const banner = await this.bannerModel.findById(id);
 

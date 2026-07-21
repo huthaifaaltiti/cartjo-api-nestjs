@@ -29,6 +29,7 @@ import { OrderModule } from './modules/order/order.module';
 import { UserContextModule } from './modules/userContext/userContext.module';
 import { AuthJwtModule } from './modules/auth-jwt/auth-jwt.module';
 import { AppConfigModule } from './modules/appConfig/appConfig.module';
+import { PermissionModule } from './modules/permission/permission.module';
 
 @Module({
   imports: [
@@ -64,7 +65,8 @@ import { AppConfigModule } from './modules/appConfig/appConfig.module';
     PaymentModule,
     OrderModule,
     UserContextModule,
-    AppConfigModule
+    AppConfigModule,
+    PermissionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

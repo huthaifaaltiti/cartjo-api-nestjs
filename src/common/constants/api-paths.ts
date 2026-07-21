@@ -198,4 +198,9 @@ export const ApiPaths = {
     Root: '/api/v1/user-context',
     Get: '',
   },
+  Permission: {
+    Root: '/api/v1/permission',
+    GetAll: 'all',
+    GetRolesPermissions: 'roles-permissions',
+  },
 };

@@ -25,12 +25,16 @@ import {
 } from './dto/update-active-status.dto';
 import { OptionalJwtAuthGuard } from '../../common/utils/optionalJwtAuthGuard';
 import { ApiPaths } from '../../common/constants/api-paths';
+import { Permission } from '../../enums/permission.enum';
+import { RequirePermissions } from '../../common/decorators/permissions.decorator';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
 
 @Controller(ApiPaths.Showcase.Root)
 export class ShowcaseController {
   constructor(private readonly showcaseService: ShowcaseService) {}
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.SHOWCASES_READ)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.Showcase.GetAll)
   async getAll(@Query() query: GetQueryDto, @Request() req: any) {
     const { lang, limit, lastId, search, startDate, endDate } = query;
@@ -58,7 +62,8 @@ export class ShowcaseController {
     return this.showcaseService.getActiveOnes(lang, limit, userId);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.SHOWCASES_READ)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.Showcase.GetOne)
   async getOne(
     @Param() param: GetParamDto,
@@ -72,7 +77,8 @@ export class ShowcaseController {
     return this.showcaseService.getOne(user, id, lang);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.SHOWCASES_CREATE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Post(ApiPaths.Showcase.Create)
   async create(@Body() dto: CreateDto, @Request() req: any) {
     const { user } = req;
@@ -80,7 +86,8 @@ export class ShowcaseController {
     return this.showcaseService.create(user, dto);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.SHOWCASES_UPDATE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Put(ApiPaths.Showcase.Update)
   async update(
     @Param('id') id: string,
@@ -92,7 +99,8 @@ export class ShowcaseController {
     return this.showcaseService.update(user, id, dto);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.SHOWCASES_DELETE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Delete(ApiPaths.Showcase.Delete)
   async delete(
     @Request() req: any,
@@ -105,7 +113,8 @@ export class ShowcaseController {
     return this.showcaseService.delete(user, body, id);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @RequirePermissions(Permission.SHOWCASES_RESTORE)
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Delete(ApiPaths.Showcase.UnDelete)
   async unDelete(
     @Request() req: any,
