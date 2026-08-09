@@ -32,6 +32,7 @@ import { ApiPaths } from '../../common/constants/api-paths';
 import { RequirePermissions } from '../../common/decorators/permissions.decorator';
 import { Permission } from '../../enums/permission.enum';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { LogoType } from '../../enums/logoType.enum';
 
 @Controller(ApiPaths.Logo.Root)
 export class LogoController {
@@ -54,8 +55,9 @@ export class LogoController {
 
   @Get(ApiPaths.Logo.GetActiveOnes)
   async getActiveLogo(@Query() query: GetLogoQueryDto) {
-    const { lang } = query;
-    return this.logoService.getActiveLogo(lang);
+    const { lang, type } = query;
+
+    return this.logoService.getActiveLogo(lang, type ?? LogoType.MAIN);
   }
 
   @RequirePermissions(Permission.LOGOS_READ)

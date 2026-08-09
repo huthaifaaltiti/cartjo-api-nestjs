@@ -28,6 +28,7 @@ import { LogModule } from '../../enums/logModules.enum';
 import { LogAction } from '../../enums/logAction.enum';
 import { checkRequiredPermissions } from '../../common/utils/permission-check.utils';
 import { Permission } from '../../enums/permission.enum';
+import { LogoType } from '../../enums/logoType.enum';
 
 @Injectable()
 export class LogoService {
@@ -161,9 +162,9 @@ export class LogoService {
     };
   }
 
-  async getActiveLogo(lang?: Locale): Promise<DataResponse<Logo>> {
+  async getActiveLogo(lang?: Locale, type: LogoType = LogoType.MAIN,): Promise<DataResponse<Logo>> {
     const logo = await this.logoModel
-      .findOne({ isActive: true, isDeleted: false })
+      .findOne({type, isActive: true, isDeleted: false })
       .populate('deletedBy', 'firstName lastName email _id')
       .populate('unDeletedBy', 'firstName lastName email _id')
       .populate('createdBy', 'firstName lastName email _id')

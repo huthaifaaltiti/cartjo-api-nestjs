@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
 
 import { MediaPreview } from './common.schema';
+import { LogoType } from '../enums/logoType.enum';
 
 export type LogoDocument = Logo & Document;
 
@@ -12,6 +13,14 @@ export class Logo extends Document {
 
   @Prop({ required: true })
   altText?: string;
+
+  @Prop({
+    type: String,
+    enum: LogoType,
+    default: LogoType.MAIN,
+    required: true,
+  })
+  type: LogoType;
 
   @Prop({
     type: {
