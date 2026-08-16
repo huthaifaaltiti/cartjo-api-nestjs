@@ -349,7 +349,7 @@ export class MediaService {
     }
 
     // Content check
-    if (!file) return undefined;
+    // if (!file) return undefined;
     if (!file || Object.keys(file).length === 0) {
       throw new ForbiddenException(getMessage(reqMsg, lang));
     }
