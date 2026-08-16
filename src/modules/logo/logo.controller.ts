@@ -2,7 +2,6 @@ import {
   Controller,
   Post,
   Body,
-  UploadedFile,
   UseInterceptors,
   UseGuards,
   Request,
@@ -11,8 +10,11 @@ import {
   Delete,
   Get,
   Query,
+  UploadedFiles,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  FileFieldsInterceptor,
+} from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 import { LogoService } from './logo.service';
 import { CreateLogoDto } from './dto/create-logo.dto';
@@ -36,7 +38,7 @@ import { LogoType } from '../../enums/logoType.enum';
 
 @Controller(ApiPaths.Logo.Root)
 export class LogoController {
-  constructor(private readonly logoService: LogoService) {}
+  constructor(private readonly logoService: LogoService) { }
 
   @RequirePermissions(Permission.LOGOS_READ)
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
@@ -78,28 +80,51 @@ export class LogoController {
   @RequirePermissions(Permission.LOGOS_CREATE)
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Post(ApiPaths.Logo.Create)
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'image_ar', maxCount: 1 },
+      { name: 'image_en', maxCount: 1 },
+    ]),
+  )
   async createLogo(
-    @UploadedFile() image: Express.Multer.File,
+    @UploadedFiles()
+    files: {
+      image_ar?: Express.Multer.File[];
+      image_en?: Express.Multer.File[];
+    },
     @Request() req: any,
     @Body() body: CreateLogoDto,
   ) {
-    return this.logoService.create(req, body, image);
+    const image_ar = files.image_ar?.[0];
+    const image_en = files.image_en?.[0];
+
+    return this.logoService.create(req, body, image_ar, image_en);
   }
 
   @RequirePermissions(Permission.LOGOS_UPDATE)
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Put(ApiPaths.Logo.Update)
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'image_ar', maxCount: 1 },
+      { name: 'image_en', maxCount: 1 },
+    ]),
+  )
   async update(
-    @UploadedFile() image: Express.Multer.File,
+    @UploadedFiles()
+    files: {
+      image_ar?: Express.Multer.File[];
+      image_en?: Express.Multer.File[];
+    },
     @Request() req: any,
     @Body() body: UpdateLogoDto,
     @Param() param: UpdateLogoParamsDto,
   ) {
     const { id } = param;
+    const image_ar = files?.image_ar?.[0];
+    const image_en = files?.image_en?.[0];
 
-    return this.logoService.update(req, body, image, id);
+    return this.logoService.update(req, body, id, image_ar, image_en);
   }
 
   @RequirePermissions(Permission.LOGOS_DELETE)

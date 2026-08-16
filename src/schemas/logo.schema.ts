@@ -1,18 +1,18 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
-
 import { MediaPreview } from './common.schema';
 import { LogoType } from '../enums/logoType.enum';
+import { TranslatedText } from '../types/common';
 
 export type LogoDocument = Logo & Document;
 
 @Schema({ collection: 'logo', timestamps: true })
 export class Logo extends Document {
-  @Prop({ required: true })
-  name?: string;
+  @Prop({ type: Object, required: true })
+  name?: TranslatedText;
 
-  @Prop({ required: true })
-  altText?: string;
+  @Prop({ type: Object, required: true })
+  altText?: TranslatedText;
 
   @Prop({
     type: String,
@@ -23,13 +23,13 @@ export class Logo extends Document {
   type: LogoType;
 
   @Prop({
-    type: {
-      id: { type: MongooseSchema.Types.ObjectId, ref: 'Media' },
-      url: { type: String },
-    },
-    required: false,
+    type: Object,
+    required: true,
   })
-  media?: MediaPreview;
+  media?: {
+    ar: MediaPreview;
+    en: MediaPreview;
+  };
 
   @Prop({ default: true })
   isActive: boolean;

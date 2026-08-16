@@ -11,7 +11,6 @@ import { UpdateLogoDto } from './dto/update-logo.dto';
 import { DeleteLogoDto } from './dto/delete-logo.dto';
 import { UnDeleteLogoBodyDto } from './dto/unDelete-logo.dto';
 import { HistoryService } from '../history/history.service';
-import { AppConfigService } from '../appConfig/appConfig.service';
 import { Logo, LogoDocument } from '../../schemas/logo.schema';
 import { Locale } from '../../types/Locale';
 import {
@@ -39,13 +38,13 @@ export class LogoService {
     private logoModel: Model<LogoDocument>,
     private mediaService: MediaService,
     private historyService: HistoryService,
-    private appConfigService: AppConfigService,
   ) {
     this.defaultLogoId = process.env.DEFAULT_LOGO_ID;
   }
 
-  private async activateDefaultLogo() {
+  private async activateDefaultLogo(type: LogoType) {
     const existingDefault = await this.logoModel.findOne({
+      type,
       isDefault: true,
       isDeleted: false,
       isActive: true,
@@ -55,11 +54,12 @@ export class LogoService {
 
     // 2. Find eligible logos
     const eligibleLogos = await this.logoModel.find({
+      type,
       isDeleted: false,
     });
 
     if (!eligibleLogos.length) {
-      console.warn('[FALLBACK] No eligible logos to set as default');
+      console.warn(`[FALLBACK] No eligible logos of type ${type} to set as default`);
       return;
     }
 
@@ -67,7 +67,7 @@ export class LogoService {
       eligibleLogos[Math.floor(Math.random() * eligibleLogos.length)];
 
     await this.logoModel.updateMany(
-      { isDefault: true },
+      { type, isDefault: true },
       { $set: { isDefault: false } },
     );
 
@@ -76,7 +76,9 @@ export class LogoService {
       isActive: true,
     });
 
-    console.log(`[FALLBACK] Random default logo selected: ${randomLogo._id}`);
+    console.log(
+      `[FALLBACK] Random default logo of type ${type} selected: ${randomLogo._id}`,
+    );
   }
 
   async getAll(
@@ -162,9 +164,12 @@ export class LogoService {
     };
   }
 
-  async getActiveLogo(lang?: Locale, type: LogoType = LogoType.MAIN,): Promise<DataResponse<Logo>> {
+  async getActiveLogo(
+    lang?: Locale,
+    type: LogoType = LogoType.MAIN,
+  ): Promise<DataResponse<Logo>> {
     const logo = await this.logoModel
-      .findOne({type, isActive: true, isDeleted: false })
+      .findOne({ type, isActive: true, isDeleted: false })
       .populate('deletedBy', 'firstName lastName email _id')
       .populate('unDeletedBy', 'firstName lastName email _id')
       .populate('createdBy', 'firstName lastName email _id')
@@ -184,9 +189,10 @@ export class LogoService {
   async create(
     req: any,
     dto: CreateLogoDto,
-    image: Express.Multer.File,
+    image_ar?: Express.Multer.File,
+    image_en?: Express.Multer.File,
   ): Promise<DataResponse<Logo>> {
-    const { lang, name, altText } = dto;
+    const { lang, name_ar, name_en, altText_ar, altText_en, type } = dto;
 
     validateUserRoleAccess(req?.user, lang);
 
@@ -197,43 +203,52 @@ export class LogoService {
     );
 
     const existingLogo = await this.logoModel.findOne({
-      $or: [{ name }, { altText }],
+      $or: [
+        { 'name.ar': name_ar },
+        { 'name.en': name_en },
+        { 'altText.ar': altText_ar },
+        { 'altText.en': altText_en },
+      ],
     });
 
     if (existingLogo) {
       throw new BadRequestException(getMessage('logo_logoAlreadyExists', lang));
     }
 
-    const activeLogo = await this.logoModel.findOne({ isActive: true });
+    const activeLogo = await this.logoModel.findOne({ type, isActive: true });
 
     if (activeLogo) {
       activeLogo.isActive = false;
       await activeLogo.save();
     }
 
-    let createdMedia: MediaPreview | undefined = undefined;
+    const media_ar = await this.mediaService.mediaProcessor({
+      file: image_ar,
+      reqMsg: 'logo_shouldHasArImage',
+      user: req?.user,
+      maxSize: MEDIA_CONFIG.LOGO.IMAGE.MAX_SIZE,
+      allowedTypes: MEDIA_CONFIG.LOGO.IMAGE.ALLOWED_TYPES,
+      lang,
+      key: Modules.LOGO,
+      req,
+    });
 
-    if (image && Object.keys(image).length > 0) {
-      const logoImage = await this.mediaService.mediaProcessor({
-        file: image,
-        reqMsg: 'logo_shouldHasImage',
-        user: req?.user,
-        maxSize: MEDIA_CONFIG.LOGO.IMAGE.MAX_SIZE,
-        allowedTypes: MEDIA_CONFIG.LOGO.IMAGE.ALLOWED_TYPES,
-        lang,
-        key: Modules.LOGO,
-        req,
-      });
-
-      if (logoImage) {
-        createdMedia = logoImage;
-      }
-    }
+    const media_en = await this.mediaService.mediaProcessor({
+      file: image_en,
+      reqMsg: 'logo_shouldHasEnImage',
+      user: req?.user,
+      maxSize: MEDIA_CONFIG.LOGO.IMAGE.MAX_SIZE,
+      allowedTypes: MEDIA_CONFIG.LOGO.IMAGE.ALLOWED_TYPES,
+      lang,
+      key: Modules.LOGO,
+      req,
+    });
 
     const logo = new this.logoModel({
-      media: createdMedia,
-      name,
-      altText,
+      media: { ar: media_ar, en: media_en },
+      name: { ar: name_ar, en: name_en },
+      type,
+      altText: { ar: altText_ar, en: altText_en },
       createdBy: req?.user?.userId,
       isActive: true,
       isDeleted: false,
@@ -263,10 +278,11 @@ export class LogoService {
   async update(
     req: any,
     dto: UpdateLogoDto,
-    image: Express.Multer.File,
     id: string,
+    image_ar?: Express.Multer.File,
+    image_en?: Express.Multer.File,
   ): Promise<DataResponse<Logo>> {
-    const { lang, name, altText } = dto;
+    const { lang, name_ar, name_en, altText_ar, altText_en, type } = dto;
 
     validateUserRoleAccess(req?.user, lang);
 
@@ -283,10 +299,16 @@ export class LogoService {
 
     const before = logoToUpdate.toObject();
 
-    if (name) {
+    const uniqueFields: any[] = [];
+    if (name_ar) uniqueFields.push({ 'name.ar': name_ar });
+    if (name_en) uniqueFields.push({ 'name.en': name_en });
+    if (altText_ar) uniqueFields.push({ 'altText.ar': altText_ar });
+    if (altText_en) uniqueFields.push({ 'altText.en': altText_en });
+
+    if (uniqueFields.length > 0) {
       const existingLogo = await this.logoModel.findOne({
         _id: { $ne: id },
-        name,
+        $or: uniqueFields,
       });
 
       if (existingLogo) {
@@ -296,35 +318,88 @@ export class LogoService {
       }
     }
 
-    let mediaObj: MediaPreview | undefined;
-
-    if (image) {
-      const result = await this.mediaService.hardDeleteAndUpload({
-        file: image,
-        user: req?.user,
-        reqMsg: 'logo_shouldHasImage',
-        maxSize: MEDIA_CONFIG.LOGO.IMAGE.MAX_SIZE,
-        allowedTypes: MEDIA_CONFIG.LOGO.IMAGE.ALLOWED_TYPES,
-        lang,
-        key: Modules.LOGO,
-        req,
-        existingMediaId: logoToUpdate.media.id,
-      });
-
-      mediaObj = result;
-    }
-
-    const updateData: Partial<Logo> = {
+    const updateData: any = {
       updatedBy: req?.user?.userId,
       updatedAt: new Date(),
     };
 
-    if (mediaObj && mediaObj.url !== logoToUpdate.media?.url) {
-      updateData.media = mediaObj;
+    if (image_ar || image_en) {
+      let media_ar: MediaPreview = undefined,
+        media_en: MediaPreview = undefined;
+
+      if (image_ar) {
+        const result = await this.mediaService.hardDeleteAndUpload({
+          file: image_ar,
+          user: req?.user,
+          reqMsg: 'logo_shouldHasArImage',
+          maxSize: MEDIA_CONFIG.LOGO.IMAGE.MAX_SIZE,
+          allowedTypes: MEDIA_CONFIG.LOGO.IMAGE.ALLOWED_TYPES,
+          lang,
+          key: Modules.LOGO,
+          req,
+          existingMediaId: logoToUpdate.media?.ar?.id,
+        });
+
+        media_ar = result;
+      }
+
+      if (image_en) {
+        const result = await this.mediaService.hardDeleteAndUpload({
+          file: image_en,
+          user: req?.user,
+          reqMsg: 'logo_shouldHasEnImage',
+          maxSize: MEDIA_CONFIG.LOGO.IMAGE.MAX_SIZE,
+          allowedTypes: MEDIA_CONFIG.LOGO.IMAGE.ALLOWED_TYPES,
+          lang,
+          key: Modules.LOGO,
+          req,
+          existingMediaId: logoToUpdate.media?.en?.id,
+        });
+
+        media_en = result;
+      }
+
+      updateData.media = {
+        ar: media_ar
+          ? { ...media_ar, id: new Types.ObjectId(media_ar.id) }
+          : logoToUpdate?.media?.ar,
+        en: media_en
+          ? { ...media_en, id: new Types.ObjectId(media_en.id) }
+          : logoToUpdate?.media?.en,
+      };
     }
 
-    if (name) updateData.name = name;
-    if (altText) updateData.altText = altText;
+    if (name_ar || name_en) {
+      updateData.name = {
+        ar: name_ar || logoToUpdate.name.ar,
+        en: name_en || logoToUpdate.name.en,
+      };
+    }
+
+    if (altText_ar || altText_en) {
+      updateData.altText = {
+        ar: altText_ar || logoToUpdate.altText.ar,
+        en: altText_en || logoToUpdate.altText.en,
+      };
+    }
+
+    if (type) {
+      updateData.type = type;
+
+      // If the type changes, and we want this logo to be active, we should deactivate the other active logo of this new type.
+      if (logoToUpdate.isActive) {
+        const activeLogo = await this.logoModel.findOne({
+          type,
+          isActive: true,
+          _id: { $ne: id },
+        });
+
+        if (activeLogo) {
+          activeLogo.isActive = false;
+          await activeLogo.save();
+        }
+      }
+    }
 
     const updatedLogo = await this.logoModel.findByIdAndUpdate(id, updateData, {
       new: true,
@@ -377,14 +452,12 @@ export class LogoService {
       throw new BadRequestException(getMessage('logo_logoNotFound', lang));
     }
 
-    const activeLogosCount = await this.logoModel.countDocuments({
-      isActive: true,
+    const totalCount = await this.logoModel.countDocuments({
+      type: logo.type,
       isDeleted: false,
     });
 
-    if (
-      activeLogosCount <= (this.appConfigService.config.minActiveLogos ?? 1)
-    ) {
+    if (totalCount <= 1) {
       throw new BadRequestException(
         getMessage('logo_atLeastOneLogoMustRemainActive', lang),
       );
@@ -398,7 +471,7 @@ export class LogoService {
 
     await logo.save();
 
-    await this.activateDefaultLogo();
+    await this.activateDefaultLogo(logo.type);
 
     // Log
     await this.historyService.log(
@@ -453,7 +526,7 @@ export class LogoService {
 
     await logo.save();
 
-    await this.activateDefaultLogo();
+    await this.activateDefaultLogo(logo.type);
 
     // Log
     await this.historyService.log(
@@ -494,12 +567,12 @@ export class LogoService {
     }
 
     if (!isActive) {
-      const activeCount = await this.logoModel.countDocuments({
-        isActive: true,
+      const totalCount = await this.logoModel.countDocuments({
+        type: logo.type,
         isDeleted: false,
       });
 
-      if (activeCount <= 1) {
+      if (totalCount <= 1) {
         throw new BadRequestException(
           getMessage('logo_atLeastOneLogoMustRemainActive', lang),
         );
@@ -509,7 +582,7 @@ export class LogoService {
         $set: { isActive: false },
       });
 
-      await this.activateDefaultLogo();
+      await this.activateDefaultLogo(logo.type);
     }
 
     if (isActive) {
@@ -519,9 +592,9 @@ export class LogoService {
         );
       }
 
-      // Deactivate all others
+      // Deactivate all others of the same type
       await this.logoModel.updateMany(
-        { _id: { $ne: id } },
+        { type: logo.type, _id: { $ne: id } },
         { $set: { isActive: false } },
       );
 
