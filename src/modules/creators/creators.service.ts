@@ -54,7 +54,7 @@ export class CreatorsService {
       lang,
     );
 
-    const query: any = { isDeleted: false };
+    const query: any = {};
 
     if (type) {
       query.type = type;
