@@ -320,5 +320,19 @@
   "userContext_contextRetrieved": "User's context data retrieved successfully",
   "permission_rolesPermissionsRetrievedSuccessfully": "Roles permissions data retrieved successfully",
   "permission_permissionsRetrievedSuccessfully": "Permissions data retrieved successfully",
-  "permission_insufficientPermissions": "Insufficient permissions"
+  "permission_insufficientPermissions": "Insufficient permissions",
+  "creators_videosRetrievedSuccessfully": "Videos retrieved successfully",
+  "creators_activeVideosRetrievedSuccessfully": "Active videos retrieved successfully",
+  "creators_invalidVideoId": "Invalid video ID",
+  "creators_videoNotFound": "Video not found",
+  "creators_videoRetrievedSuccessfully": "Video retrieved successfully",
+  "creators_videoAlreadyExists": "Video title already exists",
+  "creators_shouldHasVideoFile": "Video file is required",
+  "creators_videoCreatedSuccessfully": "Video created successfully",
+  "creators_videoUpdatedSuccessfully": "Video updated successfully",
+  "creators_videoDeletedSuccessfully": "Video deleted successfully",
+  "creators_videoUnDeletedSuccessfully": "Video restored successfully",
+  "creators_videoActivatedSuccessfully": "Video activated successfully",
+  "creators_videoDeactivatedSuccessfully": "Video deactivated successfully",
+  "creators_atLeastOneVideoMustRemainActive": "At least one video of this type must remain active"
 }

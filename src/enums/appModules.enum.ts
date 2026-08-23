@@ -8,4 +8,5 @@ export enum Modules {
   LOCATION = 'Location',
   LOGO = 'Logo',
   BANNER = 'Banner',
+  CREATORS = 'Creators',
 }

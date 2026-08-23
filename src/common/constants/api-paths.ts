@@ -96,6 +96,17 @@ export const ApiPaths = {
     UnDelete: 'un-delete/:id',
     UpdateStatus: 'status/:id',
   },
+  Creators: {
+    Root: '/api/v1/creators',
+    GetAllVideos: 'video/all',
+    GetActiveVideos: 'video/active',
+    GetVideo: 'video/:id',
+    CreateVideo: 'video/create',
+    UpdateVideo: 'video/update/:id',
+    DeleteVideo: 'video/delete/:id',
+    UnDeleteVideo: 'video/un-delete/:id',
+    UpdateVideoStatus: 'video/status/:id',
+  },
   Showcase: {
     Root: '/api/v1/showcase',
     GetAll: 'all',

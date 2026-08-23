@@ -41,6 +41,12 @@ export const MEDIA_CONFIG = {
       MAX_SIZE: 5 * 1024 * 1024,
     },
   },
+  CREATORS: {
+    VIDEO: {
+      ALLOWED_TYPES: ['mp4', 'mkv', 'webm', 'avi', 'mov'],
+      MAX_SIZE: 150 * 1024 * 1024,
+    },
+  },
   OTHERS: {
     ANY: {
       ALLOWED_TYPES: ['*'], 

@@ -30,6 +30,7 @@ import { UserContextModule } from './modules/userContext/userContext.module';
 import { AuthJwtModule } from './modules/auth-jwt/auth-jwt.module';
 import { AppConfigModule } from './modules/appConfig/appConfig.module';
 import { PermissionModule } from './modules/permission/permission.module';
+import { CreatorsModule } from './modules/creators/creators.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { PermissionModule } from './modules/permission/permission.module';
     UserContextModule,
     AppConfigModule,
     PermissionModule,
+    CreatorsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

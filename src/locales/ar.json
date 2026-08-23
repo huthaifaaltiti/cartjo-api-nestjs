@@ -314,5 +314,19 @@
   "userContext_contextRetrieved": "تم استرداد بيانات سياق المستخدم بنجاح",
   "permission_rolesPermissionsRetrievedSuccessfully": "تم استرجاع بيانات صلاحيات الأدوار بنجاح",
   "permission_permissionsRetrievedSuccessfully": "تم استرجاع بيانات الصلاحيات بنجاح",
-  "permission_insufficientPermissions": "صلاحيات غير كافية"
+  "permission_insufficientPermissions": "صلاحيات غير كافية",
+  "creators_videosRetrievedSuccessfully": "تم استرداد الفيديوهات بنجاح",
+  "creators_activeVideosRetrievedSuccessfully": "تم استرداد الفيديوهات النشطة بنجاح",
+  "creators_invalidVideoId": "معرّف الفيديو غير صالح",
+  "creators_videoNotFound": "الفيديو غير موجود",
+  "creators_videoRetrievedSuccessfully": "تم استرداد الفيديو بنجاح",
+  "creators_videoAlreadyExists": "عنوان الفيديو موجود بالفعل",
+  "creators_shouldHasVideoFile": "ملف الفيديو مطلوب",
+  "creators_videoCreatedSuccessfully": "تم إنشاء الفيديو بنجاح",
+  "creators_videoUpdatedSuccessfully": "تم تحديث الفيديو بنجاح",
+  "creators_videoDeletedSuccessfully": "تم حذف الفيديو بنجاح",
+  "creators_videoUnDeletedSuccessfully": "تم استعادة الفيديو بنجاح",
+  "creators_videoActivatedSuccessfully": "تم تفعيل الفيديو بنجاح",
+  "creators_videoDeactivatedSuccessfully": "تم إلغاء تفعيل الفيديو بنجاح",
+  "creators_atLeastOneVideoMustRemainActive": "يجب أن يبقى فيديو واحد على الأقل من هذا النوع نشطًا"
 }

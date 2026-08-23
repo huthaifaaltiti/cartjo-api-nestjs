@@ -112,4 +112,13 @@ export enum Permission {
 
   // Dashboard
   DASHBOARD_ACCESS = 'dashboard.access',
+
+  // Creators Videos
+  CREATORS_VIDEOS_READ = 'creators_videos.read',
+  CREATORS_VIDEOS_CREATE = 'creators_videos.create',
+  CREATORS_VIDEOS_UPDATE = 'creators_videos.update',
+  CREATORS_VIDEOS_DELETE = 'creators_videos.delete',
+  CREATORS_VIDEOS_RESTORE = 'creators_videos.restore',
+  CREATORS_VIDEOS_ACTIVATE = 'creators_videos.activate',
+  CREATORS_VIDEOS_DEACTIVATE = 'creators_videos.deactivate',
 }

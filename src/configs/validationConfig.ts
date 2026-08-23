@@ -25,6 +25,10 @@ export const validationConfig = {
     bannerLinkMinChars: 5,
     bannerLinkMaxChars: 255,
   },
+  creators: {
+    titleMinChars: 3,
+    titleMaxChars: 100,
+  },
   showcase: {
     titleMinChars: 2,
     titleMaxChars: 100,

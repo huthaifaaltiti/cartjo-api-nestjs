@@ -94,6 +94,15 @@ const ADMIN_PERMISSIONS: Permission[] = [
   // Profile
   Permission.PROFILE_READ,
   Permission.PROFILE_UPDATE,
+
+  // Creators Videos
+  Permission.CREATORS_VIDEOS_READ,
+  Permission.CREATORS_VIDEOS_CREATE,
+  Permission.CREATORS_VIDEOS_UPDATE,
+  Permission.CREATORS_VIDEOS_DELETE,
+  Permission.CREATORS_VIDEOS_RESTORE,
+  Permission.CREATORS_VIDEOS_ACTIVATE,
+  Permission.CREATORS_VIDEOS_DEACTIVATE,
 ];
 
 const USER_PERMISSIONS: Permission[] = [
