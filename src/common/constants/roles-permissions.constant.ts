@@ -129,10 +129,18 @@ const USER_PERMISSIONS: Permission[] = [
   Permission.CART_UPDATE,
 ];
 
+const CREATOR_PERMISSIONS: Permission[] = [
+  Permission.PROFILE_READ,
+  Permission.PROFILE_UPDATE,
+  Permission.CREATORS_DASHBOARD_ACCESS,
+];
+
 export const RolePermissions: Record<UserRole, Permission[]> = {
   [UserRole.OWNER]: ADMIN_PERMISSIONS,
 
   [UserRole.ADMINISTRATOR]: ADMIN_PERMISSIONS,
 
   [UserRole.USER]: USER_PERMISSIONS,
+
+  [UserRole.CREATOR]: CREATOR_PERMISSIONS,
 };

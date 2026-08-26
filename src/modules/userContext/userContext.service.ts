@@ -34,7 +34,7 @@ export class UserContextService {
   }): Promise<DataResponse<any>> {
     checkRequiredPermissions(
       user?.permissions,
-      [Permission.USERS_READ, Permission.PROFILE_READ],
+      [Permission.PROFILE_READ],
       query.lang,
     );
 

@@ -12,3 +12,4 @@ export { orderCanceledTemplate } from './order-canceled.template';
 export { orderReturnedTemplate } from './order-returned.template';
 export { passwordChangedTemplate } from './password-changed.template';
 export { emailVerifiedTemplate } from './email-verified.template';
+export { creatorRegistrationTemplate } from './creator-registration.template';

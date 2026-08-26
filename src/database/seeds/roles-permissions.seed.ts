@@ -14,4 +14,8 @@ export const ROLES_PERMISSIONS_SEEDS = [
     role: UserRole.USER,
     permissions: RolePermissions[UserRole.USER],
   },
+  {
+    role: UserRole.CREATOR,
+    permissions: RolePermissions[UserRole.CREATOR],
+  },
 ];

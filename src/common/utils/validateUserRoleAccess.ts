@@ -18,7 +18,7 @@ export const validateUserRoleAccess = (
   const { role } = requestingUser;
 
   const roleMap: Record<AccessLevel, UserRole[]> = {
-    user: [UserRole.USER],
+    user: [UserRole.USER, UserRole.CREATOR],
     admin: ALLOWED_AUTHENTICATED_ROLES,
   };
 

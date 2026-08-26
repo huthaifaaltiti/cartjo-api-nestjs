@@ -1,4 +1,9 @@
 export enum Permission {
+  // *** For Admin ***
+
+  // Dashboard Access
+  DASHBOARD_ACCESS = 'dashboard.access',
+
   // Users
   USERS_READ = 'users.read',
   USERS_CREATE = 'users.create',
@@ -82,7 +87,9 @@ export enum Permission {
   ORDERS_EXPORT = 'orders.export',
   ORDERS_CHANGE_PAYMENT_STATUS = 'orders.change_payment_status',
   ORDERS_CHANGE_DELIVERY_STATUS = 'orders.change_delivery_status',
+  // ************************************************************
 
+  // *** For User ***
   // Customer Orders
   ORDERS_READ_OWN = 'orders.read_own',
   ORDERS_CREATE_OWN = 'orders.create_own',
@@ -109,9 +116,12 @@ export enum Permission {
   // Cart
   CART_READ = 'cart.read',
   CART_UPDATE = 'cart.update',
+  // ************************************************************
 
-  // Dashboard
-  DASHBOARD_ACCESS = 'dashboard.access',
+  // *** For Creator ***
+
+  // Creators Dashboard
+  CREATORS_DASHBOARD_ACCESS = 'creators_dashboard.access',
 
   // Creators Videos
   CREATORS_VIDEOS_READ = 'creators_videos.read',

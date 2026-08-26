@@ -11,7 +11,7 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
 export class UserContextController {
   constructor(private readonly userContextService: UserContextService) {}
 
-  @RequirePermissions(Permission.USERS_READ, Permission.PROFILE_READ)
+  @RequirePermissions(Permission.PROFILE_READ)
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @Get(ApiPaths.UserContext.Get)
   async getUserContext(@Request() req: any, @Query() query: GetUserContextQuery) {

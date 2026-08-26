@@ -16,6 +16,7 @@ import {
   orderReturnedTemplate,
   passwordChangedTemplate,
   emailVerifiedTemplate,
+  creatorRegistrationTemplate,
 } from './email-templates';
 import { EmailTemplate } from '../../../schemas/email-template.schema';
 import { EmailTemplates } from '../../../enums/emailTemplates.enum';
@@ -33,6 +34,7 @@ export class EmailTemplateSeeder {
 
     // Authentication
     await this.seedUserRegistration();
+    await this.seedCreatorRegistration();
     await this.seedResendVerificationEmail();
     await this.seedResetPasswordEmail();
     await this.seedPasswordResetSuccessEmail();
@@ -61,6 +63,19 @@ export class EmailTemplateSeeder {
     });
 
     Logger.log('✅ User registration template created (EN & AR)');
+  }
+
+  private async seedCreatorRegistration() {
+    const name = EmailTemplates.CREATOR_REGISTRATION_CONFIRMATION;
+    const exists = await this.templateModel.findOne({ name });
+    if (exists) return Logger.log(`✅ "${name}" template already exists`);
+
+    await this.templateModel.create({
+      name,
+      ...creatorRegistrationTemplate,
+    });
+
+    Logger.log('✅ Creator registration template created (EN & AR)');
   }
 
   private async seedPrivacyPolicyUpdate() {

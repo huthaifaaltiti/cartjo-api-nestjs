@@ -10,6 +10,7 @@ import {
 } from 'class-validator';
 import { PreferredLanguage } from '../../../enums/preferredLanguage.enum';
 import { Locale } from '../../../types/Locale';
+import { UserRole } from '../../../enums/user-role.enum';
 
 export class RegisterDto {
   @IsString()
@@ -51,6 +52,10 @@ export class RegisterDto {
 
   @IsEnum(PreferredLanguage)
   preferredLang: PreferredLanguage;
+
+  @IsEnum(UserRole)
+  @IsOptional()
+  role?: UserRole = UserRole.USER;
 
   @IsString()
   lang: Locale;

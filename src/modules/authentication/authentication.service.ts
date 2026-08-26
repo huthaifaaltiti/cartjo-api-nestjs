@@ -113,6 +113,7 @@ export class AuthService {
       phoneNumber,
       countryCode,
       preferredLang,
+      role,
     } = dto;
 
     let newProfilePic: MediaPreview | undefined;
@@ -161,9 +162,9 @@ export class AuthService {
     }
 
     try {
-      const defaultRole = UserRole.USER;
+      const userRole = role === UserRole.CREATOR ? UserRole.CREATOR : UserRole.USER;
       const permissions =
-        await this.rolePermissionService.getPermissionsByRole(defaultRole);
+        await this.rolePermissionService.getPermissionsByRole(userRole);
 
       const username =
         (await generateUsername(firstName, lastName, this.userModel)) ||
@@ -189,7 +190,7 @@ export class AuthService {
         countryCode,
         phoneNumber,
         createdBy: process.env.DB_SYSTEM_OBJ_ID,
-        role: defaultRole,
+        role: userRole,
         permissions,
         profilePic: newProfilePic,
         preferredLang,
@@ -201,12 +202,20 @@ export class AuthService {
 
       // Send verification email (fire and forget — don't block response)
       if (user.email) {
+        const isCreator = user.role === UserRole.CREATOR;
+        const templateName = isCreator
+          ? EmailTemplates.CREATOR_REGISTRATION_CONFIRMATION
+          : EmailTemplates.USER_REGISTRATION_CONFIRMATION;
+        const confirmationUrl = isCreator
+          ? `${getAppUrl()}/creators/verify-email?token=${emailVerificationToken}`
+          : `${getAppUrl()}/verify-email?token=${emailVerificationToken}`;
+
         this.emailService.sendTemplateEmail({
           to: user.email,
-          templateName: EmailTemplates.USER_REGISTRATION_CONFIRMATION,
+          templateName,
           templateData: {
             firstName: user.firstName,
-            confirmationUrl: `${getAppUrl()}/verify-email?token=${emailVerificationToken}`,
+            confirmationUrl,
             ...commonEmailTemplateData(),
           },
           prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
