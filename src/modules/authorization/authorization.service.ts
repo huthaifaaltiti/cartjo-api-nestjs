@@ -91,20 +91,15 @@ export class AuthorizationService {
     const accessToken = this.authJwtService.signAccessToken(user, rememberMe);
     const { raw: refreshToken } = await this.createRefreshToken(user, meta);
 
+    const sessionUser = await this.userModel
+      .findById(user._id)
+      .select('-password -passwordMetadata')
+      .lean();
+
     return {
       accessToken,
       refreshToken,
-      user: {
-        id: (user._id as object).toString(),
-        email: user.email,
-        username: user.username,
-        role: user.role,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        profilePic: user.profilePic,
-        nationality: user.nationality,
-        gender: user?.gender
-      },
+      user: sessionUser as AuthResponseDto['user'],
     };
   }
 
@@ -178,12 +173,16 @@ export class AuthorizationService {
       lastLogin: new Date(),
     });
 
-    const authResponse = await this.generateAuthResponse(user, rememberMe, meta);
+    const authResponse = await this.generateAuthResponse(
+      user,
+      rememberMe,
+      meta,
+    );
 
     return {
       isSuccess: true,
       message: getMessage('authorization_successLogin', body.lang ?? 'en'),
-      data: authResponse
+      data: authResponse,
     };
   }
 

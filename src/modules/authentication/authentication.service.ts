@@ -82,18 +82,15 @@ export class AuthService {
     const { raw: refreshToken } =
       await this.authorizationService.createRefreshToken(user, meta);
 
+    const sessionUser = await this.userModel
+      .findById(user._id)
+      .select('-password -passwordMetadata')
+      .lean();
+
     return {
       accessToken,
       refreshToken,
-      user: {
-        id: (user._id as object).toString(),
-        email: user.email,
-        username: user.username,
-        role: user.role,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        profilePic: user.profilePic,
-      },
+      user: sessionUser as AuthResponseDto['user'],
     };
   }
 
@@ -162,7 +159,8 @@ export class AuthService {
     }
 
     try {
-      const userRole = role === UserRole.CREATOR ? UserRole.CREATOR : UserRole.USER;
+      const userRole =
+        role === UserRole.CREATOR ? UserRole.CREATOR : UserRole.USER;
       const permissions =
         await this.rolePermissionService.getPermissionsByRole(userRole);
 
