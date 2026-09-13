@@ -9,4 +9,5 @@ export enum Modules {
   LOGO = 'Logo',
   BANNER = 'Banner',
   CREATORS = 'Creators',
+  CREATOR_STORE = 'CreatorStore',
 }

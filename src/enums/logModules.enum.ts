@@ -12,4 +12,5 @@ export enum LogModule {
   TYPE_HINT_CONFIG = 'typeHintConfig',
   SHOWCASE = 'showcase',
   CREATORS = 'creators',
+  CREATOR_STORE = 'creatorStore',
 }

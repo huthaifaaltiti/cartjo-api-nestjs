@@ -13,3 +13,6 @@ export { orderReturnedTemplate } from './order-returned.template';
 export { passwordChangedTemplate } from './password-changed.template';
 export { emailVerifiedTemplate } from './email-verified.template';
 export { creatorRegistrationTemplate } from './creator-registration.template';
+export { creatorStoreCreatedTemplate } from './creator-store-created.template';
+export { creatorStoreUpdatedTemplate } from './creator-store-updated.template';
+export { creatorStoreHandleChangedTemplate } from './creator-store-handle-changed.template';

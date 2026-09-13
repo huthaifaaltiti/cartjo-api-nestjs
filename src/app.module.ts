@@ -31,6 +31,7 @@ import { AuthJwtModule } from './modules/auth-jwt/auth-jwt.module';
 import { AppConfigModule } from './modules/appConfig/appConfig.module';
 import { PermissionModule } from './modules/permission/permission.module';
 import { CreatorsModule } from './modules/creators/creators.module';
+import { CreatorStoreModule } from './modules/creatorStore/creatorStore.module';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { CreatorsModule } from './modules/creators/creators.module';
     AppConfigModule,
     PermissionModule,
     CreatorsModule,
+    CreatorStoreModule,
   ],
   controllers: [AppController],
   providers: [AppService],

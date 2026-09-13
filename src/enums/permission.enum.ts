@@ -76,6 +76,10 @@ export enum Permission {
   SHOWCASES_ACTIVATE = 'showcases.activate',
   SHOWCASES_DEACTIVATE = 'showcases.deactivate',
 
+  // App Config
+  APP_CONFIG_READ = 'app_config.read',
+  APP_CONFIG_UPDATE = 'app_config.update',
+
   // Orders
   ORDERS_READ = 'orders.read',
   ORDERS_CREATE = 'orders.create',
@@ -119,7 +123,6 @@ export enum Permission {
   // ************************************************************
 
   // *** For Creator ***
-
   // Creators Dashboard
   CREATORS_DASHBOARD_ACCESS = 'creators_dashboard.access',
 
@@ -131,4 +134,9 @@ export enum Permission {
   CREATORS_VIDEOS_RESTORE = 'creators_videos.restore',
   CREATORS_VIDEOS_ACTIVATE = 'creators_videos.activate',
   CREATORS_VIDEOS_DEACTIVATE = 'creators_videos.deactivate',
+
+  // Creator Store — self-service (for the Creator that owns the store)
+  CREATOR_STORE_CREATE_OWN = 'creator_store.create_own',
+  CREATOR_STORE_UPDATE_OWN = 'creator_store.update_own',
+  CREATOR_STORE_READ_OWN = 'creator_store.read_own',
 }

@@ -17,6 +17,10 @@ export const getEmailFromMapping = (): Record<string, string> => ({
   [EmailTemplates.ORDER_OUT_FOR_DELIVERY]:
     process.env.EMAIL_FROM_NOTIFICATIONS!,
   [EmailTemplates.ORDER_RETURNED]: process.env.EMAIL_FROM_NOTIFICATIONS!,
+  [EmailTemplates.CREATOR_STORE_CREATED]: process.env.EMAIL_FROM_NOTIFICATIONS!,
+  [EmailTemplates.CREATOR_STORE_UPDATED]: process.env.EMAIL_FROM_NOTIFICATIONS!,
+  [EmailTemplates.CREATOR_STORE_HANDLE_CHANGED]:
+    process.env.EMAIL_FROM_NOTIFICATIONS!,
 
   // SYSTEM
   [EmailTemplates.PRIVACY_POLICY_UPDATE]: process.env.EMAIL_FROM_SYSTEM!,

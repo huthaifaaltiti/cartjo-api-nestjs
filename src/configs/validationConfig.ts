@@ -1,3 +1,5 @@
+import reservedHandles from './reservedHandles.config';
+
 export const validationConfig = {
   password: {
     min: 8,
@@ -28,6 +30,36 @@ export const validationConfig = {
   creators: {
     titleMinChars: 3,
     titleMaxChars: 100,
+  },
+  creatorStore: {
+    nameMinChars: 2,
+    nameMaxChars: 60,
+    bioMinChars: 10,
+    bioMaxChars: 1000,
+    taglineMinChars: 3,
+    taglineMaxChars: 120,
+    handleMinChars: 5,
+    handleMaxChars: 30,
+    /** Slug-safe handle: letters, numbers, single dashes/underscores. */
+    handlePattern: /^[a-z0-9](?:[a-z0-9_-]{1,28}[a-z0-9])$/,
+    /** A live store may change its handle at most once per this many days. */
+    handleChangeCooldownDays: 30,
+    /** How many past handles to keep per store for redirects / squat-blocking. */
+    handleHistoryLimit: 10,
+    /**
+     * Handles nobody may take: reserved routes, brand terms and common traps.
+     * Kept lowercase — the handle is always normalised before the check.
+     */
+    reservedHandles: reservedHandles,
+    phoneMaxChars: 20,
+    policyMaxChars: 2000,
+    themeColorPattern: /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/,
+    minCommissionRate: 0,
+    maxCommissionRate: 100,
+    defaultCommissionRate: 10,
+    minOrderAmountMax: 1_000_000,
+    statusReasonMinChars: 3,
+    statusReasonMaxChars: 500,
   },
   showcase: {
     titleMinChars: 2,

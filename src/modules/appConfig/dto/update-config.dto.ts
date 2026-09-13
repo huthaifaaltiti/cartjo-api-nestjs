@@ -1,4 +1,4 @@
-import { IsBoolean, IsNumber, IsOptional, Min } from 'class-validator';
+import { IsBoolean, IsNumber, IsOptional, Max, Min } from 'class-validator';
 
 export class UpdateConfigDto {
   @IsOptional()
@@ -14,4 +14,15 @@ export class UpdateConfigDto {
   @IsOptional()
   @IsBoolean()
   allowCategoryDeletion?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  handleChangeCooldownDays?: number;
+  
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  defaultCreatorStoreCommissionRate?: number;
 }

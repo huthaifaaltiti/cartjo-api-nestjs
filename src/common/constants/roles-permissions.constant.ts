@@ -76,6 +76,10 @@ const ADMIN_PERMISSIONS: Permission[] = [
   Permission.SHOWCASES_ACTIVATE,
   Permission.SHOWCASES_DEACTIVATE,
 
+  // App Config
+  Permission.APP_CONFIG_READ,
+  Permission.APP_CONFIG_UPDATE,
+
   // Orders
   Permission.ORDERS_READ,
   Permission.ORDERS_UPDATE,
@@ -133,6 +137,11 @@ const CREATOR_PERMISSIONS: Permission[] = [
   Permission.PROFILE_READ,
   Permission.PROFILE_UPDATE,
   Permission.CREATORS_DASHBOARD_ACCESS,
+
+  // Own store
+  Permission.CREATOR_STORE_CREATE_OWN,
+  Permission.CREATOR_STORE_UPDATE_OWN,
+  Permission.CREATOR_STORE_READ_OWN,
 ];
 
 export const RolePermissions: Record<UserRole, Permission[]> = {

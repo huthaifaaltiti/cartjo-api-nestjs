@@ -17,6 +17,9 @@ import {
   passwordChangedTemplate,
   emailVerifiedTemplate,
   creatorRegistrationTemplate,
+  creatorStoreCreatedTemplate,
+  creatorStoreUpdatedTemplate,
+  creatorStoreHandleChangedTemplate,
 } from './email-templates';
 import { EmailTemplate } from '../../../schemas/email-template.schema';
 import { EmailTemplates } from '../../../enums/emailTemplates.enum';
@@ -35,6 +38,12 @@ export class EmailTemplateSeeder {
     // Authentication
     await this.seedUserRegistration();
     await this.seedCreatorRegistration();
+
+    // Creator Store
+    await this.seedCreatorStoreCreated();
+    await this.seedCreatorStoreUpdated();
+    await this.seedCreatorStoreHandleChanged();
+
     await this.seedResendVerificationEmail();
     await this.seedResetPasswordEmail();
     await this.seedPasswordResetSuccessEmail();
@@ -76,6 +85,36 @@ export class EmailTemplateSeeder {
     });
 
     Logger.log('✅ Creator registration template created (EN & AR)');
+  }
+
+  private async seedCreatorStoreCreated() {
+    const name = EmailTemplates.CREATOR_STORE_CREATED;
+    const exists = await this.templateModel.findOne({ name });
+    if (exists) return Logger.log(`✅ "${name}" template already exists`);
+
+    await this.templateModel.create({ name, ...creatorStoreCreatedTemplate });
+    Logger.log('✅ Creator store created template created (EN & AR)');
+  }
+
+  private async seedCreatorStoreUpdated() {
+    const name = EmailTemplates.CREATOR_STORE_UPDATED;
+    const exists = await this.templateModel.findOne({ name });
+    if (exists) return Logger.log(`✅ "${name}" template already exists`);
+
+    await this.templateModel.create({ name, ...creatorStoreUpdatedTemplate });
+    Logger.log('✅ Creator store updated template created (EN & AR)');
+  }
+
+  private async seedCreatorStoreHandleChanged() {
+    const name = EmailTemplates.CREATOR_STORE_HANDLE_CHANGED;
+    const exists = await this.templateModel.findOne({ name });
+    if (exists) return Logger.log(`✅ "${name}" template already exists`);
+
+    await this.templateModel.create({
+      name,
+      ...creatorStoreHandleChangedTemplate,
+    });
+    Logger.log('✅ Creator store handle-changed template created (EN & AR)');
   }
 
   private async seedPrivacyPolicyUpdate() {

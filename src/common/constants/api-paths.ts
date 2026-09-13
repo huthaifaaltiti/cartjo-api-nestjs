@@ -107,6 +107,23 @@ export const ApiPaths = {
     UnDeleteVideo: 'video/un-delete/:id',
     UpdateVideoStatus: 'video/status/:id',
   },
+  CreatorStore: {
+    Root: '/api/v1/creator-store',
+
+    // --- Public storefront ---
+    PublicGetAll: 'public/all',
+    PublicGetByHandle: 'public/handle/:handle',
+
+    // --- Creator self-service (owner of the store) ---
+    Create: 'create',
+    CheckHandleAvailability: 'handle-available/:handle',
+    Me: 'me',
+    ChangeHandle: 'change-handle',
+    Update: 'update',
+    UpdatePayoutInfo: 'payout-info',
+    UpdatePickupAddress: 'pickup-address',
+    SubmitForReview: 'submit-for-review',
+  },
   Showcase: {
     Root: '/api/v1/showcase',
     GetAll: 'all',

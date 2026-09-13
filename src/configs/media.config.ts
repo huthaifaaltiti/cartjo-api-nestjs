@@ -47,9 +47,19 @@ export const MEDIA_CONFIG = {
       MAX_SIZE: 150 * 1024 * 1024,
     },
   },
+  CREATOR_STORE: {
+    LOGO: {
+      ALLOWED_TYPES: ['webp', 'gif', 'avif', 'png', 'jpg', 'jpeg', 'tiff'],
+      MAX_SIZE: 1 * 1024 * 1024,
+    },
+    BANNER: {
+      ALLOWED_TYPES: ['webp', 'gif', 'avif', 'png', 'jpg', 'jpeg', 'tiff'],
+      MAX_SIZE: 3 * 1024 * 1024,
+    },
+  },
   OTHERS: {
     ANY: {
-      ALLOWED_TYPES: ['*'], 
+      ALLOWED_TYPES: ['*'],
       MAX_SIZE: null,
     },
   },
