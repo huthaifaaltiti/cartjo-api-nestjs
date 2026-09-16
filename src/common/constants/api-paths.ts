@@ -126,6 +126,7 @@ export const ApiPaths = {
 
     // --- Administration ---
     AdminGetAll: 'admin/all',
+    AdminGetOne: 'admin/:id',
     AdminGetCounts: 'admin/counts',
   },
   Showcase: {

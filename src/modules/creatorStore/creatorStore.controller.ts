@@ -19,7 +19,7 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { Permission } from '../../enums/permission.enum';
 import { CreatorStoreCreatorService } from './creatorStore.creator.service';
 import { CreateCreatorStoreDto } from './dto/create-store.dto';
-import { HandleParamDto, LangDto } from './dto/params.dto';
+import { HandleParamDto, IdParamDto, LangDto } from './dto/params.dto';
 import { ChangeHandleDto } from './dto/handle.dto';
 import { UpdateCreatorStoreDto } from './dto/update-store.dto';
 import { UpdatePayoutInfoDto } from './dto/payout-info.dto';
@@ -152,5 +152,16 @@ export class CreatorStoreController {
   @Get(ApiPaths.CreatorStore.AdminGetCounts)
   async adminGetCounts(@Query() query: LangDto, @Request() req: any) {
     return this.adminService.adminGetCounts(req.user, query);
+  }
+
+  @RequirePermissions(Permission.CREATOR_STORES_READ)
+  @UseGuards(JWT, PermissionsGuard)
+  @Get(ApiPaths.CreatorStore.AdminGetOne)
+  async adminGetOne(
+    @Param() param: IdParamDto,
+    @Query() query: LangDto,
+    @Request() req: any,
+  ) {
+    return this.adminService.adminGetOne(req.user, param.id, query.lang);
   }
 }

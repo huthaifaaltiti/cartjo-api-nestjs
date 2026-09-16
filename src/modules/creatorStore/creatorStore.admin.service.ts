@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import {
@@ -13,10 +13,11 @@ import {
   DataResponse,
 } from '../../types/service-response.type';
 import { AdminGetStoresQueryDto } from './dto/list.dto';
-import { Locale } from '../../enums/locale.enum';
+import { Locale as LocaleEnum } from '../../enums/locale.enum';
 import { LangDto } from './dto/params.dto';
 import { CreatorStoreStatus } from '../../enums/creatorStoreStatus.enum';
 import { AdminStoreCounts } from '../../types/creators/creator-store.types';
+import { Locale } from '../../types/Locale';
 
 @Injectable()
 export class CreatorStoreAdminService {
@@ -29,7 +30,7 @@ export class CreatorStoreAdminService {
     user: any,
     query: AdminGetStoresQueryDto,
   ): Promise<DataListResponse<CreatorStore>> {
-    const { lang = Locale.EN, limit = '10', lastId, search } = query;
+    const { lang = LocaleEnum.EN, limit = '10', lastId, search } = query;
 
     checkRequiredPermissions(
       user?.permissions,
@@ -85,7 +86,7 @@ export class CreatorStoreAdminService {
     user: any,
     query: LangDto,
   ): Promise<DataResponse<AdminStoreCounts>> {
-    const { lang = Locale.EN } = query;
+    const { lang = LocaleEnum.EN } = query;
 
     checkRequiredPermissions(
       user?.permissions,
@@ -129,6 +130,45 @@ export class CreatorStoreAdminService {
         suspended: counts?.suspended ?? 0,
         unverified: counts?.unverified ?? 0,
       },
+    };
+  }
+
+  async adminGetOne(
+    user: any,
+    id: string,
+    lang: Locale = LocaleEnum.EN,
+  ): Promise<DataResponse<CreatorStore>> {
+    checkRequiredPermissions(
+      user?.permissions,
+      [Permission.CREATOR_STORES_READ],
+      lang,
+    );
+
+    if (!Types.ObjectId.isValid(id)) {
+      throw new NotFoundException(
+        getMessage('creatorStore_invalidStoreId', lang),
+      );
+    }
+
+    const store = await this.storeModel
+      .findById(id)
+      .select('+payoutInfo +taxId +registrationNumber +internalNotes')
+      .populate('ownerId', 'firstName lastName email phoneNumber _id')
+      .populate('verifiedBy', 'firstName lastName email _id')
+      .populate('suspendedBy', 'firstName lastName email _id')
+      .populate('reviewedBy', 'firstName lastName email _id')
+      .lean();
+
+    if (!store) {
+      throw new NotFoundException(
+        getMessage('creatorStore_storeNotFound', lang),
+      );
+    }
+
+    return {
+      isSuccess: true,
+      message: getMessage('creatorStore_storeRetrievedSuccessfully', lang),
+      data: store as any,
     };
   }
 }

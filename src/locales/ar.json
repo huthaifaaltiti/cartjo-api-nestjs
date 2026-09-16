@@ -356,5 +356,6 @@
   "creatorStore_cannotSubmitFromCurrentStatus": "لا يمكن إرسال المتجر للمراجعة من حالته الحالية",
   "creatorStore_submittedForReviewSuccessfully": "تم إرسال المتجر للمراجعة بنجاح",
   "creatorStore_storesRetrievedSuccessfully":"تم استرداد متاجر المبدعين بنجاح",
-  "creatorStore_storeCountsRetrievedSuccessfully":"تم استرداد إحصائيات متاجر المبدعين بنجاح"
+  "creatorStore_storeCountsRetrievedSuccessfully":"تم استرداد إحصائيات متاجر المبدعين بنجاح",
+  "creatorStore_invalidStoreId": "المعرف غير صحيح"
 }

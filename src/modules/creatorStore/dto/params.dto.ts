@@ -7,13 +7,14 @@ import {
 } from 'class-validator';
 import { Locale } from '../../../types/Locale';
 import { validationConfig } from '../../../configs/validationConfig';
+import { Locale as LocaleEnum } from '../../../enums/locale.enum';
 
 const { handlePattern } = validationConfig.creatorStore;
 
 export class LangDto {
   @IsOptional()
   @IsString()
-  lang?: Locale = 'en';
+  lang?: Locale = LocaleEnum.EN;
 }
 
 export class IdParamDto {
