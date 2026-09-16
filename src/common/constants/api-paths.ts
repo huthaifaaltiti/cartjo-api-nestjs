@@ -123,6 +123,10 @@ export const ApiPaths = {
     UpdatePayoutInfo: 'payout-info',
     UpdatePickupAddress: 'pickup-address',
     SubmitForReview: 'submit-for-review',
+
+    // --- Administration ---
+    AdminGetAll: 'admin/all',
+    AdminGetCounts: 'admin/counts',
   },
   Showcase: {
     Root: '/api/v1/showcase',

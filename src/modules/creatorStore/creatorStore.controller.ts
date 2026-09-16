@@ -25,13 +25,19 @@ import { UpdateCreatorStoreDto } from './dto/update-store.dto';
 import { UpdatePayoutInfoDto } from './dto/payout-info.dto';
 import { UpdatePickupAddressDto } from './dto/pickup-address.dto';
 import { SubmitForReviewDto } from './dto/lifecycle.dto';
+import { CreatorStoreAdminService } from './creatorStore.admin.service';
+import { AdminGetStoresQueryDto } from './dto/list.dto';
 
 const JWT = AuthGuard('jwt');
 
 @Controller(ApiPaths.CreatorStore.Root)
 export class CreatorStoreController {
-  constructor(private readonly creatorService: CreatorStoreCreatorService) {}
+  constructor(
+    private readonly creatorService: CreatorStoreCreatorService,
+    private readonly adminService: CreatorStoreAdminService,
+  ) {}
 
+  /* Users */
   @RequirePermissions(Permission.CREATOR_STORE_CREATE_OWN)
   @UseGuards(JWT, PermissionsGuard)
   @Post(ApiPaths.CreatorStore.Create)
@@ -127,5 +133,24 @@ export class CreatorStoreController {
   @Put(ApiPaths.CreatorStore.SubmitForReview)
   async submitForReview(@Body() body: SubmitForReviewDto, @Request() req: any) {
     return this.creatorService.submitForReview(req, body);
+  }
+
+  /*  Administration  */
+  @RequirePermissions(Permission.CREATOR_STORES_READ)
+  @UseGuards(JWT, PermissionsGuard)
+  @Get(ApiPaths.CreatorStore.AdminGetAll)
+  async adminGetAll(
+    @Query() query: AdminGetStoresQueryDto,
+    @Request() req: any,
+  ) {
+    return this.adminService.adminGetAll(req.user, query);
+  }
+
+  /*  Administration  */
+  @RequirePermissions(Permission.CREATOR_STORES_READ)
+  @UseGuards(JWT, PermissionsGuard)
+  @Get(ApiPaths.CreatorStore.AdminGetCounts)
+  async adminGetCounts(@Query() query: LangDto, @Request() req: any) {
+    return this.adminService.adminGetCounts(req.user, query);
   }
 }

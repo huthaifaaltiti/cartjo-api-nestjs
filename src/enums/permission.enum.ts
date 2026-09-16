@@ -135,7 +135,10 @@ export enum Permission {
   CREATORS_VIDEOS_ACTIVATE = 'creators_videos.activate',
   CREATORS_VIDEOS_DEACTIVATE = 'creators_videos.deactivate',
 
-  // Creator Store — self-service (for the Creator that owns the store)
+  // Creators Stores
+  CREATOR_STORES_READ = 'creator_stores.read',
+
+  // Creator (USER)
   CREATOR_STORE_CREATE_OWN = 'creator_store.create_own',
   CREATOR_STORE_UPDATE_OWN = 'creator_store.update_own',
   CREATOR_STORE_READ_OWN = 'creator_store.read_own',

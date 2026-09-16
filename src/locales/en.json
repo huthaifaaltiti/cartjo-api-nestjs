@@ -360,5 +360,7 @@
   "creatorStore_pickupAddressUpdatedSuccessfully": "Pickup address updated successfully",
   "creatorStore_incompleteProfileForReview": "The store profile is incomplete and cannot be submitted for review",
   "creatorStore_cannotSubmitFromCurrentStatus": "The store cannot be submitted for review from its current status",
-  "creatorStore_submittedForReviewSuccessfully": "Store submitted for review successfully"
+  "creatorStore_submittedForReviewSuccessfully": "Store submitted for review successfully",
+  "creatorStore_storesRetrievedSuccessfully":"Creators stores retrieved successfully",
+  "creatorStore_storeCountsRetrievedSuccessfully":"Creators stores counts retrieved successfully"
 }

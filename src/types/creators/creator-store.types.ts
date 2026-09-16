@@ -47,3 +47,11 @@ export interface HandleChangeCooldownDetails {
   nextChangeAllowedAt: string;
   cooldownDays: number;
 }
+
+export interface AdminStoreCounts {
+  all: number;
+  pending: number;
+  approved: number;
+  suspended: number;
+  unverified: number;
+}

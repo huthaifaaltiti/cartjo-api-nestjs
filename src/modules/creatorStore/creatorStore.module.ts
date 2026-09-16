@@ -13,6 +13,7 @@ import { MediaModule } from '../media/media.module';
 import { HistoryModule } from '../history/history.module';
 import { EmailModule } from '../email/email.module';
 import { AppConfigModule } from '../appConfig/appConfig.module';
+import { CreatorStoreAdminService } from './creatorStore.admin.service';
 
 @Module({
   imports: [
@@ -30,10 +31,12 @@ import { AppConfigModule } from '../appConfig/appConfig.module';
   providers: [
     CreatorStoreSharedService,
     CreatorStoreCreatorService,
+    CreatorStoreAdminService,
   ],
   exports: [
     CreatorStoreSharedService,
     CreatorStoreCreatorService,
+    CreatorStoreAdminService,
   ],
 })
 export class CreatorStoreModule {}
