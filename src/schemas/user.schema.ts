@@ -266,6 +266,15 @@ export class User extends Document {
   @Prop({ default: false })
   isEmailVerified?: boolean;
 
+  @Prop({ type: Date, default: null })
+  lastVerificationEmailSentAt?: Date;
+
+  @Prop({ type: Date, default: null })
+  verificationEmailHourStartedAt?: Date;
+
+  @Prop({ type: Number, default: 0 })
+  verificationEmailHourlyCount?: number;
+
   @Prop({ type: Object })
   defaultShippingAddress?: DefaultShippingAddress;
 }

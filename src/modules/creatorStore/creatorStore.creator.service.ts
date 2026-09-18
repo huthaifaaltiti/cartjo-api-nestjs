@@ -79,7 +79,7 @@ export class CreatorStoreCreatorService {
 
     const dbUser = await this.userModel
       .findById(user?.userId)
-      .select('_id role isDeleted isActive')
+      .select('_id role isDeleted isActive isEmailVerified')
       .lean();
 
     if (
@@ -170,6 +170,8 @@ export class CreatorStoreCreatorService {
       businessType: dto.businessType ?? undefined,
       registrationNumber: dto.registrationNumber ?? null,
       taxId: dto.taxId ?? null,
+      isVerified: Boolean(dbUser?.isEmailVerified),
+      verifiedAt: dbUser?.isEmailVerified ? new Date() : null,
       status: CreatorStoreStatus.DRAFT,
       createdBy: ownerId,
     });
@@ -267,10 +269,18 @@ export class CreatorStoreCreatorService {
       );
     }
 
+    const userDoc = await this.userModel
+      .findById(user.userId)
+      .select('isEmailVerified')
+      .lean();
+
+    const presented = this.shared.presentForOwner(store);
+    presented.isEmailVerified = userDoc?.isEmailVerified ?? false;
+
     return {
       isSuccess: true,
       message: getMessage('creatorStore_storeRetrievedSuccessfully', lang),
-      data: this.shared.presentForOwner(store),
+      data: presented,
     };
   }
 
@@ -841,6 +851,24 @@ export class CreatorStoreCreatorService {
       [Permission.CREATOR_STORE_UPDATE_OWN],
       lang,
     );
+
+    const userDoc = await this.userModel
+      .findById(user.userId)
+      .select('isEmailVerified email');
+
+    if (!userDoc) {
+      throw new NotFoundException(
+        getMessage('authentication_userNotFound', lang),
+      );
+    }
+
+    if (!userDoc.isEmailVerified) {
+      throw new BadRequestException({
+        isSuccess: false,
+        message: getMessage('creatorStore_emailMustBeVerifiedToSubmit', lang),
+        errorCode: 'EMAIL_NOT_VERIFIED',
+      });
+    }
 
     const store = await this.shared.getOwnStoreDoc(user.userId, lang, true);
 

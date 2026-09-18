@@ -28,6 +28,8 @@
   "authentication_tooManyFailedAttemptsAccountLocked": "Too Many Failed Attempts Account Locked",
   "authentication_accountLockedTemporarily": "Your Account is Locked Temporarily for ",
   "authentication_emailAlreadyVerified": "Your email is already verified",
+  "authentication_resendCooldown": "Please wait {seconds} seconds before requesting another verification email",
+  "authentication_resendHourlyLimitReached": "You have reached the maximum number of verification email requests (5 per hour). Please try again in {minutes} minutes",
   "authentication_verificationEmailSent": "A verification email was sent to you",
   "authentication_invalidOrExpiredRefreshToken": "Invalid or expired refresh token",
   "authentication_invalidRefreshToken": "Invalid refresh token",
@@ -363,5 +365,6 @@
   "creatorStore_submittedForReviewSuccessfully": "Store submitted for review successfully",
   "creatorStore_storesRetrievedSuccessfully": "Creators stores retrieved successfully",
   "creatorStore_storeCountsRetrievedSuccessfully": "Creators stores counts retrieved successfully",
-  "creatorStore_invalidStoreId": "Invalid creator store ID"
+  "creatorStore_invalidStoreId": "Invalid creator store ID",
+  "creatorStore_emailMustBeVerifiedToSubmit": "Please verify your email address before submitting your store for review"
 }

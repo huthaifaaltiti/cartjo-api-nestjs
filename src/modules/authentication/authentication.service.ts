@@ -23,6 +23,10 @@ import { OAuth2Client } from 'google-auth-library';
 import { Response } from 'express';
 import { AuthJwtService } from '../auth-jwt/auth-jwt.service';
 import { User, UserDocument } from '../../schemas/user.schema';
+import {
+  CreatorStore,
+  CreatorStoreDocument,
+} from '../../schemas/creatorStore.schema';
 import { buildGoogleOAuthConfig } from '../../configs/google-oauth.config';
 import { MediaPreview } from '../../schemas/common.schema';
 import { MEDIA_CONFIG } from '../../configs/media.config';
@@ -53,6 +57,8 @@ export class AuthService {
   constructor(
     @InjectModel(User.name)
     private userModel: Model<UserDocument>,
+    @InjectModel(CreatorStore.name)
+    private creatorStoreModel: Model<CreatorStoreDocument>,
 
     private authJwtService: AuthJwtService,
     private authorizationService: AuthorizationService,
@@ -196,6 +202,9 @@ export class AuthService {
         verificationChannels: [],
         emailVerificationToken,
         emailVerificationTokenExpires,
+        lastVerificationEmailSentAt: new Date(),
+        verificationEmailHourStartedAt: new Date(),
+        verificationEmailHourlyCount: 1,
       });
 
       // Send verification email (fire and forget — don't block response)
@@ -204,9 +213,13 @@ export class AuthService {
         const templateName = isCreator
           ? EmailTemplates.CREATOR_REGISTRATION_CONFIRMATION
           : EmailTemplates.USER_REGISTRATION_CONFIRMATION;
+        const prefLang =
+          user?.preferredLang ||
+          (lang as PreferredLanguage) ||
+          PreferredLanguage.ARABIC;
         const confirmationUrl = isCreator
-          ? `${getAppUrl()}/creators/verify-email?token=${emailVerificationToken}`
-          : `${getAppUrl()}/verify-email?token=${emailVerificationToken}`;
+          ? `${getAppUrl()}/${prefLang}/creators/verify-email?token=${emailVerificationToken}`
+          : `${getAppUrl()}/${prefLang}/verify-email?token=${emailVerificationToken}`;
 
         this.emailService.sendTemplateEmail({
           to: user.email,
@@ -216,7 +229,7 @@ export class AuthService {
             confirmationUrl,
             ...commonEmailTemplateData(),
           },
-          prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
+          prefLang,
         });
       }
 
@@ -279,6 +292,12 @@ export class AuthService {
 
     await user.save();
 
+    // When creator email is verified, mark isVerified: true on their store
+    await this.creatorStoreModel.updateOne(
+      { ownerId: user._id },
+      { $set: { isVerified: true, verifiedAt: new Date() } },
+    );
+
     if (user.email && user.isEmailVerified) {
       const prefLang = user?.preferredLang || PreferredLanguage.ARABIC;
       this.emailService.sendTemplateEmail({
@@ -319,6 +338,62 @@ export class AuthService {
       };
     }
 
+    const now = new Date();
+
+    // Rate-limiting 1: Short-term cooldown (60 seconds between clicks)
+    const COOLDOWN_SECONDS = 60;
+    if (user.lastVerificationEmailSentAt) {
+      const elapsedSeconds = Math.floor(
+        (now.getTime() - new Date(user.lastVerificationEmailSentAt).getTime()) /
+          1000,
+      );
+
+      if (elapsedSeconds < COOLDOWN_SECONDS) {
+        const remainingSeconds = COOLDOWN_SECONDS - elapsedSeconds;
+
+        throw new BadRequestException({
+          isSuccess: false,
+          message: getMessage('authentication_resendCooldown', lang).replace(
+            '{seconds}',
+            String(remainingSeconds),
+          ),
+          remainingSeconds,
+        });
+      }
+    }
+
+    // Rate-limiting 2: Long-term hourly cap (max 5 requests per hour)
+    const ONE_HOUR_MS = 60 * 60 * 1000;
+    const MAX_HOURLY_REQUESTS = 5;
+
+    if (
+      !user.verificationEmailHourStartedAt ||
+      now.getTime() - new Date(user.verificationEmailHourStartedAt).getTime() >
+        ONE_HOUR_MS
+    ) {
+      user.verificationEmailHourStartedAt = now;
+      user.verificationEmailHourlyCount = 1;
+    } else {
+      if ((user.verificationEmailHourlyCount ?? 0) >= MAX_HOURLY_REQUESTS) {
+        const remainingMinutes = Math.ceil(
+          (new Date(user.verificationEmailHourStartedAt).getTime() +
+            ONE_HOUR_MS -
+            now.getTime()) /
+            60000,
+        );
+        throw new BadRequestException({
+          isSuccess: false,
+          message: getMessage(
+            'authentication_resendHourlyLimitReached',
+            lang,
+          ).replace('{minutes}', String(remainingMinutes)),
+          remainingMinutes,
+        });
+      }
+      user.verificationEmailHourlyCount =
+        (user.verificationEmailHourlyCount ?? 0) + 1;
+    }
+
     const emailVerificationToken = randomBytes(32).toString('hex');
     const emailVerificationTokenExpires = new Date(
       Date.now() +
@@ -330,18 +405,28 @@ export class AuthService {
 
     user.emailVerificationToken = emailVerificationToken;
     user.emailVerificationTokenExpires = emailVerificationTokenExpires;
+    user.lastVerificationEmailSentAt = now;
 
     await user.save();
+
+    const prefLang =
+      (lang as PreferredLanguage) ||
+      user?.preferredLang ||
+      PreferredLanguage.ARABIC;
+    const isCreator = user.role === UserRole.CREATOR;
+    const confirmationUrl = isCreator
+      ? `${getAppUrl()}/${prefLang}/creators/verify-email?token=${emailVerificationToken}`
+      : `${getAppUrl()}/${prefLang}/verify-email?token=${emailVerificationToken}`;
 
     this.emailService.sendTemplateEmail({
       to: user.email,
       templateName: EmailTemplates.RESEND_VERIFICATION_EMAIL,
       templateData: {
         firstName: user.firstName,
-        confirmationUrl: `${getAppUrl()}/verify-email?token=${emailVerificationToken}`,
+        confirmationUrl,
         ...commonEmailTemplateData(),
       },
-      prefLang: user?.preferredLang || PreferredLanguage.ARABIC,
+      prefLang,
     });
 
     return {

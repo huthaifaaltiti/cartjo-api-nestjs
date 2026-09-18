@@ -14,6 +14,10 @@ import {
   RefreshToken,
   RefreshTokenSchema,
 } from '../../schemas/refresh-token.schema';
+import {
+  CreatorStore,
+  CreatorStoreSchema,
+} from '../../schemas/creatorStore.schema';
 import { AuthorizationModule } from '../authorization/authorization.module';
 import { PermissionModule } from '../permission/permission.module';
 
@@ -22,6 +26,7 @@ import { PermissionModule } from '../permission/permission.module';
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: RefreshToken.name, schema: RefreshTokenSchema },
+      { name: CreatorStore.name, schema: CreatorStoreSchema },
     ]),
     JwtModule.register({
       secret: process.env.JWT_ACCESS_SECRET,

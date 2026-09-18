@@ -28,6 +28,8 @@
   "authentication_tooManyFailedAttemptsAccountLocked": "تم قفل الحساب بسبب كثرة محاولات تسجيل الدخول الفاشلة.",
   "authentication_accountLockedTemporarily": "تم قفل حسابك مؤقتًا لمدة.",
   "authentication_emailAlreadyVerified": "بريدك الإلكتروني موثق بالفعل",
+  "authentication_resendCooldown": "يرجى الانتظار {seconds} ثانية قبل طلب رابط تأكيد جديد",
+  "authentication_resendHourlyLimitReached": "لقد وصلت إلى الحد الأقصى لطلبات تأكيد البريد (5 في الساعة). يرجى المحاولة بعد {minutes} دقيقة",
   "authentication_verificationEmailSent": "تم إرسال بريد التحقق إلى عنوانك",
   "authentication_invalidOrExpiredRefreshToken": "رمز التحديث غير صالح أو منتهي الصلاحية",
   "authentication_invalidRefreshToken": "رمز التحديث غير صالح",
@@ -355,7 +357,8 @@
   "creatorStore_incompleteProfileForReview": "ملف المتجر غير مكتمل ولا يمكن إرساله للمراجعة",
   "creatorStore_cannotSubmitFromCurrentStatus": "لا يمكن إرسال المتجر للمراجعة من حالته الحالية",
   "creatorStore_submittedForReviewSuccessfully": "تم إرسال المتجر للمراجعة بنجاح",
-  "creatorStore_storesRetrievedSuccessfully":"تم استرداد متاجر المبدعين بنجاح",
-  "creatorStore_storeCountsRetrievedSuccessfully":"تم استرداد إحصائيات متاجر المبدعين بنجاح",
-  "creatorStore_invalidStoreId": "المعرف غير صحيح"
+  "creatorStore_storesRetrievedSuccessfully": "تم استرداد متاجر المبدعين بنجاح",
+  "creatorStore_storeCountsRetrievedSuccessfully": "تم استرداد إحصائيات متاجر المبدعين بنجاح",
+  "creatorStore_invalidStoreId": "المعرف غير صحيح",
+  "creatorStore_emailMustBeVerifiedToSubmit": "يرجى تأكيد بريدك الإلكتروني قبل إرسال المتجر للمراجعة"
 }
